@@ -1,11 +1,15 @@
+import { Ionicons } from '@expo/vector-icons';
 import { Category } from '@/types';
+import { colors } from '@/theme/tokens';
 
-export const CATEGORIES: { key: Category; label: string; emoji: string }[] = [
-  { key: 'food', label: '맛집', emoji: '🍽️' },
-  { key: 'travel', label: '여행', emoji: '✈️' },
-  { key: 'fun', label: '놀거리', emoji: '🎉' },
-  { key: 'special', label: '특별한 장소', emoji: '💝' },
-  { key: 'none', label: '미분류', emoji: '📍' },
+type IoniconsName = React.ComponentProps<typeof Ionicons>['name'];
+
+export const CATEGORIES: { key: Category; label: string; icon: IoniconsName; color: string }[] = [
+  { key: 'food', label: '맛집', icon: 'restaurant-outline', color: colors.categoryFood },
+  { key: 'travel', label: '여행', icon: 'airplane-outline', color: colors.categoryTravel },
+  { key: 'fun', label: '놀거리', icon: 'game-controller-outline', color: colors.categoryFun },
+  { key: 'special', label: '특별한 장소', icon: 'heart', color: colors.categorySpecial },
+  { key: 'none', label: '미분류', icon: 'location-outline', color: colors.categoryNone },
 ];
 
 export const LIMITS = {

@@ -3,6 +3,7 @@ import { View, Text, StyleSheet, ScrollView, Image, TouchableOpacity, Alert } fr
 import { useRouter, useLocalSearchParams } from 'expo-router';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import * as ImagePicker from 'expo-image-picker';
+import { Ionicons } from '@expo/vector-icons';
 import { colors, typography, spacing, radius } from '@/theme/tokens';
 import { Button, IconButton } from '@/components/ui';
 import { DatePicker } from '@/components/common/DatePicker';
@@ -89,7 +90,7 @@ export default function EditVisitScreen() {
   return (
     <SafeAreaView style={styles.safe}>
       <View style={styles.header}>
-        <IconButton icon="✕" onPress={() => router.back()} />
+        <IconButton icon="close" onPress={() => router.back()} />
         <Text style={styles.headerTitle}>방문 기록 수정</Text>
         <TouchableOpacity onPress={() => setShowDeleteConfirm(true)}>
           <Text style={styles.deleteBtn}>삭제</Text>
@@ -103,14 +104,14 @@ export default function EditVisitScreen() {
           <Text style={styles.sectionLabel}>사진 ({imageUris.length})</Text>
           <ScrollView horizontal showsHorizontalScrollIndicator={false}>
             <TouchableOpacity style={styles.addImageBtn} onPress={pickImages}>
-              <Text style={styles.addImageIcon}>📷</Text>
+              <Ionicons name="camera-outline" size={24} color={colors.textTertiary} />
               <Text style={styles.addImageText}>추가</Text>
             </TouchableOpacity>
             {imageUris.map((uri, i) => (
               <View key={i} style={styles.imageThumbContainer}>
                 <Image source={{ uri }} style={styles.imageThumb} />
                 <TouchableOpacity style={styles.removeImageBtn} onPress={() => removeImage(i)}>
-                  <Text style={styles.removeImageIcon}>✕</Text>
+                  <Ionicons name="close" size={12} color={colors.white} />
                 </TouchableOpacity>
               </View>
             ))}
@@ -162,7 +163,6 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
     marginRight: spacing.sm,
   },
-  addImageIcon: { fontSize: 24 },
   addImageText: { ...typography.small, color: colors.textTertiary, marginTop: spacing.xs },
   imageThumbContainer: { marginRight: spacing.sm },
   imageThumb: {
@@ -182,7 +182,6 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     justifyContent: 'center',
   },
-  removeImageIcon: { color: colors.white, fontSize: 12, fontWeight: '700' },
   footer: {
     padding: spacing.xxl,
     borderTopWidth: 1,

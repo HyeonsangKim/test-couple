@@ -1,25 +1,28 @@
 import React from 'react';
 import { View, Text, StyleSheet } from 'react-native';
 import { Marker, Callout } from 'react-native-maps';
+import { Ionicons } from '@expo/vector-icons';
 import { Place } from '@/types';
 import { colors, typography, spacing, radius, shadow } from '@/theme/tokens';
+
+type IoniconsName = React.ComponentProps<typeof Ionicons>['name'];
 
 interface PlaceMarkerProps {
   place: Place;
   onPress: (place: Place) => void;
 }
 
-const getMarkerStyle = (place: Place) => {
+const getMarkerStyle = (place: Place): { bg: string; border: string; icon: IoniconsName } => {
   if (place.deleteRequest) {
-    return { bg: colors.deleteBg, border: colors.deleteRed, icon: '🗑️' };
+    return { bg: colors.deleteBg, border: colors.deleteRed, icon: 'trash-outline' };
   }
   switch (place.status) {
     case 'wishlist':
-      return { bg: '#FFE8F0', border: colors.markerWishlist, icon: '💗' };
+      return { bg: '#FFE8F0', border: colors.markerWishlist, icon: 'heart' };
     case 'visited':
-      return { bg: '#E8FFF0', border: colors.markerVisited, icon: '✅' };
+      return { bg: '#E8FFF0', border: colors.markerVisited, icon: 'checkmark-circle' };
     case 'orphan':
-      return { bg: '#F0F0F5', border: colors.markerOrphan, icon: '📍' };
+      return { bg: '#F0F0F5', border: colors.markerOrphan, icon: 'location' };
   }
 };
 
@@ -33,7 +36,7 @@ export const PlaceMarker: React.FC<PlaceMarkerProps> = ({ place, onPress }) => {
       tracksViewChanges={false}
     >
       <View style={[markerStyles.container, { backgroundColor: style.bg, borderColor: style.border }]}>
-        <Text style={markerStyles.icon}>{style.icon}</Text>
+        <Ionicons name={style.icon} size={18} color={style.border} />
       </View>
       <View style={markerStyles.arrow} />
       <Callout tooltip>
@@ -54,9 +57,6 @@ const markerStyles = StyleSheet.create({
     alignItems: 'center',
     justifyContent: 'center',
     ...shadow.sm,
-  },
-  icon: {
-    fontSize: 18,
   },
   arrow: {
     width: 0,

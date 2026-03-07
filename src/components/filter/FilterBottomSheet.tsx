@@ -21,7 +21,7 @@ export const FilterBottomSheet: React.FC<FilterBottomSheetProps> = ({ onClose })
 
   const categoryOptions: { key: Category | 'all'; label: string }[] = [
     { key: 'all', label: '전체' },
-    ...CATEGORIES.map((c) => ({ key: c.key, label: `${c.emoji} ${c.label}` })),
+    ...CATEGORIES.map((c) => ({ key: c.key, label: c.label })),
   ];
 
   return (

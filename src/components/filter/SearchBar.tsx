@@ -1,5 +1,6 @@
 import React from 'react';
-import { View, TextInput, StyleSheet, TouchableOpacity, Text } from 'react-native';
+import { View, TextInput, StyleSheet, TouchableOpacity } from 'react-native';
+import { Ionicons } from '@expo/vector-icons';
 import { colors, typography, spacing, radius, shadow } from '@/theme/tokens';
 
 interface SearchBarProps {
@@ -16,7 +17,7 @@ export const SearchBar: React.FC<SearchBarProps> = ({
   onClear,
 }) => (
   <View style={styles.container}>
-    <Text style={styles.icon}>🔍</Text>
+    <Ionicons name="search" size={16} color={colors.textTertiary} style={styles.icon} />
     <TextInput
       style={styles.input}
       value={value}
@@ -27,7 +28,7 @@ export const SearchBar: React.FC<SearchBarProps> = ({
     />
     {value.length > 0 && (
       <TouchableOpacity onPress={onClear} style={styles.clearBtn}>
-        <Text style={styles.clearIcon}>✕</Text>
+        <Ionicons name="close" size={16} color={colors.textTertiary} />
       </TouchableOpacity>
     )}
   </View>
@@ -44,7 +45,6 @@ const styles = StyleSheet.create({
     ...shadow.sm,
   },
   icon: {
-    fontSize: 16,
     marginRight: spacing.sm,
   },
   input: {
@@ -55,9 +55,5 @@ const styles = StyleSheet.create({
   },
   clearBtn: {
     padding: spacing.xs,
-  },
-  clearIcon: {
-    fontSize: 14,
-    color: colors.textTertiary,
   },
 });

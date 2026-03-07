@@ -2,6 +2,7 @@ import React, { useState } from 'react';
 import { View, Text, StyleSheet } from 'react-native';
 import { useRouter } from 'expo-router';
 import { SafeAreaView } from 'react-native-safe-area-context';
+import { Ionicons } from '@expo/vector-icons';
 import { colors, typography, spacing, radius } from '@/theme/tokens';
 import { Button, IconButton } from '@/components/ui';
 import { ConfirmModal } from '@/components/common/ConfirmModal';
@@ -52,13 +53,15 @@ export default function DisconnectScreen() {
   return (
     <SafeAreaView style={styles.safe}>
       <View style={styles.header}>
-        <IconButton icon="←" onPress={() => router.back()} />
+        <IconButton icon="chevron-back" onPress={() => router.back()} />
         <Text style={styles.headerTitle}>연결 해제</Text>
         <View style={{ width: 40 }} />
       </View>
 
       <View style={styles.content}>
-        <Text style={styles.warningIcon}>⚠️</Text>
+        <View style={styles.warningIconCircle}>
+          <Ionicons name="warning-outline" size={40} color={colors.warning} />
+        </View>
         <Text style={styles.title}>정말 연결을 해제하시겠어요?</Text>
         <Text style={styles.description}>
           연결을 해제하면 더 이상 같은 지도를 공유하지 않습니다.{'\n\n'}
@@ -119,7 +122,15 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     justifyContent: 'center',
   },
-  warningIcon: { fontSize: 56, marginBottom: spacing.xl },
+  warningIconCircle: {
+    width: 80,
+    height: 80,
+    borderRadius: 40,
+    backgroundColor: '#FFF3E0',
+    alignItems: 'center',
+    justifyContent: 'center',
+    marginBottom: spacing.xl,
+  },
   title: { ...typography.h2, color: colors.text, textAlign: 'center', marginBottom: spacing.lg },
   description: {
     ...typography.body,

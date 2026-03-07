@@ -2,6 +2,7 @@ import React, { useEffect, useState, useCallback } from 'react';
 import { View, Text, Image, StyleSheet, ScrollView, TouchableOpacity, Alert, KeyboardAvoidingView, Platform, Modal } from 'react-native';
 import { useLocalSearchParams, useRouter } from 'expo-router';
 import { SafeAreaView } from 'react-native-safe-area-context';
+import { Ionicons } from '@expo/vector-icons';
 import { colors, typography, spacing, radius, shadow } from '@/theme/tokens';
 import { Button, Chip, IconButton } from '@/components/ui';
 import { TextInput } from '@/components/ui';
@@ -107,7 +108,7 @@ export default function PlaceDetailScreen() {
   if (!place) {
     return (
       <SafeAreaView style={styles.safe}>
-        <EmptyState icon="❓" title="장소를 찾을 수 없어요" description="삭제되었거나 존재하지 않는 장소입니다." />
+        <EmptyState icon="help-circle-outline" title="장소를 찾을 수 없어요" description="삭제되었거나 존재하지 않는 장소입니다." />
       </SafeAreaView>
     );
   }
@@ -120,7 +121,7 @@ export default function PlaceDetailScreen() {
         <ScrollView style={styles.scroll} contentContainerStyle={styles.scrollContent}>
           {/* Header */}
           <View style={styles.header}>
-            <IconButton icon="←" onPress={() => router.back()} backgroundColor={colors.surface} />
+            <IconButton icon="chevron-back" onPress={() => router.back()} backgroundColor={colors.surface} />
             <View style={styles.headerActions}>
               {place.status === 'orphan' && (
                 <Button title="위시리스트에 추가" onPress={handleToggleWishlist} variant="outline" size="sm" />
@@ -133,16 +134,18 @@ export default function PlaceDetailScreen() {
             <Image source={{ uri: place.heroImageUri }} style={styles.heroImage} />
           ) : (
             <View style={[styles.heroImage, styles.heroPlaceholder]}>
-              <Text style={styles.heroPlaceholderText}>
-                {place.status === 'wishlist' ? '💗' : '📍'}
-              </Text>
+              <Ionicons
+                name={place.status === 'wishlist' ? 'heart' : 'location'}
+                size={56}
+                color={colors.primary}
+              />
             </View>
           )}
 
           {/* Delete Request Banner */}
           {gracePeriod.isActive && (
             <View style={styles.deleteBanner}>
-              <Text style={styles.deleteBannerIcon}>🗑️</Text>
+              <Ionicons name="trash-outline" size={24} color={colors.deleteRed} />
               <View style={styles.deleteBannerContent}>
                 <Text style={styles.deleteBannerText}>
                   삭제 요청됨 · {gracePeriod.remainingDays > 0 ? `${gracePeriod.remainingDays}일 후 삭제` : `${gracePeriod.remainingHours}시간 후 삭제`}
@@ -169,7 +172,7 @@ export default function PlaceDetailScreen() {
               <Chip label={STATUS_LABELS[place.status] ?? place.status} selected color={statusColor} size="sm" />
               <TouchableOpacity onPress={() => setShowCategoryPicker(true)}>
                 <Chip
-                  label={`${CATEGORIES.find((c) => c.key === place.category)?.emoji ?? ''} ${CATEGORY_LABELS[place.category] ?? '미분류'}`}
+                  label={CATEGORY_LABELS[place.category] ?? '미분류'}
                   size="sm"
                 />
               </TouchableOpacity>
@@ -254,7 +257,7 @@ export default function PlaceDetailScreen() {
             />
           </View>
           <IconButton
-            icon="↑"
+            icon="send"
             onPress={handleSendMessage}
             size={40}
             backgroundColor={newMessage.trim() ? colors.primary : colors.border}
@@ -285,7 +288,7 @@ export default function PlaceDetailScreen() {
                 style={[styles.categoryOption, place.category === cat.key && styles.categoryOptionActive]}
                 onPress={() => handleCategoryChange(cat.key)}
               >
-                <Text style={styles.categoryEmoji}>{cat.emoji}</Text>
+                <Ionicons name={cat.icon} size={20} color={place.category === cat.key ? colors.primary : cat.color} />
                 <Text style={[styles.categoryLabel, place.category === cat.key && styles.categoryLabelActive]}>{cat.label}</Text>
               </TouchableOpacity>
             ))}
@@ -322,7 +325,6 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
     backgroundColor: colors.primaryLight,
   },
-  heroPlaceholderText: { fontSize: 56 },
   deleteBanner: {
     flexDirection: 'row',
     alignItems: 'center',
@@ -333,7 +335,6 @@ const styles = StyleSheet.create({
     borderRadius: radius.md,
     gap: spacing.md,
   },
-  deleteBannerIcon: { fontSize: 24 },
   deleteBannerContent: { flex: 1 },
   deleteBannerText: { ...typography.captionBold, color: colors.deleteRed, marginBottom: spacing.xs },
   deleteBannerActions: { flexDirection: 'row', gap: spacing.sm },
@@ -386,7 +387,6 @@ const styles = StyleSheet.create({
     gap: spacing.md,
   },
   categoryOptionActive: { backgroundColor: colors.primaryLight },
-  categoryEmoji: { fontSize: 20 },
   categoryLabel: { ...typography.body, color: colors.text },
   categoryLabelActive: { fontWeight: '700', color: colors.primary },
 });

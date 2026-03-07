@@ -2,6 +2,7 @@ import React, { useState } from 'react';
 import { View, Text, StyleSheet, KeyboardAvoidingView, Platform, Alert } from 'react-native';
 import { useRouter } from 'expo-router';
 import { SafeAreaView } from 'react-native-safe-area-context';
+import { Ionicons } from '@expo/vector-icons';
 import { colors, typography, spacing } from '@/theme/tokens';
 import { Button, TextInput, IconButton } from '@/components/ui';
 import { useAuthStore } from '@/stores/useAuthStore';
@@ -50,10 +51,12 @@ export default function JoinMapScreen() {
         behavior={Platform.OS === 'ios' ? 'padding' : undefined}
       >
         <View style={styles.header}>
-          <IconButton icon="←" onPress={() => router.back()} />
+          <IconButton icon="chevron-back" onPress={() => router.back()} />
         </View>
         <View style={styles.container}>
-          <Text style={styles.emoji}>💌</Text>
+          <View style={styles.iconCircle}>
+            <Ionicons name="mail-outline" size={40} color={colors.secondary} />
+          </View>
           <Text style={styles.title}>초대받기</Text>
           <Text style={styles.description}>
             상대방에게 받은 초대 코드와{'\n'}비밀번호를 입력해주세요
@@ -113,8 +116,13 @@ const styles = StyleSheet.create({
     padding: spacing.xxl,
     alignItems: 'center',
   },
-  emoji: {
-    fontSize: 56,
+  iconCircle: {
+    width: 80,
+    height: 80,
+    borderRadius: 40,
+    backgroundColor: colors.secondaryLight,
+    alignItems: 'center',
+    justifyContent: 'center',
     marginBottom: spacing.lg,
   },
   title: {

@@ -2,6 +2,7 @@ import React, { useEffect } from 'react';
 import { View, Text, StyleSheet, FlatList } from 'react-native';
 import { useLocalSearchParams, useRouter } from 'expo-router';
 import { SafeAreaView } from 'react-native-safe-area-context';
+import { Ionicons } from '@expo/vector-icons';
 import { colors, typography, spacing, radius } from '@/theme/tokens';
 import { IconButton, Card, Chip } from '@/components/ui';
 import { EmptyState } from '@/components/common/EmptyState';
@@ -21,7 +22,7 @@ export default function SnapshotDetailScreen() {
   if (!currentSnapshot) {
     return (
       <SafeAreaView style={styles.safe}>
-        <EmptyState icon="📸" title="스냅샷을 찾을 수 없어요" description="" />
+        <EmptyState icon="camera-outline" title="스냅샷을 찾을 수 없어요" description="" />
       </SafeAreaView>
     );
   }
@@ -29,13 +30,13 @@ export default function SnapshotDetailScreen() {
   return (
     <SafeAreaView style={styles.safe}>
       <View style={styles.header}>
-        <IconButton icon="✕" onPress={() => router.back()} />
+        <IconButton icon="close" onPress={() => router.back()} />
         <Text style={styles.headerTitle}>스냅샷</Text>
         <View style={{ width: 40 }} />
       </View>
 
       <View style={styles.banner}>
-        <Text style={styles.bannerIcon}>📸</Text>
+        <Ionicons name="camera-outline" size={32} color={colors.secondary} style={styles.bannerIcon} />
         <Text style={styles.bannerText}>읽기 전용 스냅샷</Text>
         <Text style={styles.bannerDate}>{formatDate(currentSnapshot.createdAt)}</Text>
         <Text style={styles.bannerPartner}>{currentSnapshot.partnerNickname}와의 기록</Text>
@@ -63,7 +64,7 @@ export default function SnapshotDetailScreen() {
           </Card>
         )}
         ListEmptyComponent={
-          <EmptyState icon="📍" title="장소가 없어요" description="이 스냅샷에는 저장된 장소가 없습니다." />
+          <EmptyState icon="location-outline" title="장소가 없어요" description="이 스냅샷에는 저장된 장소가 없습니다." />
         }
       />
     </SafeAreaView>
@@ -86,7 +87,7 @@ const styles = StyleSheet.create({
     padding: spacing.xl,
     alignItems: 'center',
   },
-  bannerIcon: { fontSize: 32, marginBottom: spacing.sm },
+  bannerIcon: { marginBottom: spacing.sm },
   bannerText: { ...typography.captionBold, color: colors.secondary },
   bannerDate: { ...typography.body, color: colors.secondary, marginTop: spacing.xs },
   bannerPartner: { ...typography.caption, color: colors.secondary, marginTop: spacing.xs },

@@ -2,6 +2,7 @@ import React from 'react';
 import { View, Text, StyleSheet } from 'react-native';
 import { useRouter } from 'expo-router';
 import { SafeAreaView } from 'react-native-safe-area-context';
+import { Ionicons } from '@expo/vector-icons';
 import { colors, typography, spacing, radius, shadow } from '@/theme/tokens';
 import { Button } from '@/components/ui';
 
@@ -12,7 +13,12 @@ export default function WelcomeScreen() {
     <SafeAreaView style={styles.safe}>
       <View style={styles.container}>
         <View style={styles.heroSection}>
-          <Text style={styles.emoji}>🗺️💕</Text>
+          <View style={styles.heroIconContainer}>
+            <Ionicons name="map-outline" size={40} color={colors.primary} />
+            <View style={styles.heroHeartBadge}>
+              <Ionicons name="heart" size={16} color={colors.white} />
+            </View>
+          </View>
           <Text style={styles.title}>커플 지도</Text>
           <Text style={styles.subtitle}>
             둘만의 장소를 함께 기록하세요
@@ -63,9 +69,27 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     marginBottom: spacing.xxxxl,
   },
-  emoji: {
-    fontSize: 72,
+  heroIconContainer: {
+    width: 80,
+    height: 80,
+    borderRadius: 40,
+    backgroundColor: colors.primaryLight,
+    alignItems: 'center',
+    justifyContent: 'center',
     marginBottom: spacing.xl,
+  },
+  heroHeartBadge: {
+    position: 'absolute',
+    bottom: -2,
+    right: -2,
+    width: 28,
+    height: 28,
+    borderRadius: 14,
+    backgroundColor: colors.primary,
+    alignItems: 'center',
+    justifyContent: 'center',
+    borderWidth: 3,
+    borderColor: colors.background,
   },
   title: {
     ...typography.h1,

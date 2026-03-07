@@ -43,7 +43,7 @@ export default function InviteSettingsScreen() {
   return (
     <SafeAreaView style={styles.safe}>
       <View style={styles.header}>
-        <IconButton icon="←" onPress={() => router.back()} />
+        <IconButton icon="chevron-back" onPress={() => router.back()} />
         <Text style={styles.headerTitle}>초대 관리</Text>
         <View style={{ width: 40 }} />
       </View>

@@ -1,10 +1,13 @@
 import React from 'react';
 import { View, Text, Image, StyleSheet, TouchableOpacity } from 'react-native';
+import { Ionicons } from '@expo/vector-icons';
 import { Place } from '@/types';
 import { colors, typography, spacing, radius, shadow } from '@/theme/tokens';
 import { Chip } from '@/components/ui';
 import { CATEGORY_LABELS, STATUS_LABELS } from '@/constants';
 import { formatDate } from '@/utils/date';
+
+type IoniconsName = React.ComponentProps<typeof Ionicons>['name'];
 
 interface PlaceCardProps {
   place: Place;
@@ -12,9 +15,20 @@ interface PlaceCardProps {
   onPress: () => void;
 }
 
+const getStatusIcon = (status: string): { icon: IoniconsName; color: string } => {
+  switch (status) {
+    case 'wishlist':
+      return { icon: 'heart', color: colors.markerWishlist };
+    case 'visited':
+      return { icon: 'checkmark-circle', color: colors.markerVisited };
+    default:
+      return { icon: 'location', color: colors.markerOrphan };
+  }
+};
+
 export const PlaceCard: React.FC<PlaceCardProps> = ({ place, visitCount, onPress }) => {
   const statusColor = place.status === 'wishlist' ? colors.markerWishlist : place.status === 'visited' ? colors.markerVisited : colors.markerOrphan;
-  const statusIcon = place.status === 'wishlist' ? '💗' : place.status === 'visited' ? '✅' : '📍';
+  const statusInfo = getStatusIcon(place.status);
 
   return (
     <TouchableOpacity style={styles.card} onPress={onPress} activeOpacity={0.7}>
@@ -22,13 +36,13 @@ export const PlaceCard: React.FC<PlaceCardProps> = ({ place, visitCount, onPress
         <Image source={{ uri: place.heroImageUri }} style={styles.image} />
       ) : (
         <View style={[styles.image, styles.placeholder]}>
-          <Text style={styles.placeholderIcon}>{statusIcon}</Text>
+          <Ionicons name={statusInfo.icon} size={28} color={statusInfo.color} />
         </View>
       )}
       <View style={styles.content}>
         <View style={styles.nameRow}>
           <Text style={styles.name} numberOfLines={1}>{place.name}</Text>
-          {place.deleteRequest && <Text style={styles.trashIcon}>🗑️</Text>}
+          {place.deleteRequest && <Ionicons name="trash-outline" size={14} color={colors.deleteRed} style={styles.trashIcon} />}
         </View>
         <Text style={styles.address} numberOfLines={1}>{place.address}</Text>
         <View style={styles.metaRow}>
@@ -73,9 +87,6 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     justifyContent: 'center',
   },
-  placeholderIcon: {
-    fontSize: 28,
-  },
   content: {
     flex: 1,
     marginLeft: spacing.md,
@@ -91,7 +102,6 @@ const styles = StyleSheet.create({
     flex: 1,
   },
   trashIcon: {
-    fontSize: 14,
     marginLeft: spacing.xs,
   },
   address: {

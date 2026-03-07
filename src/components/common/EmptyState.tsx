@@ -1,10 +1,13 @@
 import React from 'react';
 import { View, Text, StyleSheet } from 'react-native';
+import { Ionicons } from '@expo/vector-icons';
 import { colors, typography, spacing } from '@/theme/tokens';
 import { Button } from '@/components/ui';
 
+type IoniconsName = React.ComponentProps<typeof Ionicons>['name'];
+
 interface EmptyStateProps {
-  icon: string;
+  icon: IoniconsName;
   title: string;
   description: string;
   actionLabel?: string;
@@ -13,7 +16,7 @@ interface EmptyStateProps {
 
 export const EmptyState: React.FC<EmptyStateProps> = ({ icon, title, description, actionLabel, onAction }) => (
   <View style={styles.container}>
-    <Text style={styles.icon}>{icon}</Text>
+    <Ionicons name={icon} size={56} color={colors.textTertiary} style={styles.icon} />
     <Text style={styles.title}>{title}</Text>
     <Text style={styles.description}>{description}</Text>
     {actionLabel && onAction && (
@@ -29,7 +32,6 @@ const styles = StyleSheet.create({
     padding: spacing.xxxxl,
   },
   icon: {
-    fontSize: 56,
     marginBottom: spacing.lg,
   },
   title: {

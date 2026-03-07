@@ -1,9 +1,12 @@
 import React from 'react';
-import { TouchableOpacity, Text, StyleSheet, ViewStyle } from 'react-native';
-import { colors, spacing, radius } from '@/theme/tokens';
+import { TouchableOpacity, StyleSheet, ViewStyle } from 'react-native';
+import { Ionicons } from '@expo/vector-icons';
+import { colors, spacing } from '@/theme/tokens';
+
+type IoniconsName = React.ComponentProps<typeof Ionicons>['name'];
 
 interface IconButtonProps {
-  icon: string;
+  icon: IoniconsName;
   onPress: () => void;
   size?: number;
   color?: string;
@@ -33,7 +36,7 @@ export const IconButton: React.FC<IconButtonProps> = ({
       style,
     ]}
   >
-    <Text style={{ fontSize: size * 0.5, color }}>{icon}</Text>
+    <Ionicons name={icon} size={size * 0.5} color={color} />
   </TouchableOpacity>
 );
 

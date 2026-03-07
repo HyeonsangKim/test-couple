@@ -2,6 +2,7 @@ import React, { useState } from 'react';
 import { View, Text, StyleSheet, KeyboardAvoidingView, Platform } from 'react-native';
 import { useRouter } from 'expo-router';
 import { SafeAreaView } from 'react-native-safe-area-context';
+import { Ionicons } from '@expo/vector-icons';
 import { colors, typography, spacing } from '@/theme/tokens';
 import { Button, TextInput, IconButton } from '@/components/ui';
 import { useAuthStore } from '@/stores/useAuthStore';
@@ -34,10 +35,12 @@ export default function CreateMapScreen() {
         behavior={Platform.OS === 'ios' ? 'padding' : undefined}
       >
         <View style={styles.header}>
-          <IconButton icon="←" onPress={() => router.back()} />
+          <IconButton icon="chevron-back" onPress={() => router.back()} />
         </View>
         <View style={styles.container}>
-          <Text style={styles.emoji}>🗺️</Text>
+          <View style={styles.iconCircle}>
+            <Ionicons name="map-outline" size={40} color={colors.primary} />
+          </View>
           <Text style={styles.title}>새 지도 만들기</Text>
           <Text style={styles.description}>
             두 사람의 공유 지도에 이름을 지어주세요
@@ -81,8 +84,13 @@ const styles = StyleSheet.create({
     padding: spacing.xxl,
     alignItems: 'center',
   },
-  emoji: {
-    fontSize: 56,
+  iconCircle: {
+    width: 80,
+    height: 80,
+    borderRadius: 40,
+    backgroundColor: colors.primaryLight,
+    alignItems: 'center',
+    justifyContent: 'center',
     marginBottom: spacing.lg,
   },
   title: {

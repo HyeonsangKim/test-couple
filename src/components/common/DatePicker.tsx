@@ -1,5 +1,6 @@
 import React, { useState } from 'react';
-import { View, Text, StyleSheet, TouchableOpacity, Modal, Platform } from 'react-native';
+import { View, Text, StyleSheet, TouchableOpacity, Modal } from 'react-native';
+import { Ionicons } from '@expo/vector-icons';
 import { colors, typography, spacing, radius } from '@/theme/tokens';
 import { format, parseISO, addMonths, subMonths, getDaysInMonth, startOfMonth, getDay } from 'date-fns';
 
@@ -38,19 +39,19 @@ export const DatePicker: React.FC<DatePickerProps> = ({ value, onChange, label }
         <Text style={[styles.triggerText, !value && styles.placeholder]}>
           {value ? format(parseISO(value), 'yyyy년 MM월 dd일') : '날짜를 선택해주세요'}
         </Text>
-        <Text style={styles.calIcon}>📅</Text>
+        <Ionicons name="calendar-outline" size={18} color={colors.textSecondary} />
       </TouchableOpacity>
 
       <Modal visible={visible} transparent animationType="fade">
         <TouchableOpacity style={styles.overlay} activeOpacity={1} onPress={() => setVisible(false)}>
           <TouchableOpacity activeOpacity={1} style={styles.calendar}>
             <View style={styles.header}>
-              <TouchableOpacity onPress={() => setViewDate(subMonths(viewDate, 1))}>
-                <Text style={styles.navBtn}>◀</Text>
+              <TouchableOpacity onPress={() => setViewDate(subMonths(viewDate, 1))} style={styles.navBtn}>
+                <Ionicons name="chevron-back" size={20} color={colors.primary} />
               </TouchableOpacity>
               <Text style={styles.monthYear}>{year}년 {month + 1}월</Text>
-              <TouchableOpacity onPress={() => setViewDate(addMonths(viewDate, 1))}>
-                <Text style={styles.navBtn}>▶</Text>
+              <TouchableOpacity onPress={() => setViewDate(addMonths(viewDate, 1))} style={styles.navBtn}>
+                <Ionicons name="chevron-forward" size={20} color={colors.primary} />
               </TouchableOpacity>
             </View>
             <View style={styles.weekRow}>
@@ -114,9 +115,6 @@ const styles = StyleSheet.create({
   placeholder: {
     color: colors.textTertiary,
   },
-  calIcon: {
-    fontSize: 18,
-  },
   overlay: {
     flex: 1,
     backgroundColor: colors.overlay,
@@ -137,8 +135,6 @@ const styles = StyleSheet.create({
     marginBottom: spacing.lg,
   },
   navBtn: {
-    fontSize: 16,
-    color: colors.primary,
     padding: spacing.sm,
   },
   monthYear: {
