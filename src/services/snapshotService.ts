@@ -1,44 +1,49 @@
 import { delay } from '@/mock/delay';
-import { MapSnapshot, Place, VisitRecord, ThreadMessage } from '@/types';
+import { Snapshot, Place, Visit, VisitImage, ThreadMessage } from '@/types';
 
-let snapshots: MapSnapshot[] = [];
+let snapshots: Snapshot[] = [];
 
 export const snapshotService = {
   createSnapshot: async (
-    originalMapId: string,
-    ownerId: string,
-    partnerNickname: string,
+    sourceMapId: string,
+    partnerUserId: string,
     places: Place[],
-    visits: VisitRecord[],
-    threads: ThreadMessage[]
-  ): Promise<MapSnapshot> => {
+    visits: Visit[],
+    visitImages: VisitImage[],
+    threadMessages: ThreadMessage[]
+  ): Promise<Snapshot> => {
     await delay(500);
-    const snapshot: MapSnapshot = {
-      id: `snapshot_${Date.now()}`,
-      originalMapId,
-      ownerId,
-      partnerNickname,
+    const snapshot: Snapshot = {
+      snapshotId: `snapshot_${Date.now()}`,
+      sourceMapId,
+      partnerUserId,
       places: [...places],
       visits: [...visits],
-      threads: [...threads],
+      visitImages: [...visitImages],
+      threadMessages: [...threadMessages],
       createdAt: new Date().toISOString(),
     };
     snapshots = [...snapshots, snapshot];
     return snapshot;
   },
 
-  getSnapshots: async (ownerId: string): Promise<MapSnapshot[]> => {
+  getSnapshots: async (): Promise<Snapshot[]> => {
     await delay(200);
-    return snapshots.filter((s) => s.ownerId === ownerId);
+    return [...snapshots];
   },
 
-  getSnapshotById: async (id: string): Promise<MapSnapshot | null> => {
+  getSnapshotById: async (snapshotId: string): Promise<Snapshot | null> => {
     await delay(200);
-    return snapshots.find((s) => s.id === id) ?? null;
+    return snapshots.find((s) => s.snapshotId === snapshotId) ?? null;
   },
 
-  deleteSnapshot: async (id: string): Promise<void> => {
+  getSnapshotByPartner: async (partnerUserId: string): Promise<Snapshot | null> => {
     await delay(200);
-    snapshots = snapshots.filter((s) => s.id !== id);
+    return snapshots.find((s) => s.partnerUserId === partnerUserId) ?? null;
+  },
+
+  deleteSnapshot: async (snapshotId: string): Promise<void> => {
+    await delay(200);
+    snapshots = snapshots.filter((s) => s.snapshotId !== snapshotId);
   },
 };

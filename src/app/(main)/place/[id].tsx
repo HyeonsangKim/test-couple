@@ -1,24 +1,22 @@
-import React, { useEffect, useState, useCallback } from 'react';
-import { View, Text, Image, StyleSheet, ScrollView, TouchableOpacity, Alert, KeyboardAvoidingView, Platform, Modal } from 'react-native';
+import React, { useEffect, useState } from 'react';
+import {
+  View, Text, Image, StyleSheet, ScrollView, TouchableOpacity, Alert,
+  KeyboardAvoidingView, Platform, Modal, TextInput as RNTextInput,
+} from 'react-native';
 import { useLocalSearchParams, useRouter } from 'expo-router';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { Ionicons } from '@expo/vector-icons';
-import { colors, typography, spacing, radius, shadow } from '@/theme/tokens';
-import { Button, Chip, IconButton } from '@/components/ui';
-import { TextInput } from '@/components/ui';
-import { VisitRecordCard } from '@/components/place/VisitRecordCard';
-import { ThreadMessageComponent } from '@/components/place/ThreadMessage';
-import { ImageGallery } from '@/components/place/ImageGallery';
+import { colors, typography, spacing, radius, shadow, layout } from '@/theme/tokens';
+import { Button, Chip, IconButton, Card } from '@/components/ui';
 import { ConfirmModal } from '@/components/common/ConfirmModal';
-import { EmptyState } from '@/components/common/EmptyState';
 import { usePlaceStore } from '@/stores/usePlaceStore';
 import { useVisitStore } from '@/stores/useVisitStore';
 import { useThreadStore } from '@/stores/useThreadStore';
 import { useAuthStore } from '@/stores/useAuthStore';
 import { useDeleteGracePeriod } from '@/hooks/useDeleteGracePeriod';
-import { Category, PlaceStatus } from '@/types';
+import { PlaceCategory } from '@/types';
 import { CATEGORIES, STATUS_LABELS, CATEGORY_LABELS, LIMITS } from '@/constants';
-import { formatDate, getRemainingDays } from '@/utils/date';
+import { formatDate, formatRelative } from '@/utils/date';
 import { validateThreadMessage } from '@/utils/validation';
 import { CURRENT_USER_ID } from '@/mock/data';
 
@@ -26,15 +24,16 @@ export default function PlaceDetailScreen() {
   const { id } = useLocalSearchParams<{ id: string }>();
   const router = useRouter();
 
-  const place = usePlaceStore((s) => s.places.find((p) => p.id === id) ?? null);
+  const place = usePlaceStore((s) => s.places.find((p) => p.placeId === id) ?? null);
   const updatePlace = usePlaceStore((s) => s.updatePlace);
   const requestDelete = usePlaceStore((s) => s.requestDelete);
   const cancelDelete = usePlaceStore((s) => s.cancelDelete);
   const approveDelete = usePlaceStore((s) => s.approveDelete);
 
-  const { placeVisits, loadVisitsForPlace } = useVisitStore();
+  const { placeVisits, placeImages, loadVisitsForPlace, loadImagesForPlace } = useVisitStore();
   const { messages, loadThread, addMessage, deleteMessage } = useThreadStore();
   const currentUser = useAuthStore((s) => s.currentUser);
+  const getUserById = useAuthStore((s) => s.getUserById);
 
   const [newMessage, setNewMessage] = useState('');
   const [showDeleteConfirm, setShowDeleteConfirm] = useState(false);
@@ -45,11 +44,12 @@ export default function PlaceDetailScreen() {
   useEffect(() => {
     if (id) {
       loadVisitsForPlace(id);
+      loadImagesForPlace(id);
       loadThread(id);
     }
   }, [id]);
 
-  const allImageUris = placeVisits.flatMap((v) => v.imageUris);
+  const allImageUris = placeImages.map((img) => img.uri);
 
   const handleSendMessage = async () => {
     const error = validateThreadMessage(newMessage);
@@ -58,8 +58,12 @@ export default function PlaceDetailScreen() {
       return;
     }
     if (!currentUser || !id) return;
-    await addMessage({ placeId: id, authorId: currentUser.id, content: newMessage.trim() });
-    setNewMessage('');
+    try {
+      await addMessage({ placeId: id, authorUserId: currentUser.userId, body: newMessage.trim() });
+      setNewMessage('');
+    } catch {
+      Alert.alert('오류', '메시지 전송에 실패했습니다.');
+    }
   };
 
   const handleDeleteMessage = (msgId: string) => {
@@ -71,7 +75,7 @@ export default function PlaceDetailScreen() {
 
   const handleRequestDelete = () => {
     if (!currentUser || !id) return;
-    requestDelete(id, currentUser.id);
+    requestDelete(id, currentUser.userId);
     setShowDeleteConfirm(false);
   };
 
@@ -83,23 +87,18 @@ export default function PlaceDetailScreen() {
         text: '삭제',
         style: 'destructive',
         onPress: async () => {
-          await approveDelete(id);
-          router.back();
+          try {
+            await approveDelete(id);
+            router.back();
+          } catch {
+            Alert.alert('오류', '삭제에 실패했습니다.');
+          }
         },
       },
     ]);
   };
 
-  const handleToggleWishlist = () => {
-    if (!id || !place) return;
-    if (place.status === 'wishlist') {
-      // Can't remove from wishlist without adding a visit
-    } else if (place.status === 'orphan') {
-      updatePlace(id, { status: 'wishlist' });
-    }
-  };
-
-  const handleCategoryChange = (cat: Category) => {
+  const handleCategoryChange = (cat: PlaceCategory) => {
     if (!id) return;
     updatePlace(id, { category: cat, categoryManual: true });
     setShowCategoryPicker(false);
@@ -108,85 +107,132 @@ export default function PlaceDetailScreen() {
   if (!place) {
     return (
       <SafeAreaView style={styles.safe}>
-        <EmptyState icon="help-circle-outline" title="장소를 찾을 수 없어요" description="삭제되었거나 존재하지 않는 장소입니다." />
+        <View style={styles.emptyContainer}>
+          <Ionicons name="help-circle-outline" size={56} color={colors.text.tertiary} />
+          <Text style={styles.emptyTitle}>장소를 찾을 수 없어요</Text>
+          <Text style={styles.emptyDesc}>삭제되었거나 존재하지 않는 장소입니다.</Text>
+          <Button title="뒤로 가기" onPress={() => router.back()} variant="primary" size="md" style={styles.emptyBtn} />
+        </View>
       </SafeAreaView>
     );
   }
 
-  const statusColor = place.status === 'wishlist' ? colors.markerWishlist : place.status === 'visited' ? colors.markerVisited : colors.markerOrphan;
+  const statusColor =
+    place.status === 'wishlist'
+      ? colors.marker.wishlist
+      : place.status === 'visited'
+        ? colors.marker.visited
+        : colors.marker.orphan;
+
+  // Find hero image URI from placeImages
+  const heroImage = place.heroImageId
+    ? placeImages.find((img) => img.imageId === place.heroImageId)
+    : null;
 
   return (
-    <SafeAreaView style={styles.safe}>
+    <SafeAreaView style={styles.safe} edges={['top']}>
       <KeyboardAvoidingView style={{ flex: 1 }} behavior={Platform.OS === 'ios' ? 'padding' : undefined}>
         <ScrollView style={styles.scroll} contentContainerStyle={styles.scrollContent}>
           {/* Header */}
           <View style={styles.header}>
-            <IconButton icon="chevron-back" onPress={() => router.back()} backgroundColor={colors.surface} />
+            <IconButton
+              icon="chevron-back"
+              onPress={() => router.back()}
+              size={40}
+              backgroundColor={colors.surface.primary}
+              color={colors.text.primary}
+            />
             <View style={styles.headerActions}>
               {place.status === 'orphan' && (
-                <Button title="위시리스트에 추가" onPress={handleToggleWishlist} variant="outline" size="sm" />
+                <Button
+                  title="위시리스트에 추가"
+                  onPress={() => updatePlace(place.placeId, { status: 'wishlist' })}
+                  variant="outline"
+                  size="sm"
+                />
               )}
             </View>
           </View>
 
           {/* Hero Image */}
-          {place.heroImageUri ? (
-            <Image source={{ uri: place.heroImageUri }} style={styles.heroImage} />
+          {heroImage ? (
+            <Image source={{ uri: heroImage.uri }} style={styles.heroImage} />
+          ) : allImageUris.length > 0 ? (
+            <Image source={{ uri: allImageUris[0] }} style={styles.heroImage} />
           ) : (
             <View style={[styles.heroImage, styles.heroPlaceholder]}>
               <Ionicons
                 name={place.status === 'wishlist' ? 'heart' : 'location'}
                 size={56}
-                color={colors.primary}
+                color={colors.text.tertiary}
               />
             </View>
           )}
 
           {/* Delete Request Banner */}
           {gracePeriod.isActive && (
-            <View style={styles.deleteBanner}>
-              <Ionicons name="trash-outline" size={24} color={colors.deleteRed} />
-              <View style={styles.deleteBannerContent}>
-                <Text style={styles.deleteBannerText}>
-                  삭제 요청됨 · {gracePeriod.remainingDays > 0 ? `${gracePeriod.remainingDays}일 후 삭제` : `${gracePeriod.remainingHours}시간 후 삭제`}
-                </Text>
-                <View style={styles.deleteBannerActions}>
-                  {place.deleteRequest?.requestedBy === CURRENT_USER_ID ? (
-                    <Button title="요청 취소" onPress={() => cancelDelete(place.id)} variant="ghost" size="sm" />
-                  ) : (
-                    <>
-                      <Button title="승인" onPress={handleApproveDelete} variant="danger" size="sm" />
-                      <Button title="거절" onPress={() => cancelDelete(place.id)} variant="ghost" size="sm" />
-                    </>
-                  )}
+            <Card style={styles.deleteBanner}>
+              <View style={styles.deleteBannerRow}>
+                <Ionicons name="trash-outline" size={24} color={colors.accent.danger} />
+                <View style={styles.deleteBannerContent}>
+                  <Text style={styles.deleteBannerText}>
+                    삭제 요청됨 ·{' '}
+                    {gracePeriod.remainingDays > 0
+                      ? `${gracePeriod.remainingDays}일 후 삭제`
+                      : `${gracePeriod.remainingHours}시간 후 삭제`}
+                  </Text>
+                  <View style={styles.deleteBannerActions}>
+                    {place.deleteRequest?.requestedByUserId === CURRENT_USER_ID ? (
+                      <Button
+                        title="요청 취소"
+                        onPress={() => cancelDelete(place.placeId)}
+                        variant="ghost"
+                        size="sm"
+                      />
+                    ) : (
+                      <>
+                        <Button title="승인" onPress={handleApproveDelete} variant="danger" size="sm" />
+                        <Button
+                          title="거절"
+                          onPress={() => cancelDelete(place.placeId)}
+                          variant="ghost"
+                          size="sm"
+                        />
+                      </>
+                    )}
+                  </View>
                 </View>
               </View>
-            </View>
+            </Card>
           )}
 
           {/* Place Info */}
           <View style={styles.infoSection}>
             <Text style={styles.placeName}>{place.name}</Text>
-            <Text style={styles.placeAddress}>{place.address}</Text>
+            {place.addressText && (
+              <Text style={styles.placeAddress}>{place.addressText}</Text>
+            )}
             <View style={styles.chipRow}>
               <Chip label={STATUS_LABELS[place.status] ?? place.status} selected color={statusColor} size="sm" />
               <TouchableOpacity onPress={() => setShowCategoryPicker(true)}>
-                <Chip
-                  label={CATEGORY_LABELS[place.category] ?? '미분류'}
-                  size="sm"
-                />
+                <Chip label={CATEGORY_LABELS[place.category] ?? '미분류'} size="sm" />
               </TouchableOpacity>
-              {place.type === 'custom' && <Chip label="커스텀 핀" size="sm" />}
+              {place.sourceType === 'custom_pin' && <Chip label="커스텀 핀" size="sm" />}
             </View>
           </View>
 
-          {/* Visit Records */}
+          {/* Visit Summary */}
           <View style={styles.section}>
             <View style={styles.sectionHeader}>
               <Text style={styles.sectionTitle}>방문 기록 ({placeVisits.length})</Text>
               <Button
                 title="+ 기록 추가"
-                onPress={() => router.push({ pathname: '/(main)/visit/create', params: { placeId: id } })}
+                onPress={() =>
+                  router.push({
+                    pathname: '/(main)/visit/form',
+                    params: { placeId: id },
+                  })
+                }
                 variant="ghost"
                 size="sm"
               />
@@ -194,42 +240,81 @@ export default function PlaceDetailScreen() {
             {placeVisits.length === 0 ? (
               <Text style={styles.emptyText}>아직 방문 기록이 없어요</Text>
             ) : (
-              placeVisits.map((visit, index) => (
-                <VisitRecordCard
-                  key={visit.id}
-                  visit={visit}
-                  visitNumber={placeVisits.length - index}
-                  onPress={() => router.push(`/(main)/visit/${visit.id}`)}
-                />
-              ))
+              placeVisits.map((visit, index) => {
+                const author = getUserById(visit.createdByUserId);
+                return (
+                  <TouchableOpacity
+                    key={visit.visitId}
+                    style={styles.visitCard}
+                    activeOpacity={0.7}
+                    onPress={() =>
+                      router.push({
+                        pathname: '/(main)/visit/form',
+                        params: { visitId: visit.visitId, placeId: id },
+                      })
+                    }
+                  >
+                    <View style={styles.visitHeader}>
+                      <View style={styles.visitDateRow}>
+                        <Text style={styles.visitDate}>{formatDate(visit.visitDate)}</Text>
+                        {placeVisits.length > 1 && (
+                          <View style={styles.visitBadge}>
+                            <Text style={styles.visitBadgeText}>{placeVisits.length - index}번째</Text>
+                          </View>
+                        )}
+                      </View>
+                      <Text style={styles.visitAuthor}>{author?.nickname ?? '알 수 없음'}</Text>
+                    </View>
+                  </TouchableOpacity>
+                );
+              })
             )}
           </View>
 
           {/* Image Gallery */}
           {allImageUris.length > 0 && (
             <View style={styles.section}>
-              <ImageGallery imageUris={allImageUris} />
+              <Text style={styles.sectionTitle}>사진 모아보기 ({allImageUris.length})</Text>
+              <View style={styles.imageGrid}>
+                {allImageUris.map((uri, index) => (
+                  <Image key={`img_${index}`} source={{ uri }} style={styles.gridImage} />
+                ))}
+              </View>
             </View>
           )}
 
           {/* Thread */}
           <View style={styles.section}>
-            <Text style={styles.sectionTitle}>공유 스레드</Text>
+            <Text style={styles.sectionTitle}>공유 메모</Text>
             {messages.length === 0 ? (
               <Text style={styles.emptyText}>첫 번째 메모를 남겨보세요</Text>
             ) : (
-              messages.map((msg) => (
-                <ThreadMessageComponent
-                  key={msg.id}
-                  message={msg}
-                  onEdit={msg.authorId === CURRENT_USER_ID ? () => {} : undefined}
-                  onDelete={msg.authorId === CURRENT_USER_ID ? () => handleDeleteMessage(msg.id) : undefined}
-                />
-              ))
+              messages.map((msg) => {
+                const author = getUserById(msg.authorUserId);
+                const isMine = msg.authorUserId === CURRENT_USER_ID;
+                return (
+                  <View key={msg.messageId} style={[styles.msgRow, isMine && styles.msgRowMine]}>
+                    <View style={[styles.msgBubble, isMine ? styles.msgBubbleMine : styles.msgBubblePartner]}>
+                      {!isMine && (
+                        <Text style={styles.msgAuthor}>{author?.nickname ?? '?'}</Text>
+                      )}
+                      <Text style={styles.msgBody}>{msg.body}</Text>
+                      <View style={styles.msgMeta}>
+                        <Text style={styles.msgTime}>{formatRelative(msg.createdAt)}</Text>
+                        {isMine && (
+                          <TouchableOpacity onPress={() => handleDeleteMessage(msg.messageId)}>
+                            <Text style={styles.msgDelete}>삭제</Text>
+                          </TouchableOpacity>
+                        )}
+                      </View>
+                    </View>
+                  </View>
+                );
+              })
             )}
           </View>
 
-          {/* Delete Place Button */}
+          {/* Delete Place */}
           {!gracePeriod.isActive && (
             <View style={styles.section}>
               <Button
@@ -237,32 +322,36 @@ export default function PlaceDetailScreen() {
                 onPress={() => setShowDeleteConfirm(true)}
                 variant="ghost"
                 size="sm"
-                textStyle={{ color: colors.deleteRed }}
+                textStyle={{ color: colors.accent.danger }}
               />
             </View>
           )}
         </ScrollView>
 
-        {/* Message Input */}
+        {/* Message Input Bar */}
         <View style={styles.inputBar}>
           <View style={styles.inputWrapper}>
-            <TextInput
+            <RNTextInput
+              style={styles.messageInput}
               value={newMessage}
               onChangeText={setNewMessage}
               placeholder="메모를 남겨보세요..."
+              placeholderTextColor={colors.text.tertiary}
               maxLength={LIMITS.MAX_THREAD_MESSAGE_LENGTH}
               multiline
-              containerStyle={{ flex: 1 }}
-              style={styles.messageInput}
             />
           </View>
-          <IconButton
-            icon="send"
+          <TouchableOpacity
+            style={[styles.sendBtn, newMessage.trim() ? styles.sendBtnActive : null]}
             onPress={handleSendMessage}
-            size={40}
-            backgroundColor={newMessage.trim() ? colors.primary : colors.border}
-            color={newMessage.trim() ? colors.white : colors.textTertiary}
-          />
+            disabled={!newMessage.trim()}
+          >
+            <Ionicons
+              name="send"
+              size={18}
+              color={newMessage.trim() ? colors.text.inverse : colors.text.tertiary}
+            />
+          </TouchableOpacity>
         </View>
       </KeyboardAvoidingView>
 
@@ -279,20 +368,38 @@ export default function PlaceDetailScreen() {
 
       {/* Category Picker Modal */}
       <Modal visible={showCategoryPicker} transparent animationType="fade">
-        <TouchableOpacity style={styles.modalOverlay} activeOpacity={1} onPress={() => setShowCategoryPicker(false)}>
-          <View style={styles.categoryPicker}>
+        <TouchableOpacity
+          style={styles.modalOverlay}
+          activeOpacity={1}
+          onPress={() => setShowCategoryPicker(false)}
+        >
+          <TouchableOpacity activeOpacity={1} style={styles.categoryPicker}>
             <Text style={styles.categoryPickerTitle}>카테고리 변경</Text>
             {CATEGORIES.map((cat) => (
               <TouchableOpacity
                 key={cat.key}
-                style={[styles.categoryOption, place.category === cat.key && styles.categoryOptionActive]}
+                style={[
+                  styles.categoryOption,
+                  place.category === cat.key && styles.categoryOptionActive,
+                ]}
                 onPress={() => handleCategoryChange(cat.key)}
               >
-                <Ionicons name={cat.icon} size={20} color={place.category === cat.key ? colors.primary : cat.color} />
-                <Text style={[styles.categoryLabel, place.category === cat.key && styles.categoryLabelActive]}>{cat.label}</Text>
+                <Ionicons
+                  name={cat.icon}
+                  size={20}
+                  color={place.category === cat.key ? colors.accent.primary : cat.color}
+                />
+                <Text
+                  style={[
+                    styles.categoryLabel,
+                    place.category === cat.key && styles.categoryLabelActive,
+                  ]}
+                >
+                  {cat.label}
+                </Text>
               </TouchableOpacity>
             ))}
-          </View>
+          </TouchableOpacity>
         </TouchableOpacity>
       </Modal>
     </SafeAreaView>
@@ -300,93 +407,215 @@ export default function PlaceDetailScreen() {
 }
 
 const styles = StyleSheet.create({
-  safe: { flex: 1, backgroundColor: colors.background },
+  safe: { flex: 1, backgroundColor: colors.bg.canvas },
+  emptyContainer: {
+    flex: 1,
+    alignItems: 'center',
+    justifyContent: 'center',
+    padding: spacing[10],
+  },
+  emptyTitle: { ...typography.heading.m, color: colors.text.primary, marginTop: spacing[4], marginBottom: spacing[2] },
+  emptyDesc: { ...typography.body.m, color: colors.text.secondary, textAlign: 'center', marginBottom: spacing[6] },
+  emptyBtn: { borderRadius: radius.pill },
   scroll: { flex: 1 },
   scrollContent: { paddingBottom: 100 },
   header: {
     flexDirection: 'row',
     justifyContent: 'space-between',
     alignItems: 'center',
-    padding: spacing.lg,
+    paddingHorizontal: layout.screenPaddingH,
+    paddingVertical: spacing[2],
     position: 'absolute',
     top: 0,
     left: 0,
     right: 0,
     zIndex: 10,
   },
-  headerActions: { flexDirection: 'row', gap: spacing.sm },
+  headerActions: { flexDirection: 'row', gap: spacing[2] },
   heroImage: {
     width: '100%',
     height: 240,
-    backgroundColor: colors.border,
+    backgroundColor: colors.surface.tertiary,
   },
   heroPlaceholder: {
     alignItems: 'center',
     justifyContent: 'center',
-    backgroundColor: colors.primaryLight,
   },
   deleteBanner: {
+    marginHorizontal: layout.screenPaddingH,
+    marginTop: spacing[3],
+    backgroundColor: colors.status.deleteBg,
+    borderWidth: 1,
+    borderColor: colors.accent.danger,
+  },
+  deleteBannerRow: {
     flexDirection: 'row',
     alignItems: 'center',
-    backgroundColor: colors.deleteBg,
-    padding: spacing.md,
-    marginHorizontal: spacing.xl,
-    marginTop: spacing.md,
-    borderRadius: radius.md,
-    gap: spacing.md,
+    gap: spacing[3],
   },
   deleteBannerContent: { flex: 1 },
-  deleteBannerText: { ...typography.captionBold, color: colors.deleteRed, marginBottom: spacing.xs },
-  deleteBannerActions: { flexDirection: 'row', gap: spacing.sm },
-  infoSection: { padding: spacing.xl },
-  placeName: { ...typography.h2, color: colors.text, marginBottom: spacing.xs },
-  placeAddress: { ...typography.body, color: colors.textSecondary, marginBottom: spacing.md },
-  chipRow: { flexDirection: 'row', flexWrap: 'wrap', gap: spacing.sm },
-  section: { paddingHorizontal: spacing.xl, marginBottom: spacing.xl },
+  deleteBannerText: {
+    ...typography.caption,
+    color: colors.accent.danger,
+    fontWeight: '600',
+    marginBottom: spacing[1],
+  },
+  deleteBannerActions: { flexDirection: 'row', gap: spacing[2] },
+  infoSection: { padding: layout.screenPaddingH, paddingTop: spacing[4] },
+  placeName: { ...typography.heading.l, color: colors.text.primary, marginBottom: spacing[1] },
+  placeAddress: { ...typography.body.m, color: colors.text.secondary, marginBottom: spacing[3] },
+  chipRow: { flexDirection: 'row', flexWrap: 'wrap', gap: spacing[2] },
+  section: { paddingHorizontal: layout.screenPaddingH, marginBottom: layout.sectionGap },
   sectionHeader: {
     flexDirection: 'row',
     justifyContent: 'space-between',
     alignItems: 'center',
-    marginBottom: spacing.md,
+    marginBottom: spacing[3],
   },
-  sectionTitle: { ...typography.subtitle, color: colors.text },
-  emptyText: { ...typography.body, color: colors.textTertiary, textAlign: 'center', paddingVertical: spacing.xl },
+  sectionTitle: { ...typography.title.l, color: colors.text.primary },
+  emptyText: {
+    ...typography.body.m,
+    color: colors.text.tertiary,
+    textAlign: 'center',
+    paddingVertical: spacing[6],
+  },
+  visitCard: {
+    backgroundColor: colors.surface.primary,
+    borderRadius: radius.md,
+    padding: spacing[3],
+    marginBottom: spacing[2],
+    borderWidth: 1,
+    borderColor: colors.border.soft,
+  },
+  visitHeader: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+  },
+  visitDateRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: spacing[2],
+  },
+  visitDate: { ...typography.title.m, color: colors.text.primary },
+  visitBadge: {
+    backgroundColor: colors.surface.tertiary,
+    borderRadius: radius.pill,
+    paddingHorizontal: spacing[2],
+    paddingVertical: 2,
+  },
+  visitBadgeText: { ...typography.caption, color: colors.accent.success, fontWeight: '700' },
+  visitAuthor: { ...typography.body.s, color: colors.text.secondary },
+  imageGrid: {
+    flexDirection: 'row',
+    flexWrap: 'wrap',
+    gap: spacing[2],
+    marginTop: spacing[3],
+  },
+  gridImage: {
+    width: 100,
+    height: 100,
+    borderRadius: radius.sm,
+    backgroundColor: colors.surface.tertiary,
+  },
+  msgRow: {
+    flexDirection: 'row',
+    marginBottom: spacing[3],
+  },
+  msgRowMine: {
+    justifyContent: 'flex-end',
+  },
+  msgBubble: {
+    maxWidth: '75%',
+    borderRadius: radius.md,
+    padding: spacing[3],
+  },
+  msgBubbleMine: {
+    backgroundColor: colors.accent.secondary,
+    borderBottomRightRadius: 4,
+  },
+  msgBubblePartner: {
+    backgroundColor: colors.surface.primary,
+    borderBottomLeftRadius: 4,
+    borderWidth: 1,
+    borderColor: colors.border.soft,
+  },
+  msgAuthor: {
+    ...typography.caption,
+    color: colors.text.secondary,
+    fontWeight: '600',
+    marginBottom: spacing[1],
+  },
+  msgBody: { ...typography.body.m, color: colors.text.primary },
+  msgMeta: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    marginTop: spacing[1],
+  },
+  msgTime: { ...typography.caption, color: colors.text.tertiary, fontSize: 11 },
+  msgDelete: { ...typography.caption, color: colors.accent.danger, fontWeight: '600', fontSize: 11 },
   inputBar: {
     flexDirection: 'row',
     alignItems: 'flex-end',
-    paddingHorizontal: spacing.lg,
-    paddingVertical: spacing.sm,
-    backgroundColor: colors.surface,
+    paddingHorizontal: layout.screenPaddingH,
+    paddingVertical: spacing[2],
+    backgroundColor: colors.surface.primary,
     borderTopWidth: 1,
-    borderTopColor: colors.border,
-    gap: spacing.sm,
+    borderTopColor: colors.border.soft,
+    gap: spacing[2],
   },
-  inputWrapper: { flex: 1 },
-  messageInput: { maxHeight: 80, paddingVertical: spacing.sm },
+  inputWrapper: {
+    flex: 1,
+    backgroundColor: colors.surface.secondary,
+    borderRadius: radius.md,
+    paddingHorizontal: spacing[3],
+  },
+  messageInput: {
+    ...typography.body.m,
+    color: colors.text.primary,
+    maxHeight: 80,
+    paddingVertical: spacing[2],
+  },
+  sendBtn: {
+    width: 40,
+    height: 40,
+    borderRadius: 20,
+    backgroundColor: colors.surface.tertiary,
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  sendBtnActive: {
+    backgroundColor: colors.accent.primary,
+  },
   modalOverlay: {
     flex: 1,
-    backgroundColor: colors.overlay,
+    backgroundColor: colors.overlay.dim,
     justifyContent: 'center',
     alignItems: 'center',
-    padding: spacing.xxl,
+    padding: spacing[6],
   },
   categoryPicker: {
-    backgroundColor: colors.surface,
+    backgroundColor: colors.surface.primary,
     borderRadius: radius.xl,
-    padding: spacing.xxl,
+    padding: spacing[6],
     width: '100%',
     maxWidth: 320,
   },
-  categoryPickerTitle: { ...typography.h3, color: colors.text, marginBottom: spacing.lg },
+  categoryPickerTitle: {
+    ...typography.heading.m,
+    color: colors.text.primary,
+    marginBottom: spacing[4],
+  },
   categoryOption: {
     flexDirection: 'row',
     alignItems: 'center',
-    paddingVertical: spacing.md,
-    paddingHorizontal: spacing.md,
+    paddingVertical: spacing[3],
+    paddingHorizontal: spacing[3],
     borderRadius: radius.md,
-    gap: spacing.md,
+    gap: spacing[3],
   },
-  categoryOptionActive: { backgroundColor: colors.primaryLight },
-  categoryLabel: { ...typography.body, color: colors.text },
-  categoryLabelActive: { fontWeight: '700', color: colors.primary },
+  categoryOptionActive: { backgroundColor: colors.surface.tertiary },
+  categoryLabel: { ...typography.body.l, color: colors.text.primary },
+  categoryLabelActive: { fontWeight: '700', color: colors.accent.primary },
 });

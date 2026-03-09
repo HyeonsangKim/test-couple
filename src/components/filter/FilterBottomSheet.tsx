@@ -3,8 +3,8 @@ import { View, Text, StyleSheet, ScrollView, TouchableOpacity } from 'react-nati
 import { colors, typography, spacing, radius } from '@/theme/tokens';
 import { Chip, Button } from '@/components/ui';
 import { usePlaceStore } from '@/stores/usePlaceStore';
-import { PlaceStatus, Category } from '@/types';
-import { STATUS_LABELS, CATEGORY_LABELS, CATEGORIES } from '@/constants';
+import { PlaceStatus, PlaceCategory } from '@/types';
+import { STATUS_LABELS, CATEGORIES } from '@/constants';
 
 interface FilterBottomSheetProps {
   onClose: () => void;
@@ -19,7 +19,7 @@ export const FilterBottomSheet: React.FC<FilterBottomSheetProps> = ({ onClose })
     { key: 'visited', label: '갔다 온 곳' },
   ];
 
-  const categoryOptions: { key: Category | 'all'; label: string }[] = [
+  const categoryOptions: { key: PlaceCategory | 'all'; label: string }[] = [
     { key: 'all', label: '전체' },
     ...CATEGORIES.map((c) => ({ key: c.key, label: c.label })),
   ];
@@ -41,7 +41,7 @@ export const FilterBottomSheet: React.FC<FilterBottomSheetProps> = ({ onClose })
             label={opt.label}
             selected={filter.status === opt.key}
             onPress={() => setFilter({ status: opt.key })}
-            color={colors.primary}
+            color={colors.accent.primary}
             style={styles.chip}
           />
         ))}
@@ -55,7 +55,7 @@ export const FilterBottomSheet: React.FC<FilterBottomSheetProps> = ({ onClose })
             label={opt.label}
             selected={filter.category === opt.key}
             onPress={() => setFilter({ category: opt.key })}
-            color={colors.secondary}
+            color={colors.accent.secondary}
             style={styles.chip}
           />
         ))}
@@ -75,36 +75,36 @@ export const FilterBottomSheet: React.FC<FilterBottomSheetProps> = ({ onClose })
 
 const styles = StyleSheet.create({
   container: {
-    padding: spacing.xxl,
+    padding: spacing[6],
   },
   header: {
     flexDirection: 'row',
     justifyContent: 'space-between',
     alignItems: 'center',
-    marginBottom: spacing.xl,
+    marginBottom: spacing[5],
   },
   title: {
-    ...typography.h3,
-    color: colors.text,
+    ...typography.heading.m,
+    color: colors.text.primary,
   },
   resetBtn: {
-    ...typography.bodyBold,
-    color: colors.primary,
+    ...typography.title.m,
+    color: colors.accent.primary,
   },
   sectionLabel: {
-    ...typography.captionBold,
-    color: colors.textSecondary,
-    marginBottom: spacing.sm,
-    marginTop: spacing.md,
+    ...typography.caption,
+    color: colors.text.secondary,
+    marginBottom: spacing[2],
+    marginTop: spacing[4],
   },
   chipRow: {
     flexDirection: 'row',
-    marginBottom: spacing.md,
+    marginBottom: spacing[4],
   },
   chip: {
-    marginRight: spacing.sm,
+    marginRight: spacing[2],
   },
   applyBtn: {
-    marginTop: spacing.xxl,
+    marginTop: spacing[6],
   },
 });

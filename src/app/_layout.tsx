@@ -19,19 +19,27 @@ export default function RootLayout() {
 
   useEffect(() => {
     const bootstrap = async () => {
-      await init();
-      await loadMap();
+      try {
+        await init();
+        await loadMap();
+      } catch {
+        // silent
+      }
     };
     bootstrap();
   }, []);
 
   useEffect(() => {
     if (map) {
-      loadPartner(map.memberIds);
-      loadPlaces(map.id);
-      loadAllVisits();
+      try {
+        loadPartner(map.memberUserIds);
+        loadPlaces(map.mapId);
+        loadAllVisits();
+      } catch {
+        // silent
+      }
     }
-  }, [map?.id]);
+  }, [map?.mapId]);
 
   return (
     <GestureHandlerRootView style={styles.root}>
@@ -39,12 +47,13 @@ export default function RootLayout() {
       <Stack
         screenOptions={{
           headerShown: false,
-          contentStyle: { backgroundColor: colors.background },
+          contentStyle: { backgroundColor: colors.bg.canvas },
           animation: 'slide_from_right',
         }}
       >
         <Stack.Screen name="index" />
         <Stack.Screen name="(auth)" />
+        <Stack.Screen name="(tabs)" />
         <Stack.Screen name="(main)" />
         <Stack.Screen
           name="snapshot/[id]"

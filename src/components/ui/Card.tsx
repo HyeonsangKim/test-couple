@@ -1,6 +1,6 @@
 import React from 'react';
 import { View, StyleSheet, ViewStyle, TouchableOpacity } from 'react-native';
-import { colors, radius, shadow, spacing } from '@/theme/tokens';
+import { colors, radius, shadow, layout } from '@/theme/tokens';
 
 interface CardProps {
   children: React.ReactNode;
@@ -29,8 +29,8 @@ export const Card: React.FC<CardProps> = ({ children, style, onPress, elevated =
 
 const styles = StyleSheet.create({
   card: {
-    backgroundColor: colors.surface,
+    backgroundColor: colors.surface.primary,
     borderRadius: radius.lg,
-    padding: spacing.lg,
+    padding: layout.cardPaddingInner,
   },
 });

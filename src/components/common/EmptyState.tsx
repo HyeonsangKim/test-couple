@@ -16,7 +16,7 @@ interface EmptyStateProps {
 
 export const EmptyState: React.FC<EmptyStateProps> = ({ icon, title, description, actionLabel, onAction }) => (
   <View style={styles.container}>
-    <Ionicons name={icon} size={56} color={colors.textTertiary} style={styles.icon} />
+    <Ionicons name={icon} size={56} color={colors.text.tertiary} style={styles.icon} />
     <Text style={styles.title}>{title}</Text>
     <Text style={styles.description}>{description}</Text>
     {actionLabel && onAction && (
@@ -29,24 +29,24 @@ const styles = StyleSheet.create({
   container: {
     alignItems: 'center',
     justifyContent: 'center',
-    padding: spacing.xxxxl,
+    padding: spacing[12],
   },
   icon: {
-    marginBottom: spacing.lg,
+    marginBottom: spacing[4],
   },
   title: {
-    ...typography.h3,
-    color: colors.text,
-    marginBottom: spacing.sm,
+    ...typography.heading.m,
+    color: colors.text.primary,
+    marginBottom: spacing[2],
     textAlign: 'center',
   },
   description: {
-    ...typography.body,
-    color: colors.textSecondary,
+    ...typography.body.m,
+    color: colors.text.secondary,
     textAlign: 'center',
-    marginBottom: spacing.xl,
+    marginBottom: spacing[5],
   },
   button: {
-    marginTop: spacing.md,
+    marginTop: spacing[4],
   },
 });

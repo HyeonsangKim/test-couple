@@ -1,22 +1,23 @@
 import { create } from 'zustand';
-import { MapSnapshot, Place, VisitRecord, ThreadMessage } from '@/types';
+import { Snapshot, Place, Visit, VisitImage, ThreadMessage } from '@/types';
 import { snapshotService } from '@/services/snapshotService';
 
 interface SnapshotState {
-  snapshots: MapSnapshot[];
-  currentSnapshot: MapSnapshot | null;
+  snapshots: Snapshot[];
+  currentSnapshot: Snapshot | null;
   isLoading: boolean;
   createSnapshot: (
-    originalMapId: string,
-    ownerId: string,
-    partnerNickname: string,
+    sourceMapId: string,
+    partnerUserId: string,
     places: Place[],
-    visits: VisitRecord[],
-    threads: ThreadMessage[]
-  ) => Promise<MapSnapshot>;
-  loadSnapshots: (ownerId: string) => Promise<void>;
-  loadSnapshot: (id: string) => Promise<void>;
-  deleteSnapshot: (id: string) => Promise<void>;
+    visits: Visit[],
+    visitImages: VisitImage[],
+    threadMessages: ThreadMessage[]
+  ) => Promise<Snapshot>;
+  loadSnapshots: () => Promise<void>;
+  loadSnapshot: (snapshotId: string) => Promise<void>;
+  deleteSnapshot: (snapshotId: string) => Promise<void>;
+  getSnapshotByPartner: (partnerUserId: string) => Promise<Snapshot | null>;
 }
 
 export const useSnapshotStore = create<SnapshotState>((set) => ({
@@ -24,27 +25,31 @@ export const useSnapshotStore = create<SnapshotState>((set) => ({
   currentSnapshot: null,
   isLoading: false,
 
-  createSnapshot: async (originalMapId, ownerId, partnerNickname, places, visits, threads) => {
+  createSnapshot: async (sourceMapId, partnerUserId, places, visits, visitImages, threadMessages) => {
     set({ isLoading: true });
-    const snapshot = await snapshotService.createSnapshot(originalMapId, ownerId, partnerNickname, places, visits, threads);
+    const snapshot = await snapshotService.createSnapshot(sourceMapId, partnerUserId, places, visits, visitImages, threadMessages);
     set((s) => ({ snapshots: [...s.snapshots, snapshot], isLoading: false }));
     return snapshot;
   },
 
-  loadSnapshots: async (ownerId) => {
+  loadSnapshots: async () => {
     set({ isLoading: true });
-    const snapshots = await snapshotService.getSnapshots(ownerId);
+    const snapshots = await snapshotService.getSnapshots();
     set({ snapshots, isLoading: false });
   },
 
-  loadSnapshot: async (id) => {
+  loadSnapshot: async (snapshotId) => {
     set({ isLoading: true });
-    const snapshot = await snapshotService.getSnapshotById(id);
+    const snapshot = await snapshotService.getSnapshotById(snapshotId);
     set({ currentSnapshot: snapshot, isLoading: false });
   },
 
-  deleteSnapshot: async (id) => {
-    await snapshotService.deleteSnapshot(id);
-    set((s) => ({ snapshots: s.snapshots.filter((snap) => snap.id !== id) }));
+  deleteSnapshot: async (snapshotId) => {
+    await snapshotService.deleteSnapshot(snapshotId);
+    set((s) => ({ snapshots: s.snapshots.filter((snap) => snap.snapshotId !== snapshotId) }));
+  },
+
+  getSnapshotByPartner: async (partnerUserId) => {
+    return snapshotService.getSnapshotByPartner(partnerUserId);
   },
 }));

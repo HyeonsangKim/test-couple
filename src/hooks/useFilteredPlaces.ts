@@ -6,7 +6,7 @@ export const useFilteredPlaces = (): Place[] => {
   const { places, filter } = usePlaceStore();
 
   return useMemo(() => {
-    let filtered = [...places];
+    let filtered = places.filter((p) => p.status === 'wishlist' || p.status === 'visited');
 
     // Status filter
     if (filter.status !== 'all') {
@@ -18,19 +18,13 @@ export const useFilteredPlaces = (): Place[] => {
       filtered = filtered.filter((p) => p.category === filter.category);
     }
 
-    // Search
+    // Search - name only per PRD v2
     if (filter.searchQuery.trim()) {
       const q = filter.searchQuery.toLowerCase();
-      if (filter.searchScope === 'name') {
-        filtered = filtered.filter((p) => p.name.toLowerCase().includes(q));
-      } else {
-        filtered = filtered.filter((p) =>
-          p.name.toLowerCase().includes(q) || p.address.toLowerCase().includes(q)
-        );
-      }
+      filtered = filtered.filter((p) => p.name.toLowerCase().includes(q));
     }
 
-    // Sort by updatedAt desc
+    // Sort by updatedAt desc (default: recent update first)
     filtered.sort((a, b) => b.updatedAt.localeCompare(a.updatedAt));
 
     return filtered;

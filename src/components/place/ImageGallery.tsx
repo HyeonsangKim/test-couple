@@ -1,29 +1,30 @@
 import React from 'react';
-import { View, Image, StyleSheet, FlatList, Text, Dimensions, TouchableOpacity } from 'react-native';
-import { colors, spacing, radius, typography } from '@/theme/tokens';
+import { View, Image, StyleSheet, Text, Dimensions, TouchableOpacity } from 'react-native';
+import { VisitImage } from '@/types';
+import { colors, spacing, radius, typography, layout } from '@/theme/tokens';
 
 interface ImageGalleryProps {
-  imageUris: string[];
+  images: VisitImage[];
   onImagePress?: (index: number) => void;
 }
 
 const SCREEN_WIDTH = Dimensions.get('window').width;
-const IMAGE_SIZE = (SCREEN_WIDTH - spacing.xxl * 2 - spacing.sm * 2) / 3;
+const IMAGE_SIZE = (SCREEN_WIDTH - layout.screenPaddingH * 2 - spacing[2] * 2) / 3;
 
-export const ImageGallery: React.FC<ImageGalleryProps> = ({ imageUris, onImagePress }) => {
-  if (imageUris.length === 0) return null;
+export const ImageGallery: React.FC<ImageGalleryProps> = ({ images, onImagePress }) => {
+  if (images.length === 0) return null;
 
   return (
     <View style={styles.container}>
-      <Text style={styles.title}>사진 모아보기 ({imageUris.length})</Text>
+      <Text style={styles.title}>사진 모아보기 ({images.length})</Text>
       <View style={styles.grid}>
-        {imageUris.map((uri, index) => (
+        {images.map((image, index) => (
           <TouchableOpacity
-            key={index}
+            key={image.imageId}
             onPress={() => onImagePress?.(index)}
             activeOpacity={0.8}
           >
-            <Image source={{ uri }} style={styles.image} />
+            <Image source={{ uri: image.uri }} style={styles.image} />
           </TouchableOpacity>
         ))}
       </View>
@@ -33,22 +34,22 @@ export const ImageGallery: React.FC<ImageGalleryProps> = ({ imageUris, onImagePr
 
 const styles = StyleSheet.create({
   container: {
-    marginTop: spacing.lg,
+    marginTop: spacing[4],
   },
   title: {
-    ...typography.subtitle,
-    color: colors.text,
-    marginBottom: spacing.md,
+    ...typography.title.m,
+    color: colors.text.primary,
+    marginBottom: spacing[4],
   },
   grid: {
     flexDirection: 'row',
     flexWrap: 'wrap',
-    gap: spacing.sm,
+    gap: spacing[2],
   },
   image: {
     width: IMAGE_SIZE,
     height: IMAGE_SIZE,
     borderRadius: radius.sm,
-    backgroundColor: colors.border,
+    backgroundColor: colors.surface.tertiary,
   },
 });

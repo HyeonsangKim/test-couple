@@ -15,13 +15,13 @@ export const Chip: React.FC<ChipProps> = ({
   label,
   selected = false,
   onPress,
-  color = colors.primary,
+  color = colors.accent.primary,
   style,
   size = 'md',
 }) => {
-  const paddingV = size === 'sm' ? spacing.xs : spacing.sm;
-  const paddingH = size === 'sm' ? spacing.md : spacing.lg;
-  const fontSize = size === 'sm' ? 12 : 13;
+  const paddingV = size === 'sm' ? spacing[1] : spacing[2];
+  const paddingH = size === 'sm' ? spacing[3] : spacing[4];
+  const typo = size === 'sm' ? typography.caption : typography.body.s;
 
   return (
     <TouchableOpacity
@@ -31,8 +31,8 @@ export const Chip: React.FC<ChipProps> = ({
       style={[
         styles.chip,
         {
-          backgroundColor: selected ? color : colors.surface,
-          borderColor: selected ? color : colors.border,
+          backgroundColor: selected ? color : colors.surface.primary,
+          borderColor: selected ? color : colors.border.soft,
           paddingVertical: paddingV,
           paddingHorizontal: paddingH,
         },
@@ -43,8 +43,9 @@ export const Chip: React.FC<ChipProps> = ({
         style={[
           styles.label,
           {
-            color: selected ? colors.white : colors.textSecondary,
-            fontSize,
+            color: selected ? colors.text.inverse : colors.text.secondary,
+            fontSize: typo.fontSize,
+            fontWeight: typo.fontWeight,
           },
         ]}
       >

@@ -1,21 +1,24 @@
 import { Ionicons } from '@expo/vector-icons';
-import { Category } from '@/types';
+import { PlaceCategory } from '@/types';
 import { colors } from '@/theme/tokens';
 
 type IoniconsName = React.ComponentProps<typeof Ionicons>['name'];
 
-export const CATEGORIES: { key: Category; label: string; icon: IoniconsName; color: string }[] = [
-  { key: 'food', label: '맛집', icon: 'restaurant-outline', color: colors.categoryFood },
-  { key: 'travel', label: '여행', icon: 'airplane-outline', color: colors.categoryTravel },
-  { key: 'fun', label: '놀거리', icon: 'game-controller-outline', color: colors.categoryFun },
-  { key: 'special', label: '특별한 장소', icon: 'heart', color: colors.categorySpecial },
-  { key: 'none', label: '미분류', icon: 'location-outline', color: colors.categoryNone },
+export const CATEGORIES: { key: PlaceCategory; label: string; icon: IoniconsName; color: string }[] = [
+  { key: 'food', label: '맛집', icon: 'restaurant-outline', color: colors.category.food },
+  { key: 'travel', label: '여행', icon: 'airplane-outline', color: colors.category.travel },
+  { key: 'activity', label: '놀거리', icon: 'game-controller-outline', color: colors.category.activity },
+  { key: 'special', label: '특별한 장소', icon: 'heart', color: colors.category.special },
+  { key: 'uncategorized', label: '미분류', icon: 'location-outline', color: colors.category.uncategorized },
 ];
 
 export const LIMITS = {
   MAX_IMAGES_PER_PLACE: 99,
   MAX_THREAD_MESSAGE_LENGTH: 500,
   MAX_PLACE_NAME_LENGTH: 50,
+  MAX_NICKNAME_LENGTH: 12,
+  MIN_NICKNAME_LENGTH: 1,
+  MAX_INVITE_CODE_LENGTH: 8,
 };
 
 export const TIMING = {
@@ -33,8 +36,24 @@ export const STATUS_LABELS: Record<string, string> = {
 export const CATEGORY_LABELS: Record<string, string> = {
   food: '맛집',
   travel: '여행',
-  fun: '놀거리',
+  activity: '놀거리',
   special: '특별한 장소',
-  none: '미분류',
+  uncategorized: '미분류',
   all: '전체',
+};
+
+export const NOTIFICATION_LABELS: Record<string, string> = {
+  inviteAndConnection: '초대/연결',
+  visit: '방문기록',
+  threadMessage: '메모',
+  placeDelete: '플레이스 삭제',
+  disconnect: '연결 해제',
+  anniversary: '기념일',
+};
+
+export const DEFAULT_MAP_REGION = {
+  latitude: 37.5665,
+  longitude: 126.978,
+  latitudeDelta: 0.05,
+  longitudeDelta: 0.05,
 };

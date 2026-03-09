@@ -1,55 +1,93 @@
 import React from 'react';
-import { View, Text, StyleSheet } from 'react-native';
+import { View, Text, StyleSheet, TouchableOpacity } from 'react-native';
 import { useRouter } from 'expo-router';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { Ionicons } from '@expo/vector-icons';
-import { colors, typography, spacing, radius, shadow } from '@/theme/tokens';
-import { Button } from '@/components/ui';
+import { colors, typography, spacing, radius, shadow, layout } from '@/theme/tokens';
+import { useAuthStore } from '@/stores/useAuthStore';
+import { useMapStore } from '@/stores/useMapStore';
 
 export default function WelcomeScreen() {
   const router = useRouter();
+  const currentUser = useAuthStore((s) => s.currentUser);
+  const setOnboarded = useAuthStore((s) => s.setOnboarded);
+  const createMap = useMapStore((s) => s.createMap);
+
+  const handleInvite = async () => {
+    // Create a map first, then go to invite center to share code
+    if (!currentUser) return;
+    try {
+      await createMap(currentUser.userId);
+      setOnboarded(true);
+      router.replace('/(tabs)/map');
+      // After navigating, user can go to invite center from my page
+    } catch {
+      // silent
+    }
+  };
+
+  const handleJoinWithCode = () => {
+    router.push('/(main)/invite-center');
+  };
+
+  const handleStartSolo = async () => {
+    if (!currentUser) return;
+    try {
+      await createMap(currentUser.userId);
+      setOnboarded(true);
+      router.replace('/(tabs)/map');
+    } catch {
+      // silent
+    }
+  };
 
   return (
     <SafeAreaView style={styles.safe}>
       <View style={styles.container}>
         <View style={styles.heroSection}>
-          <View style={styles.heroIconContainer}>
-            <Ionicons name="map-outline" size={40} color={colors.primary} />
-            <View style={styles.heroHeartBadge}>
-              <Ionicons name="heart" size={16} color={colors.white} />
-            </View>
+          <View style={styles.iconContainer}>
+            <Ionicons name="map" size={40} color={colors.accent.primary} />
           </View>
-          <Text style={styles.title}>커플 지도</Text>
+          <Text style={styles.title}>시작하기</Text>
           <Text style={styles.subtitle}>
-            둘만의 장소를 함께 기록하세요
-          </Text>
-          <Text style={styles.description}>
-            가고 싶은 곳, 다녀온 곳, 추억의 사진과 메모를{'\n'}
-            하나의 지도에 모아보세요
+            커플 지도를 시작하는 방법을 선택해주세요
           </Text>
         </View>
 
-        <View style={styles.actions}>
-          <Button
-            title="새 지도 만들기"
-            onPress={() => router.push('/(auth)/create-map')}
-            variant="primary"
-            size="lg"
-            fullWidth
-          />
-          <View style={styles.spacer} />
-          <Button
-            title="초대 코드로 참여하기"
-            onPress={() => router.push('/(auth)/join-map')}
-            variant="outline"
-            size="lg"
-            fullWidth
-          />
-        </View>
+        <View style={styles.options}>
+          <TouchableOpacity style={styles.optionCard} onPress={handleInvite} activeOpacity={0.7}>
+            <View style={styles.optionIconCircle}>
+              <Ionicons name="paper-plane-outline" size={24} color={colors.accent.primary} />
+            </View>
+            <View style={styles.optionContent}>
+              <Text style={styles.optionTitle}>초대하기</Text>
+              <Text style={styles.optionDesc}>새 지도를 만들고 상대방을 초대해요</Text>
+            </View>
+            <Ionicons name="chevron-forward" size={20} color={colors.text.tertiary} />
+          </TouchableOpacity>
 
-        <Text style={styles.footer}>
-          두 사람이 하나의 지도를 함께 사용합니다
-        </Text>
+          <TouchableOpacity style={styles.optionCard} onPress={handleJoinWithCode} activeOpacity={0.7}>
+            <View style={styles.optionIconCircle}>
+              <Ionicons name="enter-outline" size={24} color={colors.accent.primary} />
+            </View>
+            <View style={styles.optionContent}>
+              <Text style={styles.optionTitle}>초대받기</Text>
+              <Text style={styles.optionDesc}>초대 코드로 상대방의 지도에 참여해요</Text>
+            </View>
+            <Ionicons name="chevron-forward" size={20} color={colors.text.tertiary} />
+          </TouchableOpacity>
+
+          <TouchableOpacity style={styles.optionCard} onPress={handleStartSolo} activeOpacity={0.7}>
+            <View style={styles.optionIconCircle}>
+              <Ionicons name="person-outline" size={24} color={colors.text.tertiary} />
+            </View>
+            <View style={styles.optionContent}>
+              <Text style={styles.optionTitle}>나중에 연결하고 먼저 시작</Text>
+              <Text style={styles.optionDesc}>혼자 먼저 장소를 기록해요</Text>
+            </View>
+            <Ionicons name="chevron-forward" size={20} color={colors.text.tertiary} />
+          </TouchableOpacity>
+        </View>
       </View>
     </SafeAreaView>
   );
@@ -58,64 +96,67 @@ export default function WelcomeScreen() {
 const styles = StyleSheet.create({
   safe: {
     flex: 1,
-    backgroundColor: colors.background,
+    backgroundColor: colors.bg.canvas,
   },
   container: {
     flex: 1,
-    padding: spacing.xxl,
+    paddingHorizontal: layout.screenPaddingH,
     justifyContent: 'center',
   },
   heroSection: {
     alignItems: 'center',
-    marginBottom: spacing.xxxxl,
+    marginBottom: spacing[10],
   },
-  heroIconContainer: {
+  iconContainer: {
     width: 80,
     height: 80,
     borderRadius: 40,
-    backgroundColor: colors.primaryLight,
+    backgroundColor: colors.surface.primary,
     alignItems: 'center',
     justifyContent: 'center',
-    marginBottom: spacing.xl,
-  },
-  heroHeartBadge: {
-    position: 'absolute',
-    bottom: -2,
-    right: -2,
-    width: 28,
-    height: 28,
-    borderRadius: 14,
-    backgroundColor: colors.primary,
-    alignItems: 'center',
-    justifyContent: 'center',
-    borderWidth: 3,
-    borderColor: colors.background,
+    marginBottom: spacing[6],
+    ...shadow.sm,
   },
   title: {
-    ...typography.h1,
-    color: colors.primary,
-    marginBottom: spacing.sm,
+    ...typography.heading.l,
+    color: colors.text.primary,
+    marginBottom: spacing[2],
   },
   subtitle: {
-    ...typography.h3,
-    color: colors.text,
-    marginBottom: spacing.md,
-  },
-  description: {
-    ...typography.body,
-    color: colors.textSecondary,
+    ...typography.body.m,
+    color: colors.text.secondary,
     textAlign: 'center',
-    lineHeight: 24,
   },
-  actions: {
-    marginBottom: spacing.xxxl,
+  options: {
+    gap: layout.cardGap,
   },
-  spacer: {
-    height: spacing.md,
+  optionCard: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    backgroundColor: colors.surface.primary,
+    borderRadius: radius.lg,
+    padding: spacing[4],
+    ...shadow.sm,
   },
-  footer: {
-    ...typography.caption,
-    color: colors.textTertiary,
-    textAlign: 'center',
+  optionIconCircle: {
+    width: 48,
+    height: 48,
+    borderRadius: 24,
+    backgroundColor: colors.surface.tertiary,
+    alignItems: 'center',
+    justifyContent: 'center',
+    marginRight: spacing[3],
+  },
+  optionContent: {
+    flex: 1,
+  },
+  optionTitle: {
+    ...typography.title.m,
+    color: colors.text.primary,
+    marginBottom: 2,
+  },
+  optionDesc: {
+    ...typography.body.s,
+    color: colors.text.secondary,
   },
 });

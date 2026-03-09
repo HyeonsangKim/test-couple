@@ -1,6 +1,6 @@
 import React from 'react';
 import { View, Text, StyleSheet } from 'react-native';
-import { colors, radius } from '@/theme/tokens';
+import { colors } from '@/theme/tokens';
 
 interface BadgeProps {
   count: number;
@@ -8,7 +8,7 @@ interface BadgeProps {
   size?: number;
 }
 
-export const Badge: React.FC<BadgeProps> = ({ count, color = colors.primary, size = 20 }) => {
+export const Badge: React.FC<BadgeProps> = ({ count, color = colors.accent.danger, size = 20 }) => {
   if (count <= 0) return null;
 
   return (
@@ -25,7 +25,7 @@ const styles = StyleSheet.create({
     paddingHorizontal: 4,
   },
   text: {
-    color: colors.white,
+    color: colors.text.inverse,
     fontWeight: '700',
   },
 });

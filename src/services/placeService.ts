@@ -1,7 +1,7 @@
 import { delay } from '@/mock/delay';
 import { MOCK_PLACES } from '@/mock/data';
 import { createPlace } from '@/mock/generators';
-import { Place, PlaceStatus, Category, DeleteRequest } from '@/types';
+import { Place, DeleteRequest } from '@/types';
 import { addDays } from 'date-fns';
 import { TIMING } from '@/constants';
 
@@ -13,49 +13,62 @@ export const placeService = {
     return places.filter((p) => p.mapId === mapId);
   },
 
-  getPlaceById: async (id: string): Promise<Place | null> => {
+  getPlaceById: async (placeId: string): Promise<Place | null> => {
     await delay(100);
-    return places.find((p) => p.id === id) ?? null;
+    return places.find((p) => p.placeId === placeId) ?? null;
   },
 
-  addPlace: async (data: Partial<Place> & { name: string; latitude: number; longitude: number; mapId: string; createdBy: string }): Promise<Place> => {
+  addPlace: async (data: Partial<Place> & { name: string; latitude: number; longitude: number; mapId: string; createdByUserId: string }): Promise<Place> => {
     await delay(300);
     const place = createPlace(data);
     places = [...places, place];
     return place;
   },
 
-  updatePlace: async (id: string, updates: Partial<Place>): Promise<Place> => {
+  updatePlace: async (placeId: string, updates: Partial<Place>): Promise<Place> => {
     await delay(200);
-    places = places.map((p) => (p.id === id ? { ...p, ...updates, updatedAt: new Date().toISOString() } : p));
-    const updated = places.find((p) => p.id === id);
+    places = places.map((p) => (p.placeId === placeId ? { ...p, ...updates, updatedAt: new Date().toISOString() } : p));
+    const updated = places.find((p) => p.placeId === placeId);
     if (!updated) throw new Error('Place not found');
     return updated;
   },
 
-  requestDelete: async (id: string, requestedBy: string): Promise<Place> => {
+  requestDelete: async (placeId: string, requestedByUserId: string): Promise<Place> => {
     await delay(200);
     const now = new Date();
     const deleteRequest: DeleteRequest = {
-      requestedBy,
+      requestedByUserId,
       requestedAt: now.toISOString(),
       expiresAt: addDays(now, TIMING.DELETE_GRACE_PERIOD_DAYS).toISOString(),
+      status: 'pending',
     };
-    return placeService.updatePlace(id, { deleteRequest });
+    return placeService.updatePlace(placeId, { deleteRequest });
   },
 
-  cancelDelete: async (id: string): Promise<Place> => {
+  cancelDelete: async (placeId: string): Promise<Place> => {
     await delay(200);
-    return placeService.updatePlace(id, { deleteRequest: null });
+    return placeService.updatePlace(placeId, { deleteRequest: null });
   },
 
-  approveDelete: async (id: string): Promise<void> => {
+  approveDelete: async (placeId: string): Promise<void> => {
     await delay(200);
-    places = places.filter((p) => p.id !== id);
+    places = places.filter((p) => p.placeId !== placeId);
+  },
+
+  rejectDelete: async (placeId: string): Promise<Place> => {
+    await delay(200);
+    return placeService.updatePlace(placeId, { deleteRequest: null });
   },
 
   checkDuplicate: async (mapId: string, externalPlaceId: string): Promise<Place | null> => {
     await delay(100);
     return places.find((p) => p.mapId === mapId && p.externalPlaceId === externalPlaceId) ?? null;
+  },
+
+  checkExpiredDeleteRequests: (mapPlaces: Place[]): Place[] => {
+    const now = new Date();
+    return mapPlaces.filter(
+      (p) => p.deleteRequest?.status === 'pending' && new Date(p.deleteRequest.expiresAt) <= now
+    );
   },
 };

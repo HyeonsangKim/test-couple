@@ -7,6 +7,7 @@ interface GracePeriodInfo {
   remainingDays: number;
   remainingHours: number;
   isExpired: boolean;
+  isPending: boolean;
 }
 
 export const useDeleteGracePeriod = (deleteRequest: DeleteRequest | null): GracePeriodInfo => {
@@ -15,11 +16,12 @@ export const useDeleteGracePeriod = (deleteRequest: DeleteRequest | null): Grace
     remainingDays: 0,
     remainingHours: 0,
     isExpired: false,
+    isPending: false,
   });
 
   useEffect(() => {
-    if (!deleteRequest) {
-      setInfo({ isActive: false, remainingDays: 0, remainingHours: 0, isExpired: false });
+    if (!deleteRequest || deleteRequest.status !== 'pending') {
+      setInfo({ isActive: false, remainingDays: 0, remainingHours: 0, isExpired: false, isPending: false });
       return;
     }
 
@@ -29,6 +31,7 @@ export const useDeleteGracePeriod = (deleteRequest: DeleteRequest | null): Grace
         remainingDays: getRemainingDays(deleteRequest.expiresAt),
         remainingHours: getRemainingHours(deleteRequest.expiresAt),
         isExpired: isExpired(deleteRequest.expiresAt),
+        isPending: true,
       });
     };
 

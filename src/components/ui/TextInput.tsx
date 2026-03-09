@@ -25,12 +25,16 @@ export const TextInput: React.FC<TextInputProps> = ({
       <View style={[
         styles.inputContainer,
         {
-          borderColor: error ? colors.error : focused ? colors.borderFocused : colors.border,
+          borderColor: error
+            ? colors.accent.danger
+            : focused
+              ? colors.accent.primary
+              : colors.border.soft,
         },
       ]}>
         <RNTextInput
           style={[styles.input, style]}
-          placeholderTextColor={colors.textTertiary}
+          placeholderTextColor={colors.text.tertiary}
           onFocus={(e) => { setFocused(true); props.onFocus?.(e); }}
           onBlur={(e) => { setFocused(false); props.onBlur?.(e); }}
           {...props}
@@ -44,27 +48,27 @@ export const TextInput: React.FC<TextInputProps> = ({
 
 const styles = StyleSheet.create({
   label: {
-    ...typography.captionBold,
-    color: colors.textSecondary,
-    marginBottom: spacing.xs,
+    ...typography.caption,
+    color: colors.text.secondary,
+    marginBottom: spacing[1],
   },
   inputContainer: {
     flexDirection: 'row',
     alignItems: 'center',
     borderWidth: 1.5,
     borderRadius: radius.md,
-    backgroundColor: colors.surface,
-    paddingHorizontal: spacing.md,
+    backgroundColor: colors.surface.primary,
+    paddingHorizontal: spacing[4],
   },
   input: {
     flex: 1,
-    ...typography.body,
-    color: colors.text,
-    paddingVertical: spacing.md,
+    ...typography.body.m,
+    color: colors.text.primary,
+    paddingVertical: spacing[3],
   },
   error: {
-    ...typography.small,
-    color: colors.error,
-    marginTop: spacing.xs,
+    ...typography.caption,
+    color: colors.accent.danger,
+    marginTop: spacing[1],
   },
 });

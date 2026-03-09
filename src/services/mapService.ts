@@ -10,13 +10,14 @@ export const mapService = {
     return currentMap;
   },
 
-  createMap: async (name: string, ownerId: string): Promise<SharedMap> => {
+  createMap: async (userId: string): Promise<SharedMap> => {
     await delay(300);
     currentMap = {
-      id: `map_${Date.now()}`,
-      name,
-      ownerId,
-      memberIds: [ownerId],
+      mapId: `map_${Date.now()}`,
+      memberUserIds: [userId],
+      activeInviteCodeId: null,
+      anniversaryDate: null,
+      anniversaryLabel: null,
       createdAt: new Date().toISOString(),
       updatedAt: new Date().toISOString(),
     };
@@ -28,7 +29,19 @@ export const mapService = {
     if (!currentMap) throw new Error('Map not found');
     currentMap = {
       ...currentMap,
-      memberIds: [...currentMap.memberIds, userId],
+      memberUserIds: [...currentMap.memberUserIds, userId],
+      updatedAt: new Date().toISOString(),
+    };
+    return currentMap;
+  },
+
+  updateAnniversary: async (date: string | null, label: string | null): Promise<SharedMap> => {
+    await delay(200);
+    if (!currentMap) throw new Error('Map not found');
+    currentMap = {
+      ...currentMap,
+      anniversaryDate: date,
+      anniversaryLabel: label,
       updatedAt: new Date().toISOString(),
     };
     return currentMap;
@@ -36,6 +49,17 @@ export const mapService = {
 
   disconnect: async (): Promise<void> => {
     await delay(300);
+    if (currentMap) {
+      currentMap = {
+        ...currentMap,
+        memberUserIds: [currentMap.memberUserIds[0]],
+        updatedAt: new Date().toISOString(),
+      };
+    }
+  },
+
+  deleteMap: async (): Promise<void> => {
+    await delay(200);
     currentMap = null;
   },
 };

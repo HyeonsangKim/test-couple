@@ -1,16 +1,20 @@
 import { create } from 'zustand';
-import { VisitRecord } from '@/types';
+import { Visit, VisitImage } from '@/types';
 import { visitService } from '@/services/visitService';
 
 interface VisitState {
-  visits: VisitRecord[];
-  placeVisits: VisitRecord[];
+  visits: Visit[];
+  placeVisits: Visit[];
+  placeImages: VisitImage[];
   isLoading: boolean;
   loadVisitsForPlace: (placeId: string) => Promise<void>;
+  loadImagesForPlace: (placeId: string) => Promise<void>;
   loadAllVisits: () => Promise<void>;
-  addVisit: (data: { placeId: string; date: string; imageUris: string[]; createdBy: string }) => Promise<VisitRecord>;
-  updateVisit: (id: string, updates: Partial<VisitRecord>) => Promise<void>;
-  deleteVisit: (id: string) => Promise<void>;
+  addVisit: (data: { placeId: string; visitDate: string; createdByUserId: string }) => Promise<Visit>;
+  updateVisit: (visitId: string, updates: Partial<Visit>) => Promise<void>;
+  deleteVisit: (visitId: string) => Promise<void>;
+  addImages: (images: { visitId: string; uri: string }[]) => Promise<VisitImage[]>;
+  deleteImage: (imageId: string) => Promise<void>;
   getImageCount: (placeId: string) => Promise<number>;
   getVisitCountForPlace: (placeId: string) => number;
 }
@@ -18,12 +22,18 @@ interface VisitState {
 export const useVisitStore = create<VisitState>((set, get) => ({
   visits: [],
   placeVisits: [],
+  placeImages: [],
   isLoading: false,
 
   loadVisitsForPlace: async (placeId) => {
     set({ isLoading: true });
     const placeVisits = await visitService.getVisitsByPlace(placeId);
     set({ placeVisits, isLoading: false });
+  },
+
+  loadImagesForPlace: async (placeId) => {
+    const placeImages = await visitService.getImagesByPlace(placeId);
+    set({ placeImages });
   },
 
   loadAllVisits: async () => {
@@ -43,22 +53,33 @@ export const useVisitStore = create<VisitState>((set, get) => ({
     return visit;
   },
 
-  updateVisit: async (id, updates) => {
-    await visitService.updateVisit(id, updates);
-    const updated = await visitService.getVisitById(id);
+  updateVisit: async (visitId, updates) => {
+    await visitService.updateVisit(visitId, updates);
+    const updated = await visitService.getVisitById(visitId);
     if (!updated) return;
     set((s) => ({
-      visits: s.visits.map((v) => (v.id === id ? updated : v)),
-      placeVisits: s.placeVisits.map((v) => (v.id === id ? updated : v)),
+      visits: s.visits.map((v) => (v.visitId === visitId ? updated : v)),
+      placeVisits: s.placeVisits.map((v) => (v.visitId === visitId ? updated : v)),
     }));
   },
 
-  deleteVisit: async (id) => {
-    await visitService.deleteVisit(id);
+  deleteVisit: async (visitId) => {
+    await visitService.deleteVisit(visitId);
     set((s) => ({
-      visits: s.visits.filter((v) => v.id !== id),
-      placeVisits: s.placeVisits.filter((v) => v.id !== id),
+      visits: s.visits.filter((v) => v.visitId !== visitId),
+      placeVisits: s.placeVisits.filter((v) => v.visitId !== visitId),
     }));
+  },
+
+  addImages: async (images) => {
+    const created = await visitService.addImages(images);
+    set((s) => ({ placeImages: [...s.placeImages, ...created] }));
+    return created;
+  },
+
+  deleteImage: async (imageId) => {
+    await visitService.deleteImage(imageId);
+    set((s) => ({ placeImages: s.placeImages.filter((img) => img.imageId !== imageId) }));
   },
 
   getImageCount: async (placeId) => {

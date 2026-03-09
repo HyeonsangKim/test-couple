@@ -1,94 +1,160 @@
+// PRD v2 Design System Tokens
+
 export const colors = {
-  primary: '#FF6B9D',
-  primaryLight: '#FFB4CC',
-  primaryDark: '#E5527F',
-  secondary: '#9D7AFF',
-  secondaryLight: '#C4AFFF',
-  mint: '#50D492',
-  mintLight: '#A0E8C8',
-  cream: '#FFFDF7',
-  background: '#FFFDF7',
-  surface: '#FFFFFF',
-  surfaceElevated: '#FFFFFF',
-  text: '#2D2D3A',
-  textSecondary: '#8E8E9A',
-  textTertiary: '#B8B8C4',
-  border: '#F0EEF5',
-  borderFocused: '#FF6B9D',
-  error: '#FF4757',
-  warning: '#FFA726',
-  success: '#50D492',
-  overlay: 'rgba(0,0,0,0.4)',
+  // Base
+  bg: {
+    canvas: '#F6F4EF',
+    subtle: '#F2EFE9',
+  },
+  surface: {
+    primary: '#FFFFFF',
+    secondary: '#FBFAF7',
+    tertiary: '#F4F1EB',
+  },
+  // Text
+  text: {
+    primary: '#111111',
+    secondary: '#5F6368',
+    tertiary: '#8B9096',
+    inverse: '#FFFFFF',
+  },
+  // Border
+  border: {
+    soft: 'rgba(17, 17, 17, 0.06)',
+    strong: 'rgba(17, 17, 17, 0.12)',
+    glass: 'rgba(255, 255, 255, 0.45)',
+  },
+  // Accent
+  accent: {
+    primary: '#111111',
+    secondary: '#E9E2D5',
+    success: '#1F8F5F',
+    warning: '#C9871A',
+    danger: '#D64545',
+  },
+  // Glass / Overlay
+  glass: {
+    fill: 'rgba(255, 255, 255, 0.62)',
+    fillStrong: 'rgba(255, 255, 255, 0.78)',
+    shadow: 'rgba(17, 17, 17, 0.08)',
+  },
+  overlay: {
+    dim: 'rgba(17, 17, 17, 0.18)',
+  },
   // Marker colors
-  markerWishlist: '#FF6B9D',
-  markerVisited: '#50D492',
-  markerOrphan: '#C4C4D0',
+  marker: {
+    wishlist: '#C9871A',
+    visited: '#1F8F5F',
+    orphan: '#8B9096',
+  },
   // Category colors
-  categoryFood: '#FF8A65',
-  categoryTravel: '#4FC3F7',
-  categoryFun: '#FFD54F',
-  categorySpecial: '#CE93D8',
-  categoryNone: '#B8B8C4',
-  // Chat bubbles
-  bubbleMine: '#FFE8F0',
-  bubblePartner: '#F0EEFF',
+  category: {
+    food: '#E67E22',
+    travel: '#3498DB',
+    activity: '#F1C40F',
+    special: '#9B59B6',
+    uncategorized: '#8B9096',
+  },
+  // Status
+  status: {
+    deleteRequest: '#D64545',
+    deleteBg: 'rgba(214, 69, 69, 0.08)',
+  },
+  // Semantic
   white: '#FFFFFF',
   black: '#000000',
-  deleteRed: '#FF4757',
-  deleteBg: '#FFF0F0',
 };
 
 export const typography = {
-  h1: { fontSize: 28, fontWeight: '700' as const, lineHeight: 36 },
-  h2: { fontSize: 24, fontWeight: '700' as const, lineHeight: 32 },
-  h3: { fontSize: 20, fontWeight: '600' as const, lineHeight: 28 },
-  subtitle: { fontSize: 17, fontWeight: '600' as const, lineHeight: 24 },
-  body: { fontSize: 15, fontWeight: '400' as const, lineHeight: 22 },
-  bodyBold: { fontSize: 15, fontWeight: '600' as const, lineHeight: 22 },
-  caption: { fontSize: 13, fontWeight: '400' as const, lineHeight: 18 },
-  captionBold: { fontSize: 13, fontWeight: '600' as const, lineHeight: 18 },
-  small: { fontSize: 11, fontWeight: '400' as const, lineHeight: 16 },
+  display: {
+    l: { fontSize: 32, lineHeight: 40, fontWeight: '700' as const },
+  },
+  heading: {
+    l: { fontSize: 24, lineHeight: 32, fontWeight: '700' as const },
+    m: { fontSize: 20, lineHeight: 28, fontWeight: '700' as const },
+  },
+  title: {
+    l: { fontSize: 18, lineHeight: 26, fontWeight: '600' as const },
+    m: { fontSize: 16, lineHeight: 24, fontWeight: '600' as const },
+  },
+  body: {
+    l: { fontSize: 16, lineHeight: 24, fontWeight: '400' as const },
+    m: { fontSize: 14, lineHeight: 22, fontWeight: '400' as const },
+    s: { fontSize: 13, lineHeight: 20, fontWeight: '400' as const },
+  },
+  caption: { fontSize: 12, lineHeight: 18, fontWeight: '500' as const },
+  button: {
+    l: { fontSize: 16, lineHeight: 16, fontWeight: '600' as const },
+    m: { fontSize: 14, lineHeight: 14, fontWeight: '600' as const },
+  },
 };
 
 export const spacing = {
-  xs: 4,
-  sm: 8,
-  md: 12,
-  lg: 16,
-  xl: 20,
-  xxl: 24,
-  xxxl: 32,
-  xxxxl: 40,
+  1: 4,
+  2: 8,
+  3: 12,
+  4: 16,
+  5: 20,
+  6: 24,
+  8: 32,
+  10: 40,
+  12: 48,
+};
+
+export const layout = {
+  screenPaddingH: 20,
+  cardPaddingInner: 16,
+  sectionGap: 24,
+  cardGap: 12,
+  inlineGap: 8,
 };
 
 export const radius = {
-  sm: 8,
-  md: 12,
-  lg: 16,
-  xl: 20,
-  pill: 999,
+  xs: 10,
+  sm: 14,
+  md: 18,
+  lg: 24,
+  xl: 28,
+  pill: 9999,
 };
 
 export const shadow = {
   sm: {
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: 1 },
+    shadowColor: '#111111',
+    shadowOffset: { width: 0, height: 4 },
     shadowOpacity: 0.06,
-    shadowRadius: 3,
+    shadowRadius: 12,
     elevation: 2,
   },
   md: {
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: 2 },
+    shadowColor: '#111111',
+    shadowOffset: { width: 0, height: 10 },
     shadowOpacity: 0.08,
-    shadowRadius: 8,
+    shadowRadius: 24,
     elevation: 4,
   },
   lg: {
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: 4 },
-    shadowOpacity: 0.12,
-    shadowRadius: 16,
+    shadowColor: '#111111',
+    shadowOffset: { width: 0, height: 20 },
+    shadowOpacity: 0.10,
+    shadowRadius: 40,
     elevation: 8,
+  },
+};
+
+export const glass = {
+  blur: 16,
+  blurStrong: 24,
+  saturation: 1.1,
+  border: {
+    width: 1,
+    color: 'rgba(255, 255, 255, 0.45)',
+  },
+  fill: 'rgba(255, 255, 255, 0.62)',
+  fillStrong: 'rgba(255, 255, 255, 0.78)',
+  // Fallback for non-blur environments
+  fallback: {
+    background: 'rgba(255, 255, 255, 0.92)',
+    borderColor: 'rgba(17, 17, 17, 0.06)',
   },
 };

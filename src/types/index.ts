@@ -1,90 +1,134 @@
+// ===== Canonical Enums =====
+export type PlaceSourceType = 'official' | 'custom_pin';
 export type PlaceStatus = 'wishlist' | 'visited' | 'orphan';
-export type PlaceType = 'official' | 'custom';
-export type Category = 'food' | 'travel' | 'fun' | 'special' | 'none';
+export type PlaceCategory = 'food' | 'travel' | 'activity' | 'special' | 'uncategorized';
+export type InviteCodeStatus = 'active' | 'used' | 'expired' | 'revoked';
+export type DeleteRequestStatus = 'pending' | 'approved' | 'rejected' | 'canceled' | 'expired';
 
-export interface User {
-  id: string;
+// ===== Core Data Models =====
+export interface UserProfile {
+  userId: string;
   nickname: string;
-  profileColor: string;
+  profileImageUri: string | null;
   createdAt: string;
+  updatedAt: string;
 }
 
 export interface SharedMap {
-  id: string;
-  name: string;
-  ownerId: string;
-  memberIds: string[];
-  createdAt: string;
-  updatedAt: string;
-}
-
-export interface Place {
-  id: string;
   mapId: string;
-  name: string;
-  address: string;
-  latitude: number;
-  longitude: number;
-  type: PlaceType;
-  status: PlaceStatus;
-  category: Category;
-  categoryManual: boolean;
-  heroImageUri: string | null;
-  externalPlaceId: string | null;
-  createdBy: string;
-  createdAt: string;
-  updatedAt: string;
-  deleteRequest: DeleteRequest | null;
-}
-
-export interface DeleteRequest {
-  requestedBy: string;
-  requestedAt: string;
-  expiresAt: string;
-}
-
-export interface VisitRecord {
-  id: string;
-  placeId: string;
-  date: string; // YYYY-MM-DD
-  imageUris: string[];
-  createdBy: string;
-  createdAt: string;
-  updatedAt: string;
-}
-
-export interface ThreadMessage {
-  id: string;
-  placeId: string;
-  authorId: string;
-  content: string;
+  memberUserIds: string[];
+  activeInviteCodeId: string | null;
+  anniversaryDate: string | null;
+  anniversaryLabel: string | null;
   createdAt: string;
   updatedAt: string;
 }
 
 export interface InviteCode {
-  code: string;
+  inviteCodeId: string;
   mapId: string;
-  password: string;
-  createdBy: string;
-  createdAt: string;
+  code: string;
+  status: InviteCodeStatus;
   expiresAt: string;
-}
-
-export interface MapSnapshot {
-  id: string;
-  originalMapId: string;
-  ownerId: string;
-  partnerNickname: string;
-  places: Place[];
-  visits: VisitRecord[];
-  threads: ThreadMessage[];
+  usedByUserId: string | null;
+  usedAt: string | null;
   createdAt: string;
 }
 
+export interface Place {
+  placeId: string;
+  mapId: string;
+  sourceType: PlaceSourceType;
+  externalPlaceId: string | null;
+  name: string;
+  latitude: number;
+  longitude: number;
+  addressText: string | null;
+  category: PlaceCategory;
+  status: PlaceStatus;
+  heroImageId: string | null;
+  deleteRequest: DeleteRequest | null;
+  categoryManual: boolean;
+  createdByUserId: string;
+  createdAt: string;
+  updatedAt: string;
+}
+
+export interface DeleteRequest {
+  requestedByUserId: string;
+  requestedAt: string;
+  expiresAt: string;
+  status: DeleteRequestStatus;
+}
+
+export interface Visit {
+  visitId: string;
+  placeId: string;
+  visitDate: string; // YYYY-MM-DD
+  createdByUserId: string;
+  createdAt: string;
+  updatedAt: string;
+}
+
+export interface VisitImage {
+  imageId: string;
+  visitId: string;
+  uri: string;
+  width: number | null;
+  height: number | null;
+  createdAt: string;
+}
+
+export interface ThreadMessage {
+  messageId: string;
+  placeId: string;
+  authorUserId: string;
+  body: string;
+  createdAt: string;
+  updatedAt: string | null;
+}
+
+export interface Snapshot {
+  snapshotId: string;
+  sourceMapId: string;
+  partnerUserId: string;
+  createdAt: string;
+  places: Place[];
+  visits: Visit[];
+  visitImages: VisitImage[];
+  threadMessages: ThreadMessage[];
+}
+
+export interface NotificationSettings {
+  userId: string;
+  inviteAndConnection: boolean;
+  visit: boolean;
+  threadMessage: boolean;
+  placeDelete: boolean;
+  disconnect: boolean;
+  anniversary: boolean;
+  updatedAt: string;
+}
+
+// ===== App State Types =====
 export interface FilterState {
   status: PlaceStatus | 'all';
-  category: Category | 'all';
+  category: PlaceCategory | 'all';
   searchQuery: string;
-  searchScope: 'all' | 'name';
+}
+
+export interface MapRegion {
+  latitude: number;
+  longitude: number;
+  latitudeDelta: number;
+  longitudeDelta: number;
+}
+
+export interface MapApiResult {
+  externalPlaceId: string;
+  name: string;
+  latitude: number;
+  longitude: number;
+  addressText: string | null;
+  category: PlaceCategory;
 }

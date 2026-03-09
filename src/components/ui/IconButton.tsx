@@ -1,7 +1,7 @@
 import React from 'react';
 import { TouchableOpacity, StyleSheet, ViewStyle } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
-import { colors, spacing } from '@/theme/tokens';
+import { colors } from '@/theme/tokens';
 
 type IoniconsName = React.ComponentProps<typeof Ionicons>['name'];
 
@@ -18,8 +18,8 @@ export const IconButton: React.FC<IconButtonProps> = ({
   icon,
   onPress,
   size = 40,
-  color = colors.text,
-  backgroundColor = colors.surface,
+  color = colors.text.primary,
+  backgroundColor = colors.surface.primary,
   style,
 }) => (
   <TouchableOpacity

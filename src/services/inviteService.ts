@@ -11,32 +11,41 @@ export const inviteService = {
     await delay(200);
     if (!currentInvite) return null;
     if (currentInvite.mapId !== mapId) return null;
+    if (currentInvite.status !== 'active') return null;
     if (isExpired(currentInvite.expiresAt)) {
-      currentInvite = null;
+      currentInvite = { ...currentInvite, status: 'expired' };
       return null;
     }
     return currentInvite;
   },
 
-  createInvite: async (mapId: string, createdBy: string, password: string): Promise<InviteCode> => {
+  createInvite: async (mapId: string): Promise<InviteCode> => {
     await delay(300);
-    currentInvite = createInviteCode(mapId, createdBy, password);
+    if (currentInvite?.status === 'active') {
+      currentInvite = { ...currentInvite, status: 'revoked' };
+    }
+    currentInvite = createInviteCode(mapId);
     return currentInvite;
   },
 
-  validateInvite: async (code: string, password: string): Promise<{ valid: boolean; mapId?: string; error?: string }> => {
+  validateInvite: async (code: string): Promise<{ valid: boolean; mapId?: string; error?: string }> => {
     await delay(500);
     if (!currentInvite) return { valid: false, error: '유효하지 않은 초대 코드입니다.' };
-    if (currentInvite.code !== code) return { valid: false, error: '유효하지 않은 초대 코드입니다.' };
-    if (isExpired(currentInvite.expiresAt)) return { valid: false, error: '만료된 초대 코드입니다.' };
-    if (currentInvite.password !== password) return { valid: false, error: '비밀번호가 일치하지 않습니다.' };
+    if (currentInvite.code.toUpperCase() !== code.toUpperCase()) return { valid: false, error: '유효하지 않은 초대 코드입니다.' };
+    if (currentInvite.status !== 'active') return { valid: false, error: '이미 사용되었거나 만료된 초대 코드입니다.' };
+    if (isExpired(currentInvite.expiresAt)) {
+      currentInvite = { ...currentInvite, status: 'expired' };
+      return { valid: false, error: '만료된 초대 코드입니다.' };
+    }
     const mapId = currentInvite.mapId;
-    currentInvite = null; // consume code
+    currentInvite = { ...currentInvite, status: 'used', usedAt: new Date().toISOString() };
     return { valid: true, mapId };
   },
 
   revokeInvite: async (): Promise<void> => {
     await delay(200);
-    currentInvite = null;
+    if (currentInvite?.status === 'active') {
+      currentInvite = { ...currentInvite, status: 'revoked' };
+    }
   },
 };

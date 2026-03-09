@@ -11,23 +11,28 @@ export const threadService = {
     return threads.filter((t) => t.placeId === placeId).sort((a, b) => a.createdAt.localeCompare(b.createdAt));
   },
 
-  addMessage: async (data: { placeId: string; authorId: string; content: string }): Promise<ThreadMessage> => {
+  addMessage: async (data: { placeId: string; authorUserId: string; body: string }): Promise<ThreadMessage> => {
     await delay(300);
     const msg = createThreadMessage(data);
     threads = [...threads, msg];
     return msg;
   },
 
-  updateMessage: async (id: string, content: string): Promise<ThreadMessage> => {
+  updateMessage: async (messageId: string, body: string): Promise<ThreadMessage> => {
     await delay(200);
-    threads = threads.map((t) => (t.id === id ? { ...t, content, updatedAt: new Date().toISOString() } : t));
-    const updated = threads.find((t) => t.id === id);
+    threads = threads.map((t) => (t.messageId === messageId ? { ...t, body, updatedAt: new Date().toISOString() } : t));
+    const updated = threads.find((t) => t.messageId === messageId);
     if (!updated) throw new Error('Message not found');
     return updated;
   },
 
-  deleteMessage: async (id: string): Promise<void> => {
+  deleteMessage: async (messageId: string): Promise<void> => {
     await delay(200);
-    threads = threads.filter((t) => t.id !== id);
+    threads = threads.filter((t) => t.messageId !== messageId);
+  },
+
+  getAllThreads: async (): Promise<ThreadMessage[]> => {
+    await delay(200);
+    return [...threads];
   },
 };

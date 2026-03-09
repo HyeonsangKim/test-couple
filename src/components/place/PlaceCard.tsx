@@ -5,7 +5,6 @@ import { Place } from '@/types';
 import { colors, typography, spacing, radius, shadow } from '@/theme/tokens';
 import { Chip } from '@/components/ui';
 import { CATEGORY_LABELS, STATUS_LABELS } from '@/constants';
-import { formatDate } from '@/utils/date';
 
 type IoniconsName = React.ComponentProps<typeof Ionicons>['name'];
 
@@ -18,22 +17,26 @@ interface PlaceCardProps {
 const getStatusIcon = (status: string): { icon: IoniconsName; color: string } => {
   switch (status) {
     case 'wishlist':
-      return { icon: 'heart', color: colors.markerWishlist };
+      return { icon: 'heart', color: colors.marker.wishlist };
     case 'visited':
-      return { icon: 'checkmark-circle', color: colors.markerVisited };
+      return { icon: 'checkmark-circle', color: colors.marker.visited };
     default:
-      return { icon: 'location', color: colors.markerOrphan };
+      return { icon: 'location', color: colors.marker.orphan };
   }
 };
 
 export const PlaceCard: React.FC<PlaceCardProps> = ({ place, visitCount, onPress }) => {
-  const statusColor = place.status === 'wishlist' ? colors.markerWishlist : place.status === 'visited' ? colors.markerVisited : colors.markerOrphan;
+  const statusColor = place.status === 'wishlist'
+    ? colors.marker.wishlist
+    : place.status === 'visited'
+      ? colors.marker.visited
+      : colors.marker.orphan;
   const statusInfo = getStatusIcon(place.status);
 
   return (
     <TouchableOpacity style={styles.card} onPress={onPress} activeOpacity={0.7}>
-      {place.heroImageUri ? (
-        <Image source={{ uri: place.heroImageUri }} style={styles.image} />
+      {place.heroImageId ? (
+        <Image source={{ uri: place.heroImageId }} style={styles.image} />
       ) : (
         <View style={[styles.image, styles.placeholder]}>
           <Ionicons name={statusInfo.icon} size={28} color={statusInfo.color} />
@@ -42,9 +45,11 @@ export const PlaceCard: React.FC<PlaceCardProps> = ({ place, visitCount, onPress
       <View style={styles.content}>
         <View style={styles.nameRow}>
           <Text style={styles.name} numberOfLines={1}>{place.name}</Text>
-          {place.deleteRequest && <Ionicons name="trash-outline" size={14} color={colors.deleteRed} style={styles.trashIcon} />}
+          {place.deleteRequest && (
+            <Ionicons name="trash-outline" size={14} color={colors.status.deleteRequest} style={styles.trashIcon} />
+          )}
         </View>
-        <Text style={styles.address} numberOfLines={1}>{place.address}</Text>
+        <Text style={styles.address} numberOfLines={1}>{place.addressText}</Text>
         <View style={styles.metaRow}>
           <Chip
             label={STATUS_LABELS[place.status] || place.status}
@@ -52,7 +57,7 @@ export const PlaceCard: React.FC<PlaceCardProps> = ({ place, visitCount, onPress
             selected
             size="sm"
           />
-          {place.category !== 'none' && (
+          {place.category !== 'uncategorized' && (
             <Chip
               label={CATEGORY_LABELS[place.category] || place.category}
               size="sm"
@@ -71,17 +76,17 @@ export const PlaceCard: React.FC<PlaceCardProps> = ({ place, visitCount, onPress
 const styles = StyleSheet.create({
   card: {
     flexDirection: 'row',
-    backgroundColor: colors.surface,
+    backgroundColor: colors.surface.primary,
     borderRadius: radius.lg,
-    padding: spacing.md,
-    marginBottom: spacing.md,
+    padding: spacing[4],
+    marginBottom: spacing[3],
     ...shadow.sm,
   },
   image: {
     width: 72,
     height: 72,
     borderRadius: radius.md,
-    backgroundColor: colors.border,
+    backgroundColor: colors.surface.tertiary,
   },
   placeholder: {
     alignItems: 'center',
@@ -89,7 +94,7 @@ const styles = StyleSheet.create({
   },
   content: {
     flex: 1,
-    marginLeft: spacing.md,
+    marginLeft: spacing[4],
     justifyContent: 'center',
   },
   nameRow: {
@@ -97,31 +102,31 @@ const styles = StyleSheet.create({
     alignItems: 'center',
   },
   name: {
-    ...typography.bodyBold,
-    color: colors.text,
+    ...typography.title.m,
+    color: colors.text.primary,
     flex: 1,
   },
   trashIcon: {
-    marginLeft: spacing.xs,
+    marginLeft: spacing[1],
   },
   address: {
     ...typography.caption,
-    color: colors.textSecondary,
+    color: colors.text.secondary,
     marginTop: 2,
-    marginBottom: spacing.sm,
+    marginBottom: spacing[2],
   },
   metaRow: {
     flexDirection: 'row',
     alignItems: 'center',
     flexWrap: 'wrap',
-    gap: spacing.xs,
+    gap: spacing[1],
   },
   categoryChip: {
-    marginLeft: spacing.xs,
+    marginLeft: spacing[1],
   },
   visitCount: {
-    ...typography.small,
-    color: colors.textTertiary,
-    marginLeft: spacing.xs,
+    ...typography.caption,
+    color: colors.text.tertiary,
+    marginLeft: spacing[1],
   },
 });

@@ -39,7 +39,7 @@ export const DatePicker: React.FC<DatePickerProps> = ({ value, onChange, label }
         <Text style={[styles.triggerText, !value && styles.placeholder]}>
           {value ? format(parseISO(value), 'yyyy년 MM월 dd일') : '날짜를 선택해주세요'}
         </Text>
-        <Ionicons name="calendar-outline" size={18} color={colors.textSecondary} />
+        <Ionicons name="calendar-outline" size={18} color={colors.text.secondary} />
       </TouchableOpacity>
 
       <Modal visible={visible} transparent animationType="fade">
@@ -47,11 +47,11 @@ export const DatePicker: React.FC<DatePickerProps> = ({ value, onChange, label }
           <TouchableOpacity activeOpacity={1} style={styles.calendar}>
             <View style={styles.header}>
               <TouchableOpacity onPress={() => setViewDate(subMonths(viewDate, 1))} style={styles.navBtn}>
-                <Ionicons name="chevron-back" size={20} color={colors.primary} />
+                <Ionicons name="chevron-back" size={20} color={colors.accent.primary} />
               </TouchableOpacity>
               <Text style={styles.monthYear}>{year}년 {month + 1}월</Text>
               <TouchableOpacity onPress={() => setViewDate(addMonths(viewDate, 1))} style={styles.navBtn}>
-                <Ionicons name="chevron-forward" size={20} color={colors.primary} />
+                <Ionicons name="chevron-forward" size={20} color={colors.accent.primary} />
               </TouchableOpacity>
             </View>
             <View style={styles.weekRow}>
@@ -94,62 +94,62 @@ export const DatePicker: React.FC<DatePickerProps> = ({ value, onChange, label }
 
 const styles = StyleSheet.create({
   label: {
-    ...typography.captionBold,
-    color: colors.textSecondary,
-    marginBottom: spacing.xs,
+    ...typography.caption,
+    color: colors.text.secondary,
+    marginBottom: spacing[1],
   },
   trigger: {
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'space-between',
     borderWidth: 1.5,
-    borderColor: colors.border,
+    borderColor: colors.border.soft,
     borderRadius: radius.md,
-    padding: spacing.md,
-    backgroundColor: colors.surface,
+    padding: spacing[4],
+    backgroundColor: colors.surface.primary,
   },
   triggerText: {
-    ...typography.body,
-    color: colors.text,
+    ...typography.body.m,
+    color: colors.text.primary,
   },
   placeholder: {
-    color: colors.textTertiary,
+    color: colors.text.tertiary,
   },
   overlay: {
     flex: 1,
-    backgroundColor: colors.overlay,
+    backgroundColor: colors.overlay.dim,
     justifyContent: 'center',
     alignItems: 'center',
-    padding: spacing.xxl,
+    padding: spacing[6],
   },
   calendar: {
-    backgroundColor: colors.surface,
+    backgroundColor: colors.surface.primary,
     borderRadius: radius.xl,
-    padding: spacing.lg,
+    padding: spacing[4],
     width: 320,
   },
   header: {
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'space-between',
-    marginBottom: spacing.lg,
+    marginBottom: spacing[4],
   },
   navBtn: {
-    padding: spacing.sm,
+    padding: spacing[2],
   },
   monthYear: {
-    ...typography.subtitle,
-    color: colors.text,
+    ...typography.title.m,
+    color: colors.text.primary,
   },
   weekRow: {
     flexDirection: 'row',
-    marginBottom: spacing.sm,
+    marginBottom: spacing[2],
   },
   weekDay: {
     flex: 1,
     textAlign: 'center',
-    ...typography.captionBold,
-    color: colors.textTertiary,
+    ...typography.caption,
+    color: colors.text.tertiary,
   },
   daysGrid: {
     flexDirection: 'row',
@@ -162,15 +162,15 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
   },
   dayText: {
-    ...typography.body,
-    color: colors.text,
+    ...typography.body.m,
+    color: colors.text.primary,
   },
   selectedDay: {
-    backgroundColor: colors.primary,
+    backgroundColor: colors.accent.primary,
     borderRadius: 999,
   },
   selectedDayText: {
-    color: colors.white,
+    color: colors.text.inverse,
     fontWeight: '700',
   },
 });

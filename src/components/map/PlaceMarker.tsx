@@ -14,15 +14,15 @@ interface PlaceMarkerProps {
 
 const getMarkerStyle = (place: Place): { bg: string; border: string; icon: IoniconsName } => {
   if (place.deleteRequest) {
-    return { bg: colors.deleteBg, border: colors.deleteRed, icon: 'trash-outline' };
+    return { bg: colors.status.deleteBg, border: colors.status.deleteRequest, icon: 'trash-outline' };
   }
   switch (place.status) {
     case 'wishlist':
-      return { bg: '#FFE8F0', border: colors.markerWishlist, icon: 'heart' };
+      return { bg: '#FFE8F0', border: colors.marker.wishlist, icon: 'heart' };
     case 'visited':
-      return { bg: '#E8FFF0', border: colors.markerVisited, icon: 'checkmark-circle' };
+      return { bg: '#E8FFF0', border: colors.marker.visited, icon: 'checkmark-circle' };
     case 'orphan':
-      return { bg: '#F0F0F5', border: colors.markerOrphan, icon: 'location' };
+      return { bg: '#F0F0F5', border: colors.marker.orphan, icon: 'location' };
   }
 };
 
@@ -66,21 +66,22 @@ const markerStyles = StyleSheet.create({
     borderTopWidth: 8,
     borderLeftColor: 'transparent',
     borderRightColor: 'transparent',
-    borderTopColor: colors.surface,
+    borderTopColor: colors.surface.primary,
     alignSelf: 'center',
     marginTop: -1,
   },
   callout: {
-    backgroundColor: colors.surface,
+    backgroundColor: colors.surface.primary,
     borderRadius: radius.sm,
-    padding: spacing.sm,
+    padding: spacing[2],
     ...shadow.sm,
     minWidth: 80,
     maxWidth: 200,
   },
   calloutText: {
-    ...typography.captionBold,
-    color: colors.text,
+    ...typography.caption,
+    color: colors.text.primary,
+    fontWeight: '600',
     textAlign: 'center',
   },
 });

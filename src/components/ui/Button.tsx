@@ -26,26 +26,26 @@ export const Button: React.FC<ButtonProps> = ({
   fullWidth = false,
 }) => {
   const bgColor = {
-    primary: colors.primary,
-    secondary: colors.secondary,
+    primary: colors.accent.primary,
+    secondary: colors.accent.secondary,
     outline: 'transparent',
     ghost: 'transparent',
-    danger: colors.deleteRed,
+    danger: colors.accent.danger,
   }[variant];
 
-  const textColor = {
-    primary: colors.white,
-    secondary: colors.white,
-    outline: colors.primary,
-    ghost: colors.text,
-    danger: colors.white,
+  const txtColor = {
+    primary: colors.text.inverse,
+    secondary: colors.text.primary,
+    outline: colors.accent.primary,
+    ghost: colors.text.primary,
+    danger: colors.text.inverse,
   }[variant];
 
-  const borderColor = variant === 'outline' ? colors.primary : 'transparent';
+  const borderClr = variant === 'outline' ? colors.accent.primary : 'transparent';
 
-  const paddingV = { sm: spacing.sm, md: spacing.md, lg: spacing.lg }[size];
-  const paddingH = { sm: spacing.lg, md: spacing.xl, lg: spacing.xxl }[size];
-  const fontSize = { sm: 13, md: 15, lg: 17 }[size];
+  const paddingV = { sm: spacing[2], md: spacing[3], lg: spacing[4] }[size];
+  const paddingH = { sm: spacing[4], md: spacing[5], lg: spacing[6] }[size];
+  const typo = size === 'lg' ? typography.button.l : typography.button.m;
 
   return (
     <TouchableOpacity
@@ -55,8 +55,8 @@ export const Button: React.FC<ButtonProps> = ({
       style={[
         styles.base,
         {
-          backgroundColor: disabled ? colors.border : bgColor,
-          borderColor: disabled ? colors.border : borderColor,
+          backgroundColor: disabled ? colors.border.strong : bgColor,
+          borderColor: disabled ? colors.border.strong : borderClr,
           borderWidth: variant === 'outline' ? 1.5 : 0,
           paddingVertical: paddingV,
           paddingHorizontal: paddingH,
@@ -66,14 +66,15 @@ export const Button: React.FC<ButtonProps> = ({
       ]}
     >
       {loading ? (
-        <ActivityIndicator color={textColor} size="small" />
+        <ActivityIndicator color={txtColor} size="small" />
       ) : (
         <Text
           style={[
             styles.text,
             {
-              color: disabled ? colors.textTertiary : textColor,
-              fontSize,
+              color: disabled ? colors.text.tertiary : txtColor,
+              fontSize: typo.fontSize,
+              fontWeight: typo.fontWeight,
             },
             textStyle,
           ]}
@@ -87,7 +88,7 @@ export const Button: React.FC<ButtonProps> = ({
 
 const styles = StyleSheet.create({
   base: {
-    borderRadius: radius.lg,
+    borderRadius: radius.md,
     alignItems: 'center',
     justifyContent: 'center',
     flexDirection: 'row',

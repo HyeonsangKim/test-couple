@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { View, Text, StyleSheet, TouchableOpacity } from 'react-native';
+import { View, Text, StyleSheet } from 'react-native';
 import { colors, typography, spacing, radius, shadow } from '@/theme/tokens';
 import { InviteCode } from '@/types';
 import { getRemainingHours, isExpired } from '@/utils/date';
@@ -12,7 +12,7 @@ interface InviteCodeDisplayProps {
 
 export const InviteCodeDisplay: React.FC<InviteCodeDisplayProps> = ({ invite, onRevoke }) => {
   const [remainingHours, setRemainingHours] = useState(getRemainingHours(invite.expiresAt));
-  const expired = isExpired(invite.expiresAt);
+  const expired = isExpired(invite.expiresAt) || invite.status !== 'active';
 
   useEffect(() => {
     const interval = setInterval(() => {
@@ -27,11 +27,12 @@ export const InviteCodeDisplay: React.FC<InviteCodeDisplayProps> = ({ invite, on
       <View style={styles.codeBox}>
         <Text style={styles.code}>{invite.code}</Text>
       </View>
-      <Text style={styles.password}>비밀번호: {invite.password}</Text>
       <Text style={[styles.timer, expired && styles.timerExpired]}>
         {expired ? '만료됨' : `${remainingHours}시간 남음`}
       </Text>
-      <Button title="코드 무효화" onPress={onRevoke} variant="ghost" size="sm" style={styles.revokeBtn} />
+      {!expired && (
+        <Button title="코드 무효화" onPress={onRevoke} variant="ghost" size="sm" style={styles.revokeBtn} />
+      )}
     </View>
   );
 };
@@ -39,46 +40,41 @@ export const InviteCodeDisplay: React.FC<InviteCodeDisplayProps> = ({ invite, on
 const styles = StyleSheet.create({
   container: {
     alignItems: 'center',
-    padding: spacing.xxl,
-    backgroundColor: colors.surface,
+    padding: spacing[6],
+    backgroundColor: colors.surface.primary,
     borderRadius: radius.xl,
     ...shadow.md,
   },
   label: {
-    ...typography.captionBold,
-    color: colors.textSecondary,
-    marginBottom: spacing.md,
+    ...typography.caption,
+    color: colors.text.secondary,
+    marginBottom: spacing[4],
   },
   codeBox: {
-    backgroundColor: colors.cream,
+    backgroundColor: colors.bg.canvas,
     borderRadius: radius.lg,
-    paddingVertical: spacing.lg,
-    paddingHorizontal: spacing.xxxl,
-    marginBottom: spacing.md,
+    paddingVertical: spacing[4],
+    paddingHorizontal: spacing[8],
+    marginBottom: spacing[4],
     borderWidth: 2,
-    borderColor: colors.primary,
+    borderColor: colors.accent.primary,
     borderStyle: 'dashed',
   },
   code: {
     fontSize: 32,
     fontWeight: '800',
-    color: colors.primary,
+    color: colors.accent.primary,
     letterSpacing: 6,
   },
-  password: {
-    ...typography.body,
-    color: colors.textSecondary,
-    marginBottom: spacing.sm,
-  },
   timer: {
-    ...typography.captionBold,
-    color: colors.warning,
-    marginBottom: spacing.lg,
+    ...typography.caption,
+    color: colors.accent.warning,
+    marginBottom: spacing[4],
   },
   timerExpired: {
-    color: colors.error,
+    color: colors.accent.danger,
   },
   revokeBtn: {
-    marginTop: spacing.sm,
+    marginTop: spacing[2],
   },
 });

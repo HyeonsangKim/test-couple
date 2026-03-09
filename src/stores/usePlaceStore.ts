@@ -1,5 +1,5 @@
 import { create } from 'zustand';
-import { Place, PlaceStatus, Category, FilterState } from '@/types';
+import { Place, FilterState } from '@/types';
 import { placeService } from '@/services/placeService';
 
 interface PlaceState {
@@ -7,17 +7,16 @@ interface PlaceState {
   selectedPlace: Place | null;
   filter: FilterState;
   isLoading: boolean;
-  viewMode: 'map' | 'list';
   loadPlaces: (mapId: string) => Promise<void>;
   selectPlace: (place: Place | null) => void;
-  addPlace: (data: Partial<Place> & { name: string; latitude: number; longitude: number; mapId: string; createdBy: string }) => Promise<Place>;
-  updatePlace: (id: string, updates: Partial<Place>) => Promise<void>;
-  requestDelete: (id: string, requestedBy: string) => Promise<void>;
-  cancelDelete: (id: string) => Promise<void>;
-  approveDelete: (id: string) => Promise<void>;
+  addPlace: (data: Partial<Place> & { name: string; latitude: number; longitude: number; mapId: string; createdByUserId: string }) => Promise<Place>;
+  updatePlace: (placeId: string, updates: Partial<Place>) => Promise<void>;
+  requestDelete: (placeId: string, requestedByUserId: string) => Promise<void>;
+  cancelDelete: (placeId: string) => Promise<void>;
+  approveDelete: (placeId: string) => Promise<void>;
+  rejectDelete: (placeId: string) => Promise<void>;
   setFilter: (filter: Partial<FilterState>) => void;
   resetFilter: () => void;
-  setViewMode: (mode: 'map' | 'list') => void;
   checkDuplicate: (mapId: string, externalPlaceId: string) => Promise<Place | null>;
 }
 
@@ -25,7 +24,6 @@ const defaultFilter: FilterState = {
   status: 'all',
   category: 'all',
   searchQuery: '',
-  searchScope: 'all',
 };
 
 export const usePlaceStore = create<PlaceState>((set, get) => ({
@@ -33,7 +31,6 @@ export const usePlaceStore = create<PlaceState>((set, get) => ({
   selectedPlace: null,
   filter: { ...defaultFilter },
   isLoading: false,
-  viewMode: 'map',
 
   loadPlaces: async (mapId) => {
     set({ isLoading: true });
@@ -49,35 +46,43 @@ export const usePlaceStore = create<PlaceState>((set, get) => ({
     return place;
   },
 
-  updatePlace: async (id, updates) => {
-    const place = await placeService.updatePlace(id, updates);
+  updatePlace: async (placeId, updates) => {
+    const place = await placeService.updatePlace(placeId, updates);
     set((s) => ({
-      places: s.places.map((p) => (p.id === id ? place : p)),
-      selectedPlace: s.selectedPlace?.id === id ? place : s.selectedPlace,
+      places: s.places.map((p) => (p.placeId === placeId ? place : p)),
+      selectedPlace: s.selectedPlace?.placeId === placeId ? place : s.selectedPlace,
     }));
   },
 
-  requestDelete: async (id, requestedBy) => {
-    const place = await placeService.requestDelete(id, requestedBy);
+  requestDelete: async (placeId, requestedByUserId) => {
+    const place = await placeService.requestDelete(placeId, requestedByUserId);
     set((s) => ({
-      places: s.places.map((p) => (p.id === id ? place : p)),
-      selectedPlace: s.selectedPlace?.id === id ? place : s.selectedPlace,
+      places: s.places.map((p) => (p.placeId === placeId ? place : p)),
+      selectedPlace: s.selectedPlace?.placeId === placeId ? place : s.selectedPlace,
     }));
   },
 
-  cancelDelete: async (id) => {
-    const place = await placeService.cancelDelete(id);
+  cancelDelete: async (placeId) => {
+    const place = await placeService.cancelDelete(placeId);
     set((s) => ({
-      places: s.places.map((p) => (p.id === id ? place : p)),
-      selectedPlace: s.selectedPlace?.id === id ? place : s.selectedPlace,
+      places: s.places.map((p) => (p.placeId === placeId ? place : p)),
+      selectedPlace: s.selectedPlace?.placeId === placeId ? place : s.selectedPlace,
     }));
   },
 
-  approveDelete: async (id) => {
-    await placeService.approveDelete(id);
+  approveDelete: async (placeId) => {
+    await placeService.approveDelete(placeId);
     set((s) => ({
-      places: s.places.filter((p) => p.id !== id),
-      selectedPlace: s.selectedPlace?.id === id ? null : s.selectedPlace,
+      places: s.places.filter((p) => p.placeId !== placeId),
+      selectedPlace: s.selectedPlace?.placeId === placeId ? null : s.selectedPlace,
+    }));
+  },
+
+  rejectDelete: async (placeId) => {
+    const place = await placeService.rejectDelete(placeId);
+    set((s) => ({
+      places: s.places.map((p) => (p.placeId === placeId ? place : p)),
+      selectedPlace: s.selectedPlace?.placeId === placeId ? place : s.selectedPlace,
     }));
   },
 
@@ -85,8 +90,6 @@ export const usePlaceStore = create<PlaceState>((set, get) => ({
     set((s) => ({ filter: { ...s.filter, ...filter } })),
 
   resetFilter: () => set({ filter: { ...defaultFilter } }),
-
-  setViewMode: (mode) => set({ viewMode: mode }),
 
   checkDuplicate: async (mapId, externalPlaceId) => {
     return placeService.checkDuplicate(mapId, externalPlaceId);

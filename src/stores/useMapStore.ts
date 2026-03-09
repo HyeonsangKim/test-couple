@@ -6,9 +6,11 @@ interface MapState {
   map: SharedMap | null;
   isLoading: boolean;
   loadMap: () => Promise<void>;
-  createMap: (name: string, ownerId: string) => Promise<SharedMap>;
+  createMap: (userId: string) => Promise<SharedMap>;
   joinMap: (mapId: string, userId: string) => Promise<SharedMap>;
+  updateAnniversary: (date: string | null, label: string | null) => Promise<void>;
   disconnect: () => Promise<void>;
+  deleteMap: () => Promise<void>;
 }
 
 export const useMapStore = create<MapState>((set) => ({
@@ -21,8 +23,8 @@ export const useMapStore = create<MapState>((set) => ({
     set({ map, isLoading: false });
   },
 
-  createMap: async (name, ownerId) => {
-    const map = await mapService.createMap(name, ownerId);
+  createMap: async (userId) => {
+    const map = await mapService.createMap(userId);
     set({ map });
     return map;
   },
@@ -33,8 +35,18 @@ export const useMapStore = create<MapState>((set) => ({
     return map;
   },
 
+  updateAnniversary: async (date, label) => {
+    const map = await mapService.updateAnniversary(date, label);
+    set({ map });
+  },
+
   disconnect: async () => {
     await mapService.disconnect();
+    set({ map: null });
+  },
+
+  deleteMap: async () => {
+    await mapService.deleteMap();
     set({ map: null });
   },
 }));

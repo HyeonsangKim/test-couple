@@ -1,22 +1,29 @@
 import { create } from 'zustand';
-import { User, SharedMap } from '@/types';
+import { UserProfile, NotificationSettings } from '@/types';
 import { authService } from '@/services/authService';
 
 interface AuthState {
-  currentUser: User | null;
-  partner: User | null;
+  currentUser: UserProfile | null;
+  partner: UserProfile | null;
+  notificationSettings: NotificationSettings | null;
   isOnboarded: boolean;
   isLoading: boolean;
   init: () => Promise<void>;
   setOnboarded: (val: boolean) => void;
-  loadPartner: (memberIds: string[]) => Promise<void>;
-  getUserById: (id: string) => User | undefined;
+  loadPartner: (memberUserIds: string[]) => Promise<void>;
+  getUserById: (userId: string) => UserProfile | undefined;
+  updateProfile: (updates: { nickname?: string; profileImageUri?: string | null }) => Promise<void>;
+  loadNotificationSettings: () => Promise<void>;
+  updateNotificationSettings: (updates: Partial<NotificationSettings>) => Promise<void>;
+  logout: () => Promise<void>;
+  withdraw: () => Promise<void>;
 }
 
 export const useAuthStore = create<AuthState>((set, get) => ({
   currentUser: null,
   partner: null,
-  isOnboarded: true, // Start as true for mock (already has map)
+  notificationSettings: null,
+  isOnboarded: true,
   isLoading: true,
 
   init: async () => {
@@ -30,10 +37,39 @@ export const useAuthStore = create<AuthState>((set, get) => ({
 
   setOnboarded: (val) => set({ isOnboarded: val }),
 
-  loadPartner: async (memberIds) => {
-    const partner = await authService.getPartner(memberIds);
+  loadPartner: async (memberUserIds) => {
+    const partner = await authService.getPartner(memberUserIds);
     set({ partner });
   },
 
-  getUserById: (id) => authService.getUserById(id),
+  getUserById: (userId) => authService.getUserById(userId),
+
+  updateProfile: async (updates) => {
+    const user = get().currentUser;
+    if (!user) return;
+    const updated = await authService.updateProfile(user.userId, updates);
+    set({ currentUser: updated });
+  },
+
+  loadNotificationSettings: async () => {
+    const settings = await authService.getNotificationSettings();
+    set({ notificationSettings: settings });
+  },
+
+  updateNotificationSettings: async (updates) => {
+    const settings = await authService.updateNotificationSettings(updates);
+    set({ notificationSettings: settings });
+  },
+
+  logout: async () => {
+    await authService.logout();
+    set({ currentUser: null, partner: null, isOnboarded: false });
+  },
+
+  withdraw: async () => {
+    const user = get().currentUser;
+    if (!user) return;
+    await authService.withdraw(user.userId);
+    set({ currentUser: null, partner: null, isOnboarded: false, notificationSettings: null });
+  },
 }));

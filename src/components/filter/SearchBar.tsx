@@ -17,18 +17,18 @@ export const SearchBar: React.FC<SearchBarProps> = ({
   onClear,
 }) => (
   <View style={styles.container}>
-    <Ionicons name="search" size={16} color={colors.textTertiary} style={styles.icon} />
+    <Ionicons name="search" size={16} color={colors.text.tertiary} style={styles.icon} />
     <TextInput
       style={styles.input}
       value={value}
       onChangeText={onChangeText}
       placeholder={placeholder}
-      placeholderTextColor={colors.textTertiary}
+      placeholderTextColor={colors.text.tertiary}
       returnKeyType="search"
     />
     {value.length > 0 && (
       <TouchableOpacity onPress={onClear} style={styles.clearBtn}>
-        <Ionicons name="close" size={16} color={colors.textTertiary} />
+        <Ionicons name="close" size={16} color={colors.text.tertiary} />
       </TouchableOpacity>
     )}
   </View>
@@ -38,22 +38,22 @@ const styles = StyleSheet.create({
   container: {
     flexDirection: 'row',
     alignItems: 'center',
-    backgroundColor: colors.surface,
+    backgroundColor: colors.surface.primary,
     borderRadius: radius.pill,
-    paddingHorizontal: spacing.lg,
-    paddingVertical: spacing.sm,
+    paddingHorizontal: spacing[4],
+    paddingVertical: spacing[2],
     ...shadow.sm,
   },
   icon: {
-    marginRight: spacing.sm,
+    marginRight: spacing[2],
   },
   input: {
     flex: 1,
-    ...typography.body,
-    color: colors.text,
+    ...typography.body.m,
+    color: colors.text.primary,
     padding: 0,
   },
   clearBtn: {
-    padding: spacing.xs,
+    padding: spacing[1],
   },
 });

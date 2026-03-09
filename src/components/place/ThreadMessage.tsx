@@ -15,17 +15,17 @@ interface ThreadMessageProps {
 
 export const ThreadMessageComponent: React.FC<ThreadMessageProps> = ({ message, onEdit, onDelete }) => {
   const getUserById = useAuthStore((s) => s.getUserById);
-  const author = getUserById(message.authorId);
-  const isMine = message.authorId === CURRENT_USER_ID;
+  const author = getUserById(message.authorUserId);
+  const isMine = message.authorUserId === CURRENT_USER_ID;
 
   return (
     <View style={[styles.container, isMine && styles.containerMine]}>
       {!isMine && (
-        <Avatar name={author?.nickname ?? '?'} color={author?.profileColor ?? colors.textTertiary} size={32} />
+        <Avatar user={author} name={author?.nickname ?? '?'} color={colors.text.tertiary} size={32} />
       )}
       <View style={[styles.bubble, isMine ? styles.bubbleMine : styles.bubblePartner]}>
         {!isMine && <Text style={styles.authorName}>{author?.nickname}</Text>}
-        <Text style={styles.content}>{message.content}</Text>
+        <Text style={styles.content}>{message.body}</Text>
         <View style={styles.meta}>
           <Text style={styles.time}>{formatRelative(message.createdAt)}</Text>
           {isMine && (
@@ -45,7 +45,7 @@ export const ThreadMessageComponent: React.FC<ThreadMessageProps> = ({ message, 
         </View>
       </View>
       {isMine && (
-        <Avatar name={author?.nickname ?? '?'} color={author?.profileColor ?? colors.primary} size={32} />
+        <Avatar user={author} name={author?.nickname ?? '?'} color={colors.accent.primary} size={32} />
       )}
     </View>
   );
@@ -55,9 +55,9 @@ const styles = StyleSheet.create({
   container: {
     flexDirection: 'row',
     alignItems: 'flex-end',
-    marginBottom: spacing.md,
-    paddingHorizontal: spacing.md,
-    gap: spacing.sm,
+    marginBottom: spacing[4],
+    paddingHorizontal: spacing[4],
+    gap: spacing[2],
   },
   containerMine: {
     flexDirection: 'row',
@@ -66,46 +66,48 @@ const styles = StyleSheet.create({
   bubble: {
     maxWidth: '70%',
     borderRadius: radius.lg,
-    padding: spacing.md,
+    padding: spacing[4],
   },
   bubbleMine: {
-    backgroundColor: colors.bubbleMine,
+    backgroundColor: colors.surface.tertiary,
     borderBottomRightRadius: 4,
   },
   bubblePartner: {
-    backgroundColor: colors.bubblePartner,
+    backgroundColor: colors.surface.secondary,
     borderBottomLeftRadius: 4,
   },
   authorName: {
-    ...typography.captionBold,
-    color: colors.secondary,
-    marginBottom: spacing.xs,
+    ...typography.caption,
+    color: colors.accent.primary,
+    fontWeight: '600',
+    marginBottom: spacing[1],
   },
   content: {
-    ...typography.body,
-    color: colors.text,
+    ...typography.body.m,
+    color: colors.text.primary,
   },
   meta: {
     flexDirection: 'row',
     justifyContent: 'space-between',
     alignItems: 'center',
-    marginTop: spacing.xs,
+    marginTop: spacing[1],
   },
   time: {
-    ...typography.small,
-    color: colors.textTertiary,
+    ...typography.caption,
+    color: colors.text.tertiary,
+    fontSize: 11,
   },
   actions: {
     flexDirection: 'row',
-    gap: spacing.sm,
-    marginLeft: spacing.md,
+    gap: spacing[2],
+    marginLeft: spacing[4],
   },
   actionText: {
-    ...typography.small,
-    color: colors.primary,
+    ...typography.caption,
+    color: colors.accent.primary,
     fontWeight: '600',
   },
   deleteText: {
-    color: colors.error,
+    color: colors.accent.danger,
   },
 });

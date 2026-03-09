@@ -7,8 +7,8 @@ interface InviteState {
   isLoading: boolean;
   error: string | null;
   loadInvite: (mapId: string) => Promise<void>;
-  createInvite: (mapId: string, createdBy: string, password: string) => Promise<void>;
-  validateInvite: (code: string, password: string) => Promise<{ valid: boolean; mapId?: string; error?: string }>;
+  createInvite: (mapId: string) => Promise<void>;
+  validateInvite: (code: string) => Promise<{ valid: boolean; mapId?: string; error?: string }>;
   revokeInvite: () => Promise<void>;
   clearError: () => void;
 }
@@ -24,15 +24,15 @@ export const useInviteStore = create<InviteState>((set) => ({
     set({ invite, isLoading: false });
   },
 
-  createInvite: async (mapId, createdBy, password) => {
+  createInvite: async (mapId) => {
     set({ isLoading: true, error: null });
-    const invite = await inviteService.createInvite(mapId, createdBy, password);
+    const invite = await inviteService.createInvite(mapId);
     set({ invite, isLoading: false });
   },
 
-  validateInvite: async (code, password) => {
+  validateInvite: async (code) => {
     set({ isLoading: true, error: null });
-    const result = await inviteService.validateInvite(code, password);
+    const result = await inviteService.validateInvite(code);
     set({ isLoading: false, error: result.error ?? null });
     return result;
   },
