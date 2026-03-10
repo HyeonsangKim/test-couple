@@ -18,6 +18,7 @@ interface PlaceState {
   setFilter: (filter: Partial<FilterState>) => void;
   resetFilter: () => void;
   checkDuplicate: (mapId: string, externalPlaceId: string) => Promise<Place | null>;
+  processExpiredDeleteRequests: (mapId: string) => Promise<void>;
 }
 
 const defaultFilter: FilterState = {
@@ -50,7 +51,6 @@ export const usePlaceStore = create<PlaceState>((set, get) => ({
     const place = await placeService.updatePlace(placeId, updates);
     set((s) => ({
       places: s.places.map((p) => (p.placeId === placeId ? place : p)),
-      selectedPlace: s.selectedPlace?.placeId === placeId ? place : s.selectedPlace,
     }));
   },
 
@@ -58,7 +58,6 @@ export const usePlaceStore = create<PlaceState>((set, get) => ({
     const place = await placeService.requestDelete(placeId, requestedByUserId);
     set((s) => ({
       places: s.places.map((p) => (p.placeId === placeId ? place : p)),
-      selectedPlace: s.selectedPlace?.placeId === placeId ? place : s.selectedPlace,
     }));
   },
 
@@ -66,7 +65,6 @@ export const usePlaceStore = create<PlaceState>((set, get) => ({
     const place = await placeService.cancelDelete(placeId);
     set((s) => ({
       places: s.places.map((p) => (p.placeId === placeId ? place : p)),
-      selectedPlace: s.selectedPlace?.placeId === placeId ? place : s.selectedPlace,
     }));
   },
 
@@ -74,7 +72,6 @@ export const usePlaceStore = create<PlaceState>((set, get) => ({
     await placeService.approveDelete(placeId);
     set((s) => ({
       places: s.places.filter((p) => p.placeId !== placeId),
-      selectedPlace: s.selectedPlace?.placeId === placeId ? null : s.selectedPlace,
     }));
   },
 
@@ -82,16 +79,22 @@ export const usePlaceStore = create<PlaceState>((set, get) => ({
     const place = await placeService.rejectDelete(placeId);
     set((s) => ({
       places: s.places.map((p) => (p.placeId === placeId ? place : p)),
-      selectedPlace: s.selectedPlace?.placeId === placeId ? place : s.selectedPlace,
     }));
   },
 
-  setFilter: (filter) =>
-    set((s) => ({ filter: { ...s.filter, ...filter } })),
-
+  setFilter: (filter) => set((s) => ({ filter: { ...s.filter, ...filter } })),
   resetFilter: () => set({ filter: { ...defaultFilter } }),
 
   checkDuplicate: async (mapId, externalPlaceId) => {
     return placeService.checkDuplicate(mapId, externalPlaceId);
+  },
+
+  processExpiredDeleteRequests: async (mapId) => {
+    const deletedIds = await placeService.processExpiredDeleteRequests(mapId);
+    if (deletedIds.length > 0) {
+      set((s) => ({
+        places: s.places.filter((p) => !deletedIds.includes(p.placeId)),
+      }));
+    }
   },
 }));

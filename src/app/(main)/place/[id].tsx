@@ -31,13 +31,16 @@ export default function PlaceDetailScreen() {
   const approveDelete = usePlaceStore((s) => s.approveDelete);
 
   const { placeVisits, placeImages, loadVisitsForPlace, loadImagesForPlace } = useVisitStore();
-  const { messages, loadThread, addMessage, deleteMessage } = useThreadStore();
+  const { messages, loadMessages, addMessage, deleteMessage } = useThreadStore();
   const currentUser = useAuthStore((s) => s.currentUser);
   const getUserById = useAuthStore((s) => s.getUserById);
 
   const [newMessage, setNewMessage] = useState('');
   const [showDeleteConfirm, setShowDeleteConfirm] = useState(false);
   const [showCategoryPicker, setShowCategoryPicker] = useState(false);
+  const [editingMessageId, setEditingMessageId] = useState<string | null>(null);
+  const [editingBody, setEditingBody] = useState('');
+  const updateMessage = useThreadStore((s) => s.updateMessage);
 
   const gracePeriod = useDeleteGracePeriod(place?.deleteRequest ?? null);
 
@@ -45,7 +48,7 @@ export default function PlaceDetailScreen() {
     if (id) {
       loadVisitsForPlace(id);
       loadImagesForPlace(id);
-      loadThread(id);
+      loadMessages(id);
     }
   }, [id]);
 
@@ -69,8 +72,29 @@ export default function PlaceDetailScreen() {
   const handleDeleteMessage = (msgId: string) => {
     Alert.alert('메시지 삭제', '이 메시지를 삭제하시겠습니까?', [
       { text: '취소', style: 'cancel' },
-      { text: '삭제', style: 'destructive', onPress: () => deleteMessage(msgId) },
+      { text: '삭제', style: 'destructive', onPress: () => deleteMessage(msgId, CURRENT_USER_ID) },
     ]);
+  };
+
+  const handleEditMessage = (msgId: string, body: string) => {
+    setEditingMessageId(msgId);
+    setEditingBody(body);
+  };
+
+  const handleSaveEdit = async () => {
+    if (!editingMessageId) return;
+    const error = validateThreadMessage(editingBody);
+    if (error) {
+      Alert.alert('알림', error);
+      return;
+    }
+    try {
+      await updateMessage(editingMessageId, CURRENT_USER_ID, editingBody.trim());
+      setEditingMessageId(null);
+      setEditingBody('');
+    } catch {
+      Alert.alert('오류', '수정에 실패했습니다.');
+    }
   };
 
   const handleRequestDelete = () => {
@@ -292,21 +316,53 @@ export default function PlaceDetailScreen() {
               messages.map((msg) => {
                 const author = getUserById(msg.authorUserId);
                 const isMine = msg.authorUserId === CURRENT_USER_ID;
+                const isEditing = editingMessageId === msg.messageId;
                 return (
                   <View key={msg.messageId} style={[styles.msgRow, isMine && styles.msgRowMine]}>
                     <View style={[styles.msgBubble, isMine ? styles.msgBubbleMine : styles.msgBubblePartner]}>
                       {!isMine && (
                         <Text style={styles.msgAuthor}>{author?.nickname ?? '?'}</Text>
                       )}
-                      <Text style={styles.msgBody}>{msg.body}</Text>
-                      <View style={styles.msgMeta}>
-                        <Text style={styles.msgTime}>{formatRelative(msg.createdAt)}</Text>
-                        {isMine && (
-                          <TouchableOpacity onPress={() => handleDeleteMessage(msg.messageId)}>
-                            <Text style={styles.msgDelete}>삭제</Text>
-                          </TouchableOpacity>
-                        )}
-                      </View>
+                      {isEditing ? (
+                        <View>
+                          <RNTextInput
+                            style={styles.editInput}
+                            value={editingBody}
+                            onChangeText={setEditingBody}
+                            maxLength={LIMITS.MAX_THREAD_MESSAGE_LENGTH}
+                            multiline
+                            autoFocus
+                          />
+                          <View style={styles.editActions}>
+                            <TouchableOpacity onPress={() => { setEditingMessageId(null); setEditingBody(''); }}>
+                              <Text style={styles.editCancel}>취소</Text>
+                            </TouchableOpacity>
+                            <TouchableOpacity onPress={handleSaveEdit}>
+                              <Text style={styles.editSave}>저장</Text>
+                            </TouchableOpacity>
+                          </View>
+                        </View>
+                      ) : (
+                        <>
+                          <Text style={styles.msgBody}>{msg.body}</Text>
+                          <View style={styles.msgMeta}>
+                            <Text style={styles.msgTime}>
+                              {formatRelative(msg.createdAt)}
+                              {msg.updatedAt ? ' (수정됨)' : ''}
+                            </Text>
+                            {isMine && (
+                              <View style={styles.msgActions}>
+                                <TouchableOpacity onPress={() => handleEditMessage(msg.messageId, msg.body)}>
+                                  <Text style={styles.msgEdit}>수정</Text>
+                                </TouchableOpacity>
+                                <TouchableOpacity onPress={() => handleDeleteMessage(msg.messageId)}>
+                                  <Text style={styles.msgDelete}>삭제</Text>
+                                </TouchableOpacity>
+                              </View>
+                            )}
+                          </View>
+                        </>
+                      )}
                     </View>
                   </View>
                 );
@@ -554,7 +610,26 @@ const styles = StyleSheet.create({
     marginTop: spacing[1],
   },
   msgTime: { ...typography.caption, color: colors.text.tertiary, fontSize: 11 },
+  msgActions: { flexDirection: 'row', gap: spacing[2] },
+  msgEdit: { ...typography.caption, color: colors.accent.primary, fontWeight: '600', fontSize: 11 },
   msgDelete: { ...typography.caption, color: colors.accent.danger, fontWeight: '600', fontSize: 11 },
+  editInput: {
+    ...typography.body.m,
+    color: colors.text.primary,
+    backgroundColor: colors.surface.secondary,
+    borderRadius: radius.sm,
+    paddingHorizontal: spacing[2],
+    paddingVertical: spacing[1],
+    maxHeight: 80,
+  },
+  editActions: {
+    flexDirection: 'row',
+    justifyContent: 'flex-end',
+    gap: spacing[3],
+    marginTop: spacing[1],
+  },
+  editCancel: { ...typography.caption, color: colors.text.tertiary, fontWeight: '600' },
+  editSave: { ...typography.caption, color: colors.accent.primary, fontWeight: '600' },
   inputBar: {
     flexDirection: 'row',
     alignItems: 'flex-end',

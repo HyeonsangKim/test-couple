@@ -1,4 +1,4 @@
-import React, { useState, useRef, useCallback } from 'react';
+import React, { useState, useRef, useCallback, useEffect } from 'react';
 import { View, StyleSheet, TouchableOpacity, Modal, Text, Platform } from 'react-native';
 import { useRouter } from 'expo-router';
 import { SafeAreaView } from 'react-native-safe-area-context';
@@ -7,9 +7,12 @@ import { Ionicons } from '@expo/vector-icons';
 import { colors, typography, spacing, radius, shadow, glass, layout } from '@/theme/tokens';
 import { SearchBar } from '@/components/filter/SearchBar';
 import { PlaceMarker } from '@/components/map/PlaceMarker';
+import { MapSearchResultsSheet } from '@/components/map/MapSearchResultsSheet';
 import { usePlaceStore } from '@/stores/usePlaceStore';
+import { useHomeStore } from '@/stores/useHomeStore';
 import { useFilteredPlaces } from '@/hooks/useFilteredPlaces';
-import { Place } from '@/types';
+import { searchService } from '@/services/searchService';
+import { Place, MapApiResult } from '@/types';
 import { DEFAULT_MAP_REGION } from '@/constants';
 import { FilterBottomSheet } from '@/components/filter/FilterBottomSheet';
 
@@ -19,8 +22,87 @@ export default function MapScreen() {
   const [filterVisible, setFilterVisible] = useState(false);
   const [addMenuVisible, setAddMenuVisible] = useState(false);
 
-  const { filter, setFilter } = usePlaceStore();
+  const { filter } = usePlaceStore();
   const filteredPlaces = useFilteredPlaces();
+
+  const {
+    homeSearchQuery,
+    mapApiResults,
+    mapSearchSheetOpen,
+    setHomeSearchQuery,
+    setMapApiResults,
+    setMapSearchSheetOpen,
+  } = useHomeStore();
+
+  // Saved places for deduplication and display in the sheet
+  const { places } = usePlaceStore();
+
+  // Search external places when query changes
+  useEffect(() => {
+    if (!homeSearchQuery.trim()) {
+      setMapApiResults([]);
+      return;
+    }
+
+    let cancelled = false;
+    const doSearch = async () => {
+      const results = await searchService.searchPlaces(homeSearchQuery);
+      if (!cancelled) {
+        setMapApiResults(results);
+      }
+    };
+
+    doSearch();
+    return () => {
+      cancelled = true;
+    };
+  }, [homeSearchQuery, setMapApiResults]);
+
+  const handleSearchChange = useCallback(
+    (text: string) => {
+      setHomeSearchQuery(text);
+      if (text.trim()) {
+        setMapSearchSheetOpen(true);
+      }
+    },
+    [setHomeSearchQuery, setMapSearchSheetOpen]
+  );
+
+  const handleSearchClear = useCallback(() => {
+    setHomeSearchQuery('');
+    setMapApiResults([]);
+    setMapSearchSheetOpen(false);
+  }, [setHomeSearchQuery, setMapApiResults, setMapSearchSheetOpen]);
+
+  const handleCloseSheet = useCallback(() => {
+    setMapSearchSheetOpen(false);
+  }, [setMapSearchSheetOpen]);
+
+  const handleSavedPlacePress = useCallback(
+    (placeId: string) => {
+      setMapSearchSheetOpen(false);
+      router.push(`/(main)/place/${placeId}`);
+    },
+    [router, setMapSearchSheetOpen]
+  );
+
+  const handleExternalPress = useCallback(
+    (result: MapApiResult) => {
+      setMapSearchSheetOpen(false);
+      router.push({
+        pathname: '/(main)/place/add/search',
+        params: {
+          externalPlaceId: result.externalPlaceId,
+          name: result.name,
+          latitude: String(result.latitude),
+          longitude: String(result.longitude),
+          addressText: result.addressText ?? '',
+          category: result.category,
+        },
+      });
+    },
+    [router, setMapSearchSheetOpen]
+  );
 
   const handleMarkerPress = useCallback((place: Place) => {
     router.push(`/(main)/place/${place.placeId}`);
@@ -62,9 +144,9 @@ export default function MapScreen() {
         <View style={styles.searchRow}>
           <View style={styles.searchBarWrapper}>
             <SearchBar
-              value={filter.searchQuery}
-              onChangeText={(text) => setFilter({ searchQuery: text })}
-              onClear={() => setFilter({ searchQuery: '' })}
+              value={homeSearchQuery}
+              onChangeText={handleSearchChange}
+              onClear={handleSearchClear}
               placeholder="장소 검색..."
             />
           </View>
@@ -146,6 +228,17 @@ export default function MapScreen() {
           </TouchableOpacity>
         </TouchableOpacity>
       </Modal>
+
+      {/* Search Results Bottom Sheet */}
+      <MapSearchResultsSheet
+        visible={mapSearchSheetOpen}
+        onClose={handleCloseSheet}
+        savedPlaces={places}
+        externalResults={mapApiResults}
+        searchQuery={homeSearchQuery}
+        onPlacePress={handleSavedPlacePress}
+        onExternalPress={handleExternalPress}
+      />
     </View>
   );
 }

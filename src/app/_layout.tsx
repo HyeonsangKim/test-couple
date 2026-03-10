@@ -8,6 +8,7 @@ import { useMapStore } from '@/stores/useMapStore';
 import { usePlaceStore } from '@/stores/usePlaceStore';
 import { useVisitStore } from '@/stores/useVisitStore';
 import { colors } from '@/theme/tokens';
+import { CURRENT_USER_ID } from '@/mock/data';
 
 export default function RootLayout() {
   const init = useAuthStore((s) => s.init);
@@ -21,7 +22,7 @@ export default function RootLayout() {
     const bootstrap = async () => {
       try {
         await init();
-        await loadMap();
+        await loadMap(CURRENT_USER_ID);
       } catch {
         // silent
       }
@@ -29,12 +30,16 @@ export default function RootLayout() {
     bootstrap();
   }, []);
 
+  const processExpiredDeleteRequests = usePlaceStore((s) => s.processExpiredDeleteRequests);
+
   useEffect(() => {
     if (map) {
       try {
         loadPartner(map.memberUserIds);
         loadPlaces(map.mapId);
         loadAllVisits();
+        // PRD 5-2: Process expired delete requests on app start
+        processExpiredDeleteRequests(map.mapId);
       } catch {
         // silent
       }

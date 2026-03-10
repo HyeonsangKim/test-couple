@@ -49,8 +49,14 @@ export const authService = {
     await delay(200);
   },
 
-  withdraw: async (userId: string): Promise<void> => {
+  withdraw: async (userId: string, isConnected: boolean): Promise<void> => {
     await delay(300);
+    if (isConnected) throw new Error('연결 해제 후 탈퇴할 수 있습니다.');
     users = users.filter((u) => u.userId !== userId);
+    // Clear notification settings
+    notificationSettings = {
+      ...notificationSettings,
+      userId: '',
+    };
   },
 };

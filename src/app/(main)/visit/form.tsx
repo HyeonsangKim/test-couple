@@ -18,14 +18,15 @@ import { Visit } from '@/types';
 
 export default function VisitFormScreen() {
   const router = useRouter();
-  const params = useLocalSearchParams<{ placeId?: string; visitId?: string }>();
+  const params = useLocalSearchParams<{ placeId?: string; visitId?: string; draftImageUris?: string }>();
 
   const isEditMode = !!params.visitId;
   const placeId = params.placeId;
   const visitId = params.visitId;
+  const draftImages: string[] = params.draftImageUris ? JSON.parse(params.draftImageUris) : [];
 
   const [date, setDate] = useState(format(new Date(), 'yyyy-MM-dd'));
-  const [imageUris, setImageUris] = useState<string[]>([]);
+  const [imageUris, setImageUris] = useState<string[]>(draftImages);
   const [loading, setLoading] = useState(false);
   const [showDeleteConfirm, setShowDeleteConfirm] = useState(false);
   const [existingVisit, setExistingVisit] = useState<Visit | null>(null);
@@ -80,6 +81,15 @@ export default function VisitFormScreen() {
       return;
     }
     if (!placeId || !currentUser) return;
+
+    // PRD 5-4: Enforce per-place 99-image cap at save time
+    if (!isEditMode) {
+      const existingCount = await visitService.getImageCountForPlace(placeId);
+      if (existingCount + imageUris.length > LIMITS.MAX_IMAGES_PER_PLACE) {
+        Alert.alert('알림', `이 장소에는 최대 ${LIMITS.MAX_IMAGES_PER_PLACE}장의 사진만 저장할 수 있습니다. (현재 ${existingCount}장)`);
+        return;
+      }
+    }
 
     setLoading(true);
     try {

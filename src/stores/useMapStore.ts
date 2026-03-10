@@ -5,21 +5,22 @@ import { mapService } from '@/services/mapService';
 interface MapState {
   map: SharedMap | null;
   isLoading: boolean;
-  loadMap: () => Promise<void>;
+  loadMap: (userId: string) => Promise<void>;
   createMap: (userId: string) => Promise<SharedMap>;
-  joinMap: (mapId: string, userId: string) => Promise<SharedMap>;
+  joinMap: (targetMapId: string, userId: string) => Promise<SharedMap>;
   updateAnniversary: (date: string | null, label: string | null) => Promise<void>;
-  disconnect: () => Promise<void>;
+  disconnect: (userId: string) => Promise<void>;
   deleteMap: () => Promise<void>;
+  isConnected: () => boolean;
 }
 
-export const useMapStore = create<MapState>((set) => ({
+export const useMapStore = create<MapState>((set, get) => ({
   map: null,
   isLoading: true,
 
-  loadMap: async () => {
+  loadMap: async (userId) => {
     set({ isLoading: true });
-    const map = await mapService.getMap();
+    const map = await mapService.getMap(userId);
     set({ map, isLoading: false });
   },
 
@@ -29,24 +30,33 @@ export const useMapStore = create<MapState>((set) => ({
     return map;
   },
 
-  joinMap: async (mapId, userId) => {
-    const map = await mapService.joinMap(mapId, userId);
+  joinMap: async (targetMapId, userId) => {
+    const map = await mapService.joinMap(targetMapId, userId);
     set({ map });
     return map;
   },
 
   updateAnniversary: async (date, label) => {
-    const map = await mapService.updateAnniversary(date, label);
-    set({ map });
+    const { map } = get();
+    if (!map) return;
+    const updated = await mapService.updateAnniversary(map.mapId, date, label);
+    set({ map: updated });
   },
 
-  disconnect: async () => {
-    await mapService.disconnect();
+  disconnect: async (userId) => {
+    await mapService.disconnect(userId);
     set({ map: null });
   },
 
   deleteMap: async () => {
-    await mapService.deleteMap();
+    const { map } = get();
+    if (!map) return;
+    await mapService.deleteMap(map.mapId);
     set({ map: null });
+  },
+
+  isConnected: () => {
+    const { map } = get();
+    return (map?.memberUserIds.length ?? 0) >= 2;
   },
 }));

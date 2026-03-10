@@ -16,7 +16,7 @@ interface AuthState {
   loadNotificationSettings: () => Promise<void>;
   updateNotificationSettings: (updates: Partial<NotificationSettings>) => Promise<void>;
   logout: () => Promise<void>;
-  withdraw: () => Promise<void>;
+  withdraw: (isConnected: boolean) => Promise<void>;
 }
 
 export const useAuthStore = create<AuthState>((set, get) => ({
@@ -66,10 +66,10 @@ export const useAuthStore = create<AuthState>((set, get) => ({
     set({ currentUser: null, partner: null, isOnboarded: false });
   },
 
-  withdraw: async () => {
+  withdraw: async (isConnected) => {
     const user = get().currentUser;
     if (!user) return;
-    await authService.withdraw(user.userId);
+    await authService.withdraw(user.userId, isConnected);
     set({ currentUser: null, partner: null, isOnboarded: false, notificationSettings: null });
   },
 }));

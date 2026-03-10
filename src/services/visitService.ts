@@ -38,6 +38,12 @@ export const visitService = {
     visits = visits.filter((v) => v.visitId !== visitId);
   },
 
+  deleteVisitsByPlace: async (placeId: string): Promise<void> => {
+    const placeVisitIds = visits.filter((v) => v.placeId === placeId).map((v) => v.visitId);
+    visitImages = visitImages.filter((img) => !placeVisitIds.includes(img.visitId));
+    visits = visits.filter((v) => v.placeId !== placeId);
+  },
+
   getImagesByVisit: async (visitId: string): Promise<VisitImage[]> => {
     await delay(100);
     return visitImages.filter((img) => img.visitId === visitId);
@@ -61,6 +67,10 @@ export const visitService = {
   deleteImage: async (imageId: string): Promise<void> => {
     await delay(100);
     visitImages = visitImages.filter((img) => img.imageId !== imageId);
+  },
+
+  deleteImagesByVisit: async (visitId: string): Promise<void> => {
+    visitImages = visitImages.filter((img) => img.visitId !== visitId);
   },
 
   getImageCountForPlace: async (placeId: string): Promise<number> => {

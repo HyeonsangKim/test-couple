@@ -14,13 +14,12 @@ export default function WelcomeScreen() {
   const createMap = useMapStore((s) => s.createMap);
 
   const handleInvite = async () => {
-    // Create a map first, then go to invite center to share code
+    // PRD: Invite Partner → create map → enter PG_INVITE_CENTER
     if (!currentUser) return;
     try {
       await createMap(currentUser.userId);
       setOnboarded(true);
-      router.replace('/(tabs)/map');
-      // After navigating, user can go to invite center from my page
+      router.replace('/(main)/invite-center');
     } catch {
       // silent
     }

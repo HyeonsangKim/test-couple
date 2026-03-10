@@ -52,12 +52,40 @@ export const placeService = {
 
   approveDelete: async (placeId: string): Promise<void> => {
     await delay(200);
-    places = places.filter((p) => p.placeId !== placeId);
+    await placeService.finalDeletePlace(placeId);
   },
 
   rejectDelete: async (placeId: string): Promise<Place> => {
     await delay(200);
     return placeService.updatePlace(placeId, { deleteRequest: null });
+  },
+
+  finalDeletePlace: async (placeId: string): Promise<void> => {
+    // Import dynamically to avoid circular deps - use direct array access
+    const { visitService } = await import('@/services/visitService');
+    const { threadService } = await import('@/services/threadService');
+
+    // 1. Find all visits for this place
+    const placeVisits = await visitService.getVisitsByPlace(placeId);
+
+    // 2. Delete visit images for each visit
+    for (const visit of placeVisits) {
+      const images = await visitService.getImagesByVisit(visit.visitId);
+      for (const img of images) {
+        await visitService.deleteImage(img.imageId);
+      }
+    }
+
+    // 3. Delete all visits
+    for (const visit of placeVisits) {
+      await visitService.deleteVisit(visit.visitId);
+    }
+
+    // 4. Delete thread messages
+    await threadService.deleteMessagesByPlace(placeId);
+
+    // 5. Delete the place
+    places = places.filter((p) => p.placeId !== placeId);
   },
 
   checkDuplicate: async (mapId: string, externalPlaceId: string): Promise<Place | null> => {
@@ -70,5 +98,16 @@ export const placeService = {
     return mapPlaces.filter(
       (p) => p.deleteRequest?.status === 'pending' && new Date(p.deleteRequest.expiresAt) <= now
     );
+  },
+
+  processExpiredDeleteRequests: async (mapId: string): Promise<string[]> => {
+    const mapPlaces = await placeService.getPlaces(mapId);
+    const expired = placeService.checkExpiredDeleteRequests(mapPlaces);
+    const deletedIds: string[] = [];
+    for (const place of expired) {
+      await placeService.finalDeletePlace(place.placeId);
+      deletedIds.push(place.placeId);
+    }
+    return deletedIds;
   },
 };

@@ -8,6 +8,7 @@ import { Button, Card, IconButton } from '@/components/ui';
 import { useInviteStore } from '@/stores/useInviteStore';
 import { useMapStore } from '@/stores/useMapStore';
 import { useAuthStore } from '@/stores/useAuthStore';
+import { ConfirmModal } from '@/components/common/ConfirmModal';
 import { validateInviteCode } from '@/utils/validation';
 import { getRemainingHours, isExpired } from '@/utils/date';
 import * as Clipboard from 'expo-clipboard';
@@ -17,6 +18,8 @@ export default function InviteCenterScreen() {
   const [code, setCode] = useState('');
   const [codeError, setCodeError] = useState<string | null>(null);
   const [remainingHours, setRemainingHours] = useState(0);
+  const [showRejoinConfirm, setShowRejoinConfirm] = useState(false);
+  const [pendingJoinMapId, setPendingJoinMapId] = useState<string | null>(null);
 
   const { invite, isLoading, error, loadInvite, createInvite, validateInvite, revokeInvite, clearError } =
     useInviteStore();
@@ -65,7 +68,7 @@ export default function InviteCenterScreen() {
   const handleRevoke = () => {
     Alert.alert('코드 무효화', '현재 초대 코드를 무효화하시겠습니까?', [
       { text: '취소', style: 'cancel' },
-      { text: '무효화', style: 'destructive', onPress: revokeInvite },
+      { text: '무효화', style: 'destructive', onPress: () => { if (map) revokeInvite(map.mapId); } },
     ]);
   };
 
@@ -81,14 +84,36 @@ export default function InviteCenterScreen() {
     try {
       const result = await validateInvite(code.toUpperCase());
       if (result.valid && result.mapId && currentUser) {
-        await joinMap(result.mapId, currentUser.userId);
-        setOnboarded(true);
-        Alert.alert('연결 완료', '지도에 성공적으로 참여했습니다.', [
-          { text: '확인', onPress: () => router.replace('/(tabs)/map') },
-        ]);
+        if (isConnected) {
+          // PRD: destructive confirmation before switching maps
+          setPendingJoinMapId(result.mapId);
+          setShowRejoinConfirm(true);
+        } else {
+          await joinMap(result.mapId, currentUser.userId);
+          setOnboarded(true);
+          Alert.alert('연결 완료', '지도에 성공적으로 참여했습니다.', [
+            { text: '확인', onPress: () => router.replace('/(tabs)/map') },
+          ]);
+        }
       }
     } catch {
       // Error is handled by the store
+    }
+  };
+
+  const handleConfirmRejoin = async () => {
+    if (!pendingJoinMapId || !currentUser) return;
+    setShowRejoinConfirm(false);
+    try {
+      await joinMap(pendingJoinMapId, currentUser.userId);
+      setOnboarded(true);
+      Alert.alert('연결 완료', '새로운 지도에 참여했습니다.', [
+        { text: '확인', onPress: () => router.replace('/(tabs)/map') },
+      ]);
+    } catch {
+      Alert.alert('오류', '지도 참여에 실패했습니다.');
+    } finally {
+      setPendingJoinMapId(null);
     }
   };
 
@@ -162,9 +187,8 @@ export default function InviteCenterScreen() {
           )}
         </Card>
 
-        {/* Join with Code Section */}
-        {!isConnected && (
-          <Card style={styles.joinCard}>
+        {/* Join with Code Section — visible even when connected (PRD 5-1) */}
+        <Card style={styles.joinCard}>
             <Text style={styles.sectionTitle}>초대 코드 입력</Text>
             <Text style={styles.joinDesc}>상대방에게 받은 8자리 초대 코드를 입력하세요</Text>
             <View style={styles.codeInputRow}>
@@ -219,8 +243,18 @@ export default function InviteCenterScreen() {
               <Text style={styles.errorText}>{codeError || error}</Text>
             )}
           </Card>
-        )}
       </View>
+
+      {/* Destructive rejoin confirmation */}
+      <ConfirmModal
+        visible={showRejoinConfirm}
+        title="지도 변경"
+        message={`현재 ${partner?.nickname ?? '파트너'}와 공유 중인 지도가 삭제되고 새로운 지도로 전환됩니다. 이 작업은 되돌릴 수 없습니다.`}
+        confirmLabel="전환"
+        onConfirm={handleConfirmRejoin}
+        onCancel={() => { setShowRejoinConfirm(false); setPendingJoinMapId(null); }}
+        danger
+      />
     </SafeAreaView>
   );
 }

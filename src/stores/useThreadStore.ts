@@ -5,17 +5,17 @@ import { threadService } from '@/services/threadService';
 interface ThreadState {
   messages: ThreadMessage[];
   isLoading: boolean;
-  loadThread: (placeId: string) => Promise<void>;
+  loadMessages: (placeId: string) => Promise<void>;
   addMessage: (data: { placeId: string; authorUserId: string; body: string }) => Promise<void>;
-  updateMessage: (messageId: string, body: string) => Promise<void>;
-  deleteMessage: (messageId: string) => Promise<void>;
+  updateMessage: (messageId: string, actorUserId: string, body: string) => Promise<void>;
+  deleteMessage: (messageId: string, actorUserId: string) => Promise<void>;
 }
 
 export const useThreadStore = create<ThreadState>((set) => ({
   messages: [],
   isLoading: false,
 
-  loadThread: async (placeId) => {
+  loadMessages: async (placeId) => {
     set({ isLoading: true });
     const messages = await threadService.getThreadByPlace(placeId);
     set({ messages, isLoading: false });
@@ -26,13 +26,17 @@ export const useThreadStore = create<ThreadState>((set) => ({
     set((s) => ({ messages: [...s.messages, msg] }));
   },
 
-  updateMessage: async (messageId, body) => {
-    const msg = await threadService.updateMessage(messageId, body);
-    set((s) => ({ messages: s.messages.map((m) => (m.messageId === messageId ? msg : m)) }));
+  updateMessage: async (messageId, actorUserId, body) => {
+    const updated = await threadService.updateMessage(messageId, actorUserId, body);
+    set((s) => ({
+      messages: s.messages.map((m) => (m.messageId === messageId ? updated : m)),
+    }));
   },
 
-  deleteMessage: async (messageId) => {
-    await threadService.deleteMessage(messageId);
-    set((s) => ({ messages: s.messages.filter((m) => m.messageId !== messageId) }));
+  deleteMessage: async (messageId, actorUserId) => {
+    await threadService.deleteMessage(messageId, actorUserId);
+    set((s) => ({
+      messages: s.messages.filter((m) => m.messageId !== messageId),
+    }));
   },
 }));

@@ -89,16 +89,17 @@ export default function PlaceCreateFromPhotoScreen() {
       });
 
       // 3. Add images to the visit
+      let createdImages: { imageId: string }[] = [];
       if (draftImageUris.length > 0) {
-        await addImages(
+        createdImages = await addImages(
           draftImageUris.map((uri) => ({ visitId: visit.visitId, uri })),
         );
       }
 
-      // 4. Set first image as hero (PRD: 첫 이미지는 자동으로 대표 이미지가 된다)
-      if (draftImageUris.length > 0) {
+      // 4. Set first image as hero using real imageId (PRD 5-4)
+      if (createdImages.length > 0) {
         await updatePlace(place.placeId, {
-          heroImageId: `img_${visit.visitId}_0`,
+          heroImageId: createdImages[0].imageId,
           status: 'visited',
         });
       }

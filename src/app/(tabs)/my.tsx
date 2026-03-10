@@ -33,7 +33,8 @@ export default function MyScreen() {
   const { snapshots } = useSnapshotStore();
 
   const [showLogoutConfirm, setShowLogoutConfirm] = useState(false);
-  const [showWithdrawConfirm, setShowWithdrawConfirm] = useState(false);
+  const [showWithdrawStep1, setShowWithdrawStep1] = useState(false);
+  const [showWithdrawStep2, setShowWithdrawStep2] = useState(false);
 
   const isConnected = map && map.memberUserIds.length >= 2;
   const visitedCount = places.filter((p) => p.status === 'visited').length;
@@ -60,10 +61,23 @@ export default function MyScreen() {
     }
   };
 
-  const handleWithdraw = async () => {
-    setShowWithdrawConfirm(false);
+  const handleWithdrawStart = () => {
+    if (isConnected) {
+      Alert.alert('알림', '연결 해제 후 탈퇴할 수 있습니다.\n설정 > 연결 해제를 먼저 진행해주세요.');
+      return;
+    }
+    setShowWithdrawStep1(true);
+  };
+
+  const handleWithdrawStep1Confirm = () => {
+    setShowWithdrawStep1(false);
+    setShowWithdrawStep2(true);
+  };
+
+  const handleWithdrawFinal = async () => {
+    setShowWithdrawStep2(false);
     try {
-      await withdraw();
+      await withdraw(false);
       router.replace('/(auth)/login');
     } catch {
       // silent
@@ -222,7 +236,7 @@ export default function MyScreen() {
           </TouchableOpacity>
           <TouchableOpacity
             style={styles.dangerBtn}
-            onPress={() => setShowWithdrawConfirm(true)}
+            onPress={handleWithdrawStart}
           >
             <Text style={[styles.dangerText, styles.withdrawText]}>회원탈퇴</Text>
           </TouchableOpacity>
@@ -238,13 +252,23 @@ export default function MyScreen() {
         onCancel={() => setShowLogoutConfirm(false)}
       />
 
+      {/* Two-step withdrawal confirmation (PRD 5-6) */}
       <ConfirmModal
-        visible={showWithdrawConfirm}
+        visible={showWithdrawStep1}
         title="회원탈퇴"
-        message="탈퇴하면 모든 데이터가 삭제됩니다. 이 작업은 되돌릴 수 없습니다."
+        message="탈퇴하면 계정, 프로필, 설정, 스냅샷 등 모든 데이터가 삭제됩니다. 계속하시겠습니까?"
+        confirmLabel="계속"
+        onConfirm={handleWithdrawStep1Confirm}
+        onCancel={() => setShowWithdrawStep1(false)}
+        danger
+      />
+      <ConfirmModal
+        visible={showWithdrawStep2}
+        title="정말 탈퇴하시겠습니까?"
+        message="이 작업은 되돌릴 수 없습니다. 모든 데이터가 영구적으로 삭제됩니다."
         confirmLabel="탈퇴"
-        onConfirm={handleWithdraw}
-        onCancel={() => setShowWithdrawConfirm(false)}
+        onConfirm={handleWithdrawFinal}
+        onCancel={() => setShowWithdrawStep2(false)}
         danger
       />
     </SafeAreaView>

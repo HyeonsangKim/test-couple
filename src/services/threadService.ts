@@ -18,17 +18,27 @@ export const threadService = {
     return msg;
   },
 
-  updateMessage: async (messageId: string, body: string): Promise<ThreadMessage> => {
+  updateMessage: async (messageId: string, actorUserId: string, body: string): Promise<ThreadMessage> => {
     await delay(200);
+    const msg = threads.find((t) => t.messageId === messageId);
+    if (!msg) throw new Error('Message not found');
+    if (msg.authorUserId !== actorUserId) throw new Error('Only the author can edit this message');
     threads = threads.map((t) => (t.messageId === messageId ? { ...t, body, updatedAt: new Date().toISOString() } : t));
     const updated = threads.find((t) => t.messageId === messageId);
     if (!updated) throw new Error('Message not found');
     return updated;
   },
 
-  deleteMessage: async (messageId: string): Promise<void> => {
+  deleteMessage: async (messageId: string, actorUserId: string): Promise<void> => {
     await delay(200);
+    const msg = threads.find((t) => t.messageId === messageId);
+    if (!msg) throw new Error('Message not found');
+    if (msg.authorUserId !== actorUserId) throw new Error('Only the author can delete this message');
     threads = threads.filter((t) => t.messageId !== messageId);
+  },
+
+  deleteMessagesByPlace: async (placeId: string): Promise<void> => {
+    threads = threads.filter((t) => t.placeId !== placeId);
   },
 
   getAllThreads: async (): Promise<ThreadMessage[]> => {

@@ -33,17 +33,13 @@ export default function DisconnectScreen() {
 
     try {
       // Create snapshot before disconnecting
-      await createSnapshot(
+      const snapshot = await createSnapshot(
         map.mapId,
         partner.userId,
-        places,
-        visits,
-        [],
-        [],
+        map.mapId,
       );
-      await disconnect();
-      setOnboarded(false);
-      router.replace('/(auth)/welcome');
+      await disconnect(currentUser.userId);
+      router.replace(`/snapshot/${snapshot.snapshotId}`);
     } catch {
       // silent
     } finally {
