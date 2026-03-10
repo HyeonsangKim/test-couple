@@ -3,7 +3,7 @@ import { View, FlatList, StyleSheet, TouchableOpacity, Modal, Text } from 'react
 import { useRouter } from 'expo-router';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { Ionicons } from '@expo/vector-icons';
-import { colors, typography, spacing, radius, shadow, layout } from '@/theme/tokens';
+import { colors, typography, spacing, radius, shadow, layout, component } from '@/theme/tokens';
 import { SearchBar } from '@/components/filter/SearchBar';
 import { FilterBottomSheet } from '@/components/filter/FilterBottomSheet';
 import { PlaceCard } from '@/components/place/PlaceCard';
@@ -33,8 +33,10 @@ export default function ListScreen() {
     <SafeAreaView style={styles.safe} edges={['top']}>
       {/* Header */}
       <View style={styles.header}>
-        <Text style={styles.headerTitle}>리스트</Text>
-        <Text style={styles.countText}>{filteredPlaces.length}개</Text>
+        <View>
+          <Text style={styles.headerTitle}>리스트</Text>
+          <Text style={styles.countText}>{filteredPlaces.length}개</Text>
+        </View>
       </View>
 
       {/* Search + Filter */}
@@ -136,9 +138,6 @@ const styles = StyleSheet.create({
     backgroundColor: colors.bg.canvas,
   },
   header: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    alignItems: 'center',
     paddingHorizontal: layout.screenPaddingH,
     paddingVertical: spacing[3],
   },
@@ -149,6 +148,7 @@ const styles = StyleSheet.create({
   countText: {
     ...typography.body.m,
     color: colors.text.tertiary,
+    marginTop: 2,
   },
   searchRow: {
     flexDirection: 'row',
@@ -161,10 +161,10 @@ const styles = StyleSheet.create({
     flex: 1,
   },
   filterBtn: {
-    width: 44,
-    height: 44,
-    borderRadius: 22,
-    backgroundColor: colors.surface.primary,
+    width: component.button.floatingIcon,
+    height: component.button.floatingIcon,
+    borderRadius: 24,
+    backgroundColor: colors.bg.elevated,
     alignItems: 'center',
     justifyContent: 'center',
     ...shadow.sm,
@@ -191,8 +191,8 @@ const styles = StyleSheet.create({
     position: 'absolute',
     bottom: 100,
     right: layout.screenPaddingH,
-    width: 56,
-    height: 56,
+    width: component.button.fab,
+    height: component.button.fab,
     borderRadius: 28,
     backgroundColor: colors.accent.primary,
     alignItems: 'center',
@@ -205,8 +205,8 @@ const styles = StyleSheet.create({
     justifyContent: 'flex-end',
   },
   filterSheet: {
-    backgroundColor: colors.surface.primary,
-    borderTopLeftRadius: radius.xl,
-    borderTopRightRadius: radius.xl,
+    backgroundColor: colors.bg.elevated,
+    borderTopLeftRadius: radius.sheet,
+    borderTopRightRadius: radius.sheet,
   },
 });

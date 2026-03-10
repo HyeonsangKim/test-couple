@@ -1,7 +1,7 @@
 import React from 'react';
 import { View, Image, StyleSheet, Text, Dimensions, TouchableOpacity } from 'react-native';
 import { VisitImage } from '@/types';
-import { colors, spacing, radius, typography, layout } from '@/theme/tokens';
+import { colors, spacing, typography, layout, component } from '@/theme/tokens';
 
 interface ImageGalleryProps {
   images: VisitImage[];
@@ -9,7 +9,8 @@ interface ImageGalleryProps {
 }
 
 const SCREEN_WIDTH = Dimensions.get('window').width;
-const IMAGE_SIZE = (SCREEN_WIDTH - layout.screenPaddingH * 2 - spacing[2] * 2) / 3;
+const IMAGE_GAP = component.gallery.gap;
+const IMAGE_SIZE = (SCREEN_WIDTH - layout.screenPaddingH * 2 - IMAGE_GAP * 2) / 3;
 
 export const ImageGallery: React.FC<ImageGalleryProps> = ({ images, onImagePress }) => {
   if (images.length === 0) return null;
@@ -44,12 +45,12 @@ const styles = StyleSheet.create({
   grid: {
     flexDirection: 'row',
     flexWrap: 'wrap',
-    gap: spacing[2],
+    gap: IMAGE_GAP,
   },
   image: {
     width: IMAGE_SIZE,
     height: IMAGE_SIZE,
-    borderRadius: radius.sm,
-    backgroundColor: colors.surface.tertiary,
+    borderRadius: component.gallery.radius,
+    backgroundColor: colors.bg.soft,
   },
 });

@@ -1,9 +1,9 @@
 import React, { useState } from 'react';
-import { View, Text, StyleSheet } from 'react-native';
+import { View, Text, StyleSheet, ScrollView } from 'react-native';
 import { useRouter } from 'expo-router';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { Ionicons } from '@expo/vector-icons';
-import { colors, typography, spacing, radius, shadow, layout } from '@/theme/tokens';
+import { colors, typography, spacing, radius, layout, component } from '@/theme/tokens';
 import { Button, IconButton, Card } from '@/components/ui';
 import { ConfirmModal } from '@/components/common/ConfirmModal';
 import { useMapStore } from '@/stores/useMapStore';
@@ -55,25 +55,27 @@ export default function DisconnectScreen() {
           icon="chevron-back"
           onPress={() => router.back()}
           size={40}
-          backgroundColor={colors.surface.primary}
+          backgroundColor={colors.bg.elevated}
           color={colors.text.primary}
         />
         <Text style={styles.headerTitle}>연결 해제</Text>
         <View style={{ width: 40 }} />
       </View>
 
-      <View style={styles.content}>
-        <View style={styles.warningIconCircle}>
-          <Ionicons name="warning-outline" size={40} color={colors.accent.warning} />
+      <ScrollView style={styles.scroll} contentContainerStyle={styles.content}>
+        {/* Warning Block */}
+        <View style={styles.warningBlock}>
+          <View style={styles.warningHeader}>
+            <Ionicons name="warning-outline" size={component.warningBlock.icon} color={colors.accent.danger} />
+            <Text style={styles.warningTitle}>연결을 해제하면 되돌릴 수 없습니다</Text>
+          </View>
+          <Text style={styles.warningCopy}>
+            더 이상 같은 지도를 공유하지 않으며, 현재 지도는 읽기 전용 스냅샷으로 저장됩니다.
+          </Text>
         </View>
-        <Text style={styles.title}>정말 연결을 해제하시겠어요?</Text>
-        <Text style={styles.description}>
-          연결을 해제하면 더 이상 같은 지도를 공유하지 않습니다.{'\n\n'}
-          현재 지도는 읽기 전용 스냅샷으로 저장되며, 수정할 수 없습니다.{'\n\n'}
-          같은 사람과 다시 연결하면 스냅샷에서 복구할 수 있습니다.
-        </Text>
 
         {/* Impact Summary */}
+        <Text style={styles.sectionTitle}>영향받는 데이터</Text>
         <Card style={styles.statsCard}>
           <View style={styles.statsRow}>
             <View style={styles.statItem}>
@@ -88,6 +90,26 @@ export default function DisconnectScreen() {
           </View>
         </Card>
 
+        {/* Consequence Details */}
+        <Text style={styles.sectionTitle}>해제 후 변경사항</Text>
+        <View style={styles.consequenceList}>
+          <View style={styles.consequenceItem}>
+            <Ionicons name="document-outline" size={18} color={colors.text.secondary} />
+            <Text style={styles.consequenceText}>현재 지도는 읽기 전용 스냅샷으로 보관됩니다</Text>
+          </View>
+          <View style={styles.consequenceItem}>
+            <Ionicons name="refresh-outline" size={18} color={colors.text.secondary} />
+            <Text style={styles.consequenceText}>같은 파트너와 다시 연결하면 스냅샷에서 복구할 수 있습니다</Text>
+          </View>
+          <View style={styles.consequenceItem}>
+            <Ionicons name="close-circle-outline" size={18} color={colors.text.secondary} />
+            <Text style={styles.consequenceText}>스냅샷에 포함되지 않은 데이터는 영구 삭제됩니다</Text>
+          </View>
+        </View>
+      </ScrollView>
+
+      {/* Fixed Footer CTA */}
+      <View style={styles.footer}>
         <Button
           title="연결 해제"
           onPress={() => setShowConfirm(true)}
@@ -122,37 +144,41 @@ const styles = StyleSheet.create({
     paddingVertical: spacing[3],
   },
   headerTitle: { ...typography.title.l, color: colors.text.primary },
+  scroll: { flex: 1 },
   content: {
-    flex: 1,
     paddingHorizontal: layout.screenPaddingH,
-    alignItems: 'center',
-    justifyContent: 'center',
+    paddingTop: spacing[4],
+    paddingBottom: spacing[6],
   },
-  warningIconCircle: {
-    width: 80,
-    height: 80,
-    borderRadius: 40,
-    backgroundColor: colors.surface.tertiary,
-    alignItems: 'center',
-    justifyContent: 'center',
+  warningBlock: {
+    backgroundColor: colors.status.deleteBg,
+    borderRadius: component.warningBlock.radius,
+    padding: component.warningBlock.padding,
     marginBottom: spacing[6],
   },
-  title: {
-    ...typography.heading.m,
-    color: colors.text.primary,
-    textAlign: 'center',
-    marginBottom: spacing[4],
+  warningHeader: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: spacing[2],
+    marginBottom: spacing[2],
   },
-  description: {
+  warningTitle: {
+    ...typography.title.m,
+    color: colors.accent.danger,
+    flex: 1,
+  },
+  warningCopy: {
     ...typography.body.m,
     color: colors.text.secondary,
-    textAlign: 'center',
-    lineHeight: 24,
-    marginBottom: spacing[6],
+    lineHeight: 22,
+  },
+  sectionTitle: {
+    ...typography.title.m,
+    color: colors.text.primary,
+    marginBottom: spacing[3],
   },
   statsCard: {
-    width: '100%',
-    marginBottom: spacing[8],
+    marginBottom: spacing[6],
   },
   statsRow: {
     flexDirection: 'row',
@@ -162,8 +188,29 @@ const styles = StyleSheet.create({
   statValue: { ...typography.heading.l, color: colors.accent.primary },
   statLabel: { ...typography.caption, color: colors.text.secondary, marginTop: spacing[1] },
   statDivider: { width: 1, height: 40, backgroundColor: colors.border.soft },
+  consequenceList: {
+    gap: spacing[3],
+    marginBottom: spacing[6],
+  },
+  consequenceItem: {
+    flexDirection: 'row',
+    alignItems: 'flex-start',
+    gap: spacing[3],
+  },
+  consequenceText: {
+    ...typography.body.m,
+    color: colors.text.secondary,
+    flex: 1,
+    lineHeight: 22,
+  },
+  footer: {
+    paddingHorizontal: layout.screenPaddingH,
+    paddingVertical: spacing[4],
+    borderTopWidth: 1,
+    borderTopColor: colors.border.soft,
+    backgroundColor: colors.bg.elevated,
+  },
   disconnectBtn: {
-    borderRadius: radius.pill,
-    width: '100%',
+    borderRadius: radius['2xl'],
   },
 });

@@ -52,7 +52,7 @@ const markerStyles = StyleSheet.create({
   container: {
     width: 40,
     height: 40,
-    borderRadius: 20,
+    borderRadius: radius.lg,
     borderWidth: 2.5,
     alignItems: 'center',
     justifyContent: 'center',
@@ -66,12 +66,12 @@ const markerStyles = StyleSheet.create({
     borderTopWidth: 8,
     borderLeftColor: 'transparent',
     borderRightColor: 'transparent',
-    borderTopColor: colors.surface.primary,
+    borderTopColor: colors.bg.elevated,
     alignSelf: 'center',
     marginTop: -1,
   },
   callout: {
-    backgroundColor: colors.surface.primary,
+    backgroundColor: colors.bg.elevated,
     borderRadius: radius.sm,
     padding: spacing[2],
     ...shadow.sm,

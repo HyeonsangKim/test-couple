@@ -9,7 +9,7 @@ import {
   Dimensions,
 } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
-import { colors, typography, spacing, radius, shadow, layout } from '@/theme/tokens';
+import { colors, typography, spacing, radius, shadow, layout, component } from '@/theme/tokens';
 import { Place, MapApiResult, PlaceCategory } from '@/types';
 import { CATEGORIES } from '@/constants';
 
@@ -257,26 +257,26 @@ const styles = StyleSheet.create({
     justifyContent: 'flex-end',
   },
   sheet: {
-    backgroundColor: colors.surface.primary,
-    borderTopLeftRadius: radius.xl,
-    borderTopRightRadius: radius.xl,
+    backgroundColor: colors.bg.elevated,
+    borderTopLeftRadius: component.sheet.topRadius,
+    borderTopRightRadius: component.sheet.topRadius,
     maxHeight: SCREEN_HEIGHT * 0.65,
+    paddingTop: component.sheet.topPadding,
     paddingBottom: spacing[8],
   },
   handleBar: {
-    width: 36,
-    height: 4,
-    borderRadius: 2,
+    width: component.sheet.handleWidth,
+    height: component.sheet.handleHeight,
+    borderRadius: component.sheet.handleHeight / 2,
     backgroundColor: colors.border.strong,
     alignSelf: 'center',
-    marginTop: spacing[2],
     marginBottom: spacing[2],
   },
   header: {
     flexDirection: 'row',
     justifyContent: 'space-between',
     alignItems: 'center',
-    paddingHorizontal: layout.screenPaddingH,
+    paddingHorizontal: component.sheet.innerHorizontalPadding,
     paddingVertical: spacing[3],
   },
   headerTitle: {
@@ -287,7 +287,7 @@ const styles = StyleSheet.create({
     padding: spacing[1],
   },
   listContent: {
-    paddingHorizontal: layout.screenPaddingH,
+    paddingHorizontal: component.sheet.innerHorizontalPadding,
     paddingBottom: spacing[6],
   },
   sectionTitle: {
@@ -300,16 +300,18 @@ const styles = StyleSheet.create({
   resultItem: {
     flexDirection: 'row',
     alignItems: 'center',
-    backgroundColor: colors.surface.secondary,
+    minHeight: component.resultRow.mediaHeight,
+    backgroundColor: colors.bg.soft,
     borderRadius: radius.md,
-    padding: spacing[3],
+    paddingHorizontal: component.resultRow.horizontalPadding,
+    paddingVertical: spacing[3],
     marginBottom: spacing[2],
     gap: spacing[3],
   },
   iconCircle: {
-    width: 40,
-    height: 40,
-    borderRadius: 20,
+    width: component.resultRow.thumb,
+    height: component.resultRow.thumb,
+    borderRadius: component.resultRow.thumbRadius,
     alignItems: 'center',
     justifyContent: 'center',
   },

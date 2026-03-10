@@ -4,7 +4,7 @@ import { useRouter, useLocalSearchParams } from 'expo-router';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import * as ImagePicker from 'expo-image-picker';
 import { Ionicons } from '@expo/vector-icons';
-import { colors, typography, spacing, radius, shadow, layout } from '@/theme/tokens';
+import { colors, typography, spacing, radius, layout } from '@/theme/tokens';
 import { Button, IconButton, Card } from '@/components/ui';
 import { DatePicker } from '@/components/common/DatePicker';
 import { ConfirmModal } from '@/components/common/ConfirmModal';
@@ -45,7 +45,6 @@ export default function VisitFormScreen() {
         if (v) {
           setExistingVisit(v);
           setDate(v.visitDate);
-          // Load images for visit
           visitService.getImagesByVisit(visitId).then((imgs) => {
             setImageUris(imgs.map((img) => img.uri));
           });
@@ -82,7 +81,6 @@ export default function VisitFormScreen() {
     }
     if (!placeId || !currentUser) return;
 
-    // PRD 5-4: Enforce per-place 99-image cap at save time
     if (!isEditMode) {
       const existingCount = await visitService.getImageCountForPlace(placeId);
       if (existingCount + imageUris.length > LIMITS.MAX_IMAGES_PER_PLACE) {
@@ -102,12 +100,10 @@ export default function VisitFormScreen() {
           createdByUserId: currentUser.userId,
         });
 
-        // Add images
         if (imageUris.length > 0) {
           await addImages(imageUris.map((uri) => ({ visitId: visit.visitId, uri })));
         }
 
-        // Auto-transition: wishlist/orphan -> visited
         if (place && (place.status === 'wishlist' || place.status === 'orphan')) {
           await updatePlace(placeId, { status: 'visited' });
         }
@@ -129,7 +125,6 @@ export default function VisitFormScreen() {
     try {
       await deleteVisit(visitId);
 
-      // Check if this was the last visit for the place
       const remainingVisits = visits.filter(
         (v) => v.placeId === existingVisit.placeId && v.visitId !== visitId,
       );
@@ -153,7 +148,7 @@ export default function VisitFormScreen() {
           icon="close"
           onPress={() => router.back()}
           size={40}
-          backgroundColor={colors.surface.primary}
+          backgroundColor={colors.bg.elevated}
           color={colors.text.primary}
         />
         <Text style={styles.headerTitle}>
@@ -184,11 +179,14 @@ export default function VisitFormScreen() {
           </Card>
         )}
 
-        {/* Date Picker */}
-        <DatePicker value={date} onChange={setDate} label="방문 날짜" />
+        {/* Date Section — card section */}
+        <Card style={styles.sectionCard}>
+          <Text style={styles.sectionLabel}>방문 날짜</Text>
+          <DatePicker value={date} onChange={setDate} />
+        </Card>
 
-        {/* Photo Section */}
-        <View style={styles.imageSection}>
+        {/* Photo Section — card section */}
+        <Card style={styles.sectionCard}>
           <Text style={styles.sectionLabel}>
             사진 ({imageUris.length}/{LIMITS.MAX_IMAGES_PER_PLACE})
           </Text>
@@ -206,7 +204,7 @@ export default function VisitFormScreen() {
               </View>
             ))}
           </ScrollView>
-        </View>
+        </Card>
       </ScrollView>
 
       {/* Footer */}
@@ -253,9 +251,10 @@ const styles = StyleSheet.create({
     color: colors.accent.danger,
   },
   scroll: { flex: 1 },
-  content: { padding: layout.screenPaddingH, paddingTop: spacing[4] },
+  content: { padding: layout.screenPaddingH, paddingTop: spacing[4], gap: spacing[4] },
   placeInfo: {
-    marginBottom: spacing[5],
+    backgroundColor: colors.bg.elevated,
+    borderRadius: radius.xl,
   },
   placeInfoRow: {
     flexDirection: 'row',
@@ -265,13 +264,16 @@ const styles = StyleSheet.create({
   placeInfoContent: { flex: 1 },
   placeName: { ...typography.title.m, color: colors.text.primary },
   placeAddress: { ...typography.body.s, color: colors.text.secondary, marginTop: 2 },
+  sectionCard: {
+    backgroundColor: colors.bg.elevated,
+    borderRadius: radius.xl,
+  },
   sectionLabel: {
     ...typography.caption,
     color: colors.text.secondary,
     fontWeight: '600',
     marginBottom: spacing[3],
   },
-  imageSection: { marginTop: spacing[6] },
   imageRow: { flexDirection: 'row' },
   addImageBtn: {
     width: 80,
@@ -290,7 +292,7 @@ const styles = StyleSheet.create({
     width: 80,
     height: 80,
     borderRadius: radius.md,
-    backgroundColor: colors.surface.tertiary,
+    backgroundColor: colors.bg.soft,
   },
   removeImageBtn: {
     position: 'absolute',
@@ -305,12 +307,13 @@ const styles = StyleSheet.create({
   },
   footer: {
     paddingHorizontal: layout.screenPaddingH,
-    paddingVertical: spacing[4],
+    padding: 20,
     borderTopWidth: 1,
     borderTopColor: colors.border.soft,
-    backgroundColor: colors.surface.primary,
+    backgroundColor: colors.bg.elevated,
   },
   saveBtn: {
-    borderRadius: radius.pill,
+    borderRadius: radius['2xl'],
+    height: 56,
   },
 });

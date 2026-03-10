@@ -2,7 +2,7 @@ import React from 'react';
 import { View, Text, Image, StyleSheet, TouchableOpacity } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import { Place } from '@/types';
-import { colors, typography, spacing, radius, shadow } from '@/theme/tokens';
+import { colors, typography, spacing, shadow, component } from '@/theme/tokens';
 import { Chip } from '@/components/ui';
 import { CATEGORY_LABELS, STATUS_LABELS } from '@/constants';
 
@@ -76,17 +76,18 @@ export const PlaceCard: React.FC<PlaceCardProps> = ({ place, visitCount, onPress
 const styles = StyleSheet.create({
   card: {
     flexDirection: 'row',
-    backgroundColor: colors.surface.primary,
-    borderRadius: radius.lg,
-    padding: spacing[4],
-    marginBottom: spacing[3],
+    backgroundColor: colors.bg.elevated,
+    borderRadius: component.listCard.radius,
+    padding: component.listCard.padding,
+    marginBottom: spacing[4],
+    minHeight: component.listCard.minHeight,
     ...shadow.sm,
   },
   image: {
-    width: 72,
-    height: 72,
-    borderRadius: radius.md,
-    backgroundColor: colors.surface.tertiary,
+    width: component.listCard.thumbSize,
+    height: component.listCard.thumbSize,
+    borderRadius: component.listCard.thumbRadius,
+    backgroundColor: colors.bg.soft,
   },
   placeholder: {
     alignItems: 'center',
@@ -94,7 +95,7 @@ const styles = StyleSheet.create({
   },
   content: {
     flex: 1,
-    marginLeft: spacing[4],
+    marginLeft: component.listCard.gap,
     justifyContent: 'center',
   },
   nameRow: {

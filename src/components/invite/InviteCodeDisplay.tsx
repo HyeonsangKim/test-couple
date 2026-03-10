@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { View, Text, StyleSheet } from 'react-native';
-import { colors, typography, spacing, radius, shadow } from '@/theme/tokens';
+import { colors, typography, spacing, radius, shadow, component } from '@/theme/tokens';
 import { InviteCode } from '@/types';
 import { getRemainingHours, isExpired } from '@/utils/date';
 import { Button } from '@/components/ui';
@@ -40,9 +40,9 @@ export const InviteCodeDisplay: React.FC<InviteCodeDisplayProps> = ({ invite, on
 const styles = StyleSheet.create({
   container: {
     alignItems: 'center',
-    padding: spacing[6],
-    backgroundColor: colors.surface.primary,
-    borderRadius: radius.xl,
+    padding: component.card.padding,
+    backgroundColor: colors.bg.elevated,
+    borderRadius: component.card.radius,
     ...shadow.md,
   },
   label: {
@@ -68,7 +68,7 @@ const styles = StyleSheet.create({
   },
   timer: {
     ...typography.caption,
-    color: colors.accent.warning,
+    color: colors.accent.amber,
     marginBottom: spacing[4],
   },
   timerExpired: {

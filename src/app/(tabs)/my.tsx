@@ -3,7 +3,7 @@ import { View, Text, StyleSheet, ScrollView, TouchableOpacity, Alert } from 'rea
 import { useRouter } from 'expo-router';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { Ionicons } from '@expo/vector-icons';
-import { colors, typography, spacing, radius, shadow, layout } from '@/theme/tokens';
+import { colors, typography, spacing, radius, layout, component } from '@/theme/tokens';
 import { Avatar, Card, Button } from '@/components/ui';
 import { ConfirmModal } from '@/components/common/ConfirmModal';
 import { useAuthStore } from '@/stores/useAuthStore';
@@ -123,13 +123,13 @@ export default function MyScreen() {
             <Avatar
               name={currentUser?.nickname ?? '?'}
               color={colors.accent.primary}
-              size={56}
+              size={component.avatar.lg}
             />
             <View style={styles.profileInfo}>
               <Text style={styles.nickname}>{currentUser?.nickname ?? '사용자'}</Text>
               {isConnected && partner ? (
                 <View style={styles.partnerRow}>
-                  <Ionicons name="heart" size={12} color={colors.accent.danger} />
+                  <Ionicons name="heart" size={12} color={colors.accent.primary} />
                   <Text style={styles.partnerText}>{partner.nickname}과 함께</Text>
                 </View>
               ) : (
@@ -215,32 +215,36 @@ export default function MyScreen() {
                 onPress={() => router.push(`/snapshot/${snap.snapshotId}`)}
                 activeOpacity={0.6}
               >
-                <Ionicons name="camera-outline" size={18} color={colors.text.secondary} />
+                <View style={styles.snapshotIconFrame}>
+                  <Ionicons name="camera-outline" size={20} color={colors.text.secondary} />
+                </View>
                 <View style={styles.snapshotInfo}>
                   <Text style={styles.snapshotDate}>{formatDate(snap.createdAt)}</Text>
                   <Text style={styles.snapshotPlaces}>{snap.places.length}개 장소</Text>
                 </View>
-                <Ionicons name="chevron-forward" size={16} color={colors.text.tertiary} />
               </TouchableOpacity>
             ))}
           </Card>
         )}
 
-        {/* Danger Zone */}
-        <View style={styles.dangerZone}>
+        {/* Danger Block */}
+        <Card style={styles.dangerCard}>
           <TouchableOpacity
             style={styles.dangerBtn}
             onPress={() => setShowLogoutConfirm(true)}
           >
-            <Text style={styles.dangerText}>로그아웃</Text>
+            <Ionicons name="log-out-outline" size={20} color={colors.text.secondary} />
+            <Text style={styles.logoutText}>로그아웃</Text>
           </TouchableOpacity>
+          <View style={styles.dangerDivider} />
           <TouchableOpacity
             style={styles.dangerBtn}
             onPress={handleWithdrawStart}
           >
-            <Text style={[styles.dangerText, styles.withdrawText]}>회원탈퇴</Text>
+            <Ionicons name="alert-circle-outline" size={20} color={colors.accent.danger} />
+            <Text style={styles.withdrawText}>회원탈퇴</Text>
           </TouchableOpacity>
-        </View>
+        </Card>
       </ScrollView>
 
       <ConfirmModal
@@ -293,6 +297,7 @@ const styles = StyleSheet.create({
     paddingVertical: spacing[3],
   },
   profileCard: {
+    backgroundColor: colors.bg.elevated,
     marginBottom: layout.cardGap,
   },
   profileRow: {
@@ -326,6 +331,7 @@ const styles = StyleSheet.create({
     padding: spacing[2],
   },
   statusCard: {
+    backgroundColor: colors.bg.elevated,
     marginBottom: layout.cardGap,
   },
   statsRow: {
@@ -368,15 +374,17 @@ const styles = StyleSheet.create({
     marginBottom: spacing[4],
   },
   soloCardBtn: {
-    borderRadius: radius.pill,
+    borderRadius: radius.full,
   },
   menuCard: {
+    backgroundColor: colors.bg.elevated,
     marginBottom: layout.cardGap,
     paddingVertical: spacing[1],
   },
   menuItem: {
     flexDirection: 'row',
     alignItems: 'center',
+    minHeight: component.settingsRow.height,
     paddingVertical: spacing[3],
     paddingHorizontal: spacing[1],
     gap: spacing[3],
@@ -391,6 +399,7 @@ const styles = StyleSheet.create({
     flex: 1,
   },
   snapshotCard: {
+    backgroundColor: colors.bg.elevated,
     marginBottom: layout.cardGap,
   },
   snapshotTitle: {
@@ -401,8 +410,17 @@ const styles = StyleSheet.create({
   snapshotItem: {
     flexDirection: 'row',
     alignItems: 'center',
-    paddingVertical: spacing[2],
+    minHeight: component.archiveRow.minHeight,
+    borderRadius: radius.lg,
+    paddingVertical: spacing[4],
+    paddingHorizontal: spacing[4],
     gap: spacing[3],
+  },
+  snapshotIconFrame: {
+    width: 32,
+    height: 32,
+    alignItems: 'center',
+    justifyContent: 'center',
   },
   snapshotInfo: {
     flex: 1,
@@ -414,20 +432,30 @@ const styles = StyleSheet.create({
   snapshotPlaces: {
     ...typography.body.s,
     color: colors.text.secondary,
+    marginTop: 2,
   },
-  dangerZone: {
-    alignItems: 'center',
-    paddingVertical: spacing[6],
-    gap: spacing[3],
+  dangerCard: {
+    backgroundColor: colors.status.deleteBg,
+    marginBottom: layout.cardGap,
   },
   dangerBtn: {
-    paddingVertical: spacing[2],
+    flexDirection: 'row',
+    alignItems: 'center',
+    paddingVertical: spacing[3],
+    paddingHorizontal: spacing[1],
+    gap: spacing[3],
+    minHeight: component.settingsRow.height,
   },
-  dangerText: {
+  dangerDivider: {
+    height: 1,
+    backgroundColor: colors.border.soft,
+  },
+  logoutText: {
     ...typography.body.m,
-    color: colors.text.tertiary,
+    color: colors.text.secondary,
   },
   withdrawText: {
+    ...typography.body.m,
     color: colors.accent.danger,
   },
 });

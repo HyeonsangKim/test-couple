@@ -72,11 +72,11 @@ const styles = StyleSheet.create({
     width: 96,
     height: 96,
     borderRadius: 48,
-    backgroundColor: colors.surface.primary,
+    backgroundColor: colors.bg.elevated,
     alignItems: 'center',
     justifyContent: 'center',
     marginBottom: spacing[6],
-    ...shadow.md,
+    ...shadow.sm,
   },
   title: {
     ...typography.display.l,
@@ -91,7 +91,7 @@ const styles = StyleSheet.create({
     alignItems: 'center',
   },
   googleBtn: {
-    borderRadius: radius.pill,
+    borderRadius: radius['2xl'],
     marginBottom: spacing[4],
   },
   footerText: {

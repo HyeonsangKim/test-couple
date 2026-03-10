@@ -1,13 +1,15 @@
 import React from 'react';
-import { View, TextInput, StyleSheet, TouchableOpacity } from 'react-native';
+import { View, TextInput, StyleSheet, TouchableOpacity, ViewStyle, StyleProp } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
-import { colors, typography, spacing, radius, shadow } from '@/theme/tokens';
+import { colors, typography, spacing, shadow, component } from '@/theme/tokens';
 
 interface SearchBarProps {
   value: string;
   onChangeText: (text: string) => void;
   placeholder?: string;
   onClear?: () => void;
+  variant?: 'solid' | 'glass';
+  style?: StyleProp<ViewStyle>;
 }
 
 export const SearchBar: React.FC<SearchBarProps> = ({
@@ -15,9 +17,11 @@ export const SearchBar: React.FC<SearchBarProps> = ({
   onChangeText,
   placeholder = '장소 검색...',
   onClear,
+  variant = 'solid',
+  style,
 }) => (
-  <View style={styles.container}>
-    <Ionicons name="search" size={16} color={colors.text.tertiary} style={styles.icon} />
+  <View style={[styles.container, variant === 'glass' ? styles.containerGlass : styles.containerSolid, style]}>
+    <Ionicons name="search" size={component.searchBar.icon} color={colors.text.tertiary} style={styles.icon} />
     <TextInput
       style={styles.input}
       value={value}
@@ -28,7 +32,7 @@ export const SearchBar: React.FC<SearchBarProps> = ({
     />
     {value.length > 0 && (
       <TouchableOpacity onPress={onClear} style={styles.clearBtn}>
-        <Ionicons name="close" size={16} color={colors.text.tertiary} />
+        <Ionicons name="close" size={component.searchBar.icon} color={colors.text.tertiary} />
       </TouchableOpacity>
     )}
   </View>
@@ -38,18 +42,26 @@ const styles = StyleSheet.create({
   container: {
     flexDirection: 'row',
     alignItems: 'center',
-    backgroundColor: colors.surface.primary,
-    borderRadius: radius.pill,
-    paddingHorizontal: spacing[4],
-    paddingVertical: spacing[2],
+    height: component.searchBar.height,
+    borderRadius: component.searchBar.radius,
+    paddingHorizontal: component.searchBar.horizontalPadding,
+  },
+  containerSolid: {
+    backgroundColor: colors.bg.elevated,
     ...shadow.sm,
+  },
+  containerGlass: {
+    backgroundColor: colors.glass.fillStrong,
+    borderWidth: 1,
+    borderColor: colors.glass.stroke,
+    ...shadow.glass,
   },
   icon: {
     marginRight: spacing[2],
   },
   input: {
     flex: 1,
-    ...typography.body.m,
+    ...typography.body.l,
     color: colors.text.primary,
     padding: 0,
   },

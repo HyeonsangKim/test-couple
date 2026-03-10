@@ -1,6 +1,6 @@
 import React from 'react';
 import { View, Text, StyleSheet, Modal, TouchableOpacity } from 'react-native';
-import { colors, typography, spacing, radius } from '@/theme/tokens';
+import { colors, typography, spacing, component } from '@/theme/tokens';
 import { Button } from '@/components/ui';
 
 interface ConfirmModalProps {
@@ -50,17 +50,17 @@ const styles = StyleSheet.create({
     backgroundColor: colors.overlay.dim,
     justifyContent: 'center',
     alignItems: 'center',
-    padding: spacing[6],
+    paddingHorizontal: component.modal.horizontalMargin,
   },
   modal: {
-    backgroundColor: colors.surface.primary,
-    borderRadius: radius.xl,
-    padding: spacing[6],
+    backgroundColor: colors.bg.elevated,
+    borderRadius: component.modal.radius,
+    padding: component.modal.padding,
     width: '100%',
-    maxWidth: 340,
+    maxWidth: component.modal.maxWidth,
   },
   title: {
-    ...typography.heading.m,
+    ...typography.title.l,
     color: colors.text.primary,
     marginBottom: spacing[2],
   },

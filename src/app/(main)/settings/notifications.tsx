@@ -2,7 +2,7 @@ import React, { useEffect } from 'react';
 import { View, Text, StyleSheet, Switch, ScrollView } from 'react-native';
 import { useRouter } from 'expo-router';
 import { SafeAreaView } from 'react-native-safe-area-context';
-import { colors, typography, spacing, radius, layout } from '@/theme/tokens';
+import { colors, typography, spacing, layout, component } from '@/theme/tokens';
 import { IconButton, Card } from '@/components/ui';
 import { useAuthStore } from '@/stores/useAuthStore';
 import { NOTIFICATION_LABELS } from '@/constants';
@@ -50,7 +50,7 @@ export default function NotificationSettingsScreen() {
           icon="chevron-back"
           onPress={() => router.back()}
           size={40}
-          backgroundColor={colors.surface.primary}
+          backgroundColor={colors.bg.elevated}
           color={colors.text.primary}
         />
         <Text style={styles.headerTitle}>알림 설정</Text>
@@ -119,6 +119,7 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     justifyContent: 'space-between',
     alignItems: 'center',
+    minHeight: component.toggleRow.height,
     paddingVertical: spacing[4],
     paddingHorizontal: spacing[1],
   },

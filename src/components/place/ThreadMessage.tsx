@@ -1,7 +1,7 @@
 import React from 'react';
 import { View, Text, StyleSheet, TouchableOpacity } from 'react-native';
 import { ThreadMessage as ThreadMessageType } from '@/types';
-import { colors, typography, spacing, radius } from '@/theme/tokens';
+import { colors, typography, spacing, radius, component } from '@/theme/tokens';
 import { Avatar } from '@/components/ui';
 import { useAuthStore } from '@/stores/useAuthStore';
 import { formatRelative } from '@/utils/date';
@@ -21,7 +21,7 @@ export const ThreadMessageComponent: React.FC<ThreadMessageProps> = ({ message, 
   return (
     <View style={[styles.container, isMine && styles.containerMine]}>
       {!isMine && (
-        <Avatar user={author} name={author?.nickname ?? '?'} color={colors.text.tertiary} size={32} />
+        <Avatar user={author} name={author?.nickname ?? '?'} color={colors.text.tertiary} size={component.avatar.sm} />
       )}
       <View style={[styles.bubble, isMine ? styles.bubbleMine : styles.bubblePartner]}>
         {!isMine && <Text style={styles.authorName}>{author?.nickname}</Text>}
@@ -45,7 +45,7 @@ export const ThreadMessageComponent: React.FC<ThreadMessageProps> = ({ message, 
         </View>
       </View>
       {isMine && (
-        <Avatar user={author} name={author?.nickname ?? '?'} color={colors.accent.primary} size={32} />
+        <Avatar user={author} name={author?.nickname ?? '?'} color={colors.accent.primary} size={component.avatar.sm} />
       )}
     </View>
   );
@@ -69,11 +69,11 @@ const styles = StyleSheet.create({
     padding: spacing[4],
   },
   bubbleMine: {
-    backgroundColor: colors.surface.tertiary,
+    backgroundColor: colors.bg.soft,
     borderBottomRightRadius: 4,
   },
   bubblePartner: {
-    backgroundColor: colors.surface.secondary,
+    backgroundColor: colors.bg.elevated,
     borderBottomLeftRadius: 4,
   },
   authorName: {

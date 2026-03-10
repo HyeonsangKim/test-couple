@@ -4,7 +4,7 @@ import { useRouter } from 'expo-router';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import * as ImagePicker from 'expo-image-picker';
 import { Ionicons } from '@expo/vector-icons';
-import { colors, typography, spacing, radius, shadow, layout } from '@/theme/tokens';
+import { colors, typography, spacing, radius, shadow, layout, component } from '@/theme/tokens';
 import { Button, IconButton, Avatar, Card } from '@/components/ui';
 import { useAuthStore } from '@/stores/useAuthStore';
 import { validateNickname } from '@/utils/validation';
@@ -65,7 +65,7 @@ export default function ProfileSettingsScreen() {
           icon="chevron-back"
           onPress={() => router.back()}
           size={40}
-          backgroundColor={colors.surface.primary}
+          backgroundColor={colors.bg.elevated}
           color={colors.text.primary}
         />
         <Text style={styles.headerTitle}>프로필 수정</Text>
@@ -79,7 +79,7 @@ export default function ProfileSettingsScreen() {
             <Avatar
               name={nickname || currentUser?.nickname || '?'}
               color={colors.accent.primary}
-              size={80}
+              size={component.avatar.xl}
             />
             <View style={styles.avatarBadge}>
               <Ionicons name="camera" size={14} color={colors.text.inverse} />
@@ -101,8 +101,10 @@ export default function ProfileSettingsScreen() {
           />
           <Text style={styles.charCount}>{nickname.length}/12</Text>
         </Card>
+      </View>
 
-        {/* Save */}
+      {/* Fixed Footer Save Button */}
+      <View style={styles.footer}>
         <Button
           title="저장"
           onPress={handleSave}
@@ -176,9 +178,10 @@ const styles = StyleSheet.create({
   input: {
     ...typography.body.l,
     color: colors.text.primary,
-    borderBottomWidth: 1,
-    borderBottomColor: colors.border.soft,
-    paddingVertical: spacing[2],
+    backgroundColor: colors.bg.soft,
+    borderRadius: radius.lg,
+    height: 56,
+    paddingHorizontal: spacing[4],
   },
   charCount: {
     ...typography.caption,
@@ -186,7 +189,14 @@ const styles = StyleSheet.create({
     textAlign: 'right',
     marginTop: spacing[1],
   },
+  footer: {
+    paddingHorizontal: layout.screenPaddingH,
+    paddingVertical: spacing[4],
+    borderTopWidth: 1,
+    borderTopColor: colors.border.soft,
+    backgroundColor: colors.bg.elevated,
+  },
   saveBtn: {
-    borderRadius: radius.pill,
+    borderRadius: radius['2xl'],
   },
 });

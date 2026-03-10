@@ -77,7 +77,7 @@ export default function PlaceAddPhotoScreen() {
           icon="chevron-back"
           onPress={() => router.back()}
           size={40}
-          backgroundColor={colors.surface.primary}
+          backgroundColor={colors.bg.elevated}
           color={colors.text.primary}
         />
         <Text style={styles.headerTitle}>사진으로 추가</Text>
@@ -237,7 +237,7 @@ const styles = StyleSheet.create({
     width: 80,
     height: 80,
     borderRadius: radius.md,
-    backgroundColor: colors.surface.tertiary,
+    backgroundColor: colors.bg.soft,
   },
   removeImageBtn: {
     position: 'absolute',
@@ -279,9 +279,9 @@ const styles = StyleSheet.create({
     paddingVertical: spacing[4],
     borderTopWidth: 1,
     borderTopColor: colors.border.soft,
-    backgroundColor: colors.surface.primary,
+    backgroundColor: colors.bg.elevated,
   },
   saveBtn: {
-    borderRadius: radius.pill,
+    borderRadius: radius.full,
   },
 });

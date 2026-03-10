@@ -1,6 +1,13 @@
 import React, { useState } from 'react';
-import { View, TextInput as RNTextInput, Text, StyleSheet, TextInputProps as RNTextInputProps, ViewStyle } from 'react-native';
-import { colors, typography, spacing, radius } from '@/theme/tokens';
+import {
+  View,
+  TextInput as RNTextInput,
+  Text,
+  StyleSheet,
+  TextInputProps as RNTextInputProps,
+  ViewStyle,
+} from 'react-native';
+import { colors, typography, spacing, shadow, component } from '@/theme/tokens';
 
 interface TextInputProps extends RNTextInputProps {
   label?: string;
@@ -22,21 +29,25 @@ export const TextInput: React.FC<TextInputProps> = ({
   return (
     <View style={containerStyle}>
       {label && <Text style={styles.label}>{label}</Text>}
-      <View style={[
-        styles.inputContainer,
-        {
-          borderColor: error
-            ? colors.accent.danger
-            : focused
-              ? colors.accent.primary
-              : colors.border.soft,
-        },
-      ]}>
+      <View
+        style={[
+          styles.inputContainer,
+          focused && shadow.sm,
+          error && styles.inputContainerError,
+        ]}
+      >
         <RNTextInput
           style={[styles.input, style]}
           placeholderTextColor={colors.text.tertiary}
-          onFocus={(e) => { setFocused(true); props.onFocus?.(e); }}
-          onBlur={(e) => { setFocused(false); props.onBlur?.(e); }}
+          selectionColor={colors.accent.primary}
+          onFocus={(e) => {
+            setFocused(true);
+            props.onFocus?.(e);
+          }}
+          onBlur={(e) => {
+            setFocused(false);
+            props.onBlur?.(e);
+          }}
           {...props}
         />
         {rightElement}
@@ -50,21 +61,26 @@ const styles = StyleSheet.create({
   label: {
     ...typography.caption,
     color: colors.text.secondary,
-    marginBottom: spacing[1],
+    marginBottom: spacing[2], // 8px gap
   },
   inputContainer: {
     flexDirection: 'row',
     alignItems: 'center',
-    borderWidth: 1.5,
-    borderRadius: radius.md,
-    backgroundColor: colors.surface.primary,
-    paddingHorizontal: spacing[4],
+    borderWidth: 1,
+    borderColor: colors.border.soft,
+    borderRadius: component.input.radius,
+    backgroundColor: colors.bg.soft,
+    height: component.input.height,
+    paddingHorizontal: component.input.horizontalPadding,
+  },
+  inputContainerError: {
+    borderColor: colors.accent.danger,
   },
   input: {
     flex: 1,
     ...typography.body.m,
     color: colors.text.primary,
-    paddingVertical: spacing[3],
+    paddingVertical: 0, // let height dictate vertical centering
   },
   error: {
     ...typography.caption,

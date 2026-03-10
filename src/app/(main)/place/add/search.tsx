@@ -1,10 +1,10 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { View, Text, StyleSheet, FlatList, TouchableOpacity, Alert } from 'react-native';
 import { useRouter } from 'expo-router';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { Ionicons } from '@expo/vector-icons';
-import { colors, typography, spacing, radius, shadow, layout } from '@/theme/tokens';
-import { IconButton, Card } from '@/components/ui';
+import { colors, typography, spacing, radius, layout, component } from '@/theme/tokens';
+import { IconButton } from '@/components/ui';
 import { SearchBar } from '@/components/filter/SearchBar';
 import { usePlaceStore } from '@/stores/usePlaceStore';
 import { useMapStore } from '@/stores/useMapStore';
@@ -65,20 +65,26 @@ export default function PlaceAddSearchScreen() {
   const map = useMapStore((s) => s.map);
   const currentUser = useAuthStore((s) => s.currentUser);
 
-  const handleSearch = () => {
-    if (!query.trim()) return;
-    setSearched(true);
-    // Mock: filter results by query
-    const filtered = MOCK_SEARCH_RESULTS.filter(
-      (r) => r.name.toLowerCase().includes(query.toLowerCase()),
-    );
-    setResults(filtered.length > 0 ? filtered : MOCK_SEARCH_RESULTS);
-  };
+  // Live search with debounce
+  useEffect(() => {
+    if (!query.trim()) {
+      setResults([]);
+      setSearched(false);
+      return;
+    }
+    const timeout = setTimeout(() => {
+      setSearched(true);
+      const filtered = MOCK_SEARCH_RESULTS.filter(
+        (r) => r.name.toLowerCase().includes(query.toLowerCase()),
+      );
+      setResults(filtered.length > 0 ? filtered : MOCK_SEARCH_RESULTS);
+    }, 300);
+    return () => clearTimeout(timeout);
+  }, [query]);
 
   const handleSelectResult = async (result: MapApiResult) => {
     if (!map || !currentUser) return;
 
-    // Check for duplicate
     try {
       const duplicate = await checkDuplicate(map.mapId, result.externalPlaceId);
       if (duplicate) {
@@ -127,14 +133,14 @@ export default function PlaceAddSearchScreen() {
           icon="chevron-back"
           onPress={() => router.back()}
           size={40}
-          backgroundColor={colors.surface.primary}
+          backgroundColor={colors.bg.elevated}
           color={colors.text.primary}
         />
         <Text style={styles.headerTitle}>장소 검색</Text>
         <View style={{ width: 40 }} />
       </View>
 
-      {/* Search */}
+      {/* Search — live search, no button */}
       <View style={styles.searchSection}>
         <SearchBar
           value={query}
@@ -146,9 +152,6 @@ export default function PlaceAddSearchScreen() {
             setSearched(false);
           }}
         />
-        <TouchableOpacity style={styles.searchBtn} onPress={handleSearch}>
-          <Text style={styles.searchBtnText}>검색</Text>
-        </TouchableOpacity>
       </View>
 
       {/* Results */}
@@ -158,7 +161,7 @@ export default function PlaceAddSearchScreen() {
         contentContainerStyle={styles.listContent}
         renderItem={({ item }) => (
           <TouchableOpacity
-            style={styles.resultCard}
+            style={styles.resultRow}
             onPress={() => handleSelectResult(item)}
             activeOpacity={0.7}
           >
@@ -175,13 +178,13 @@ export default function PlaceAddSearchScreen() {
         ListEmptyComponent={
           searched ? (
             <View style={styles.emptyState}>
-              <Ionicons name="search-outline" size={48} color={colors.text.tertiary} />
+              <Ionicons name="search-outline" size={component.emptyState.icon} color={colors.text.tertiary} />
               <Text style={styles.emptyTitle}>검색 결과가 없어요</Text>
               <Text style={styles.emptyDesc}>다른 검색어로 시도해보세요</Text>
             </View>
           ) : (
             <View style={styles.emptyState}>
-              <Ionicons name="search-outline" size={48} color={colors.text.tertiary} />
+              <Ionicons name="search-outline" size={component.emptyState.icon} color={colors.text.tertiary} />
               <Text style={styles.emptyTitle}>장소를 검색해보세요</Text>
               <Text style={styles.emptyDesc}>이름으로 장소를 찾아 추가할 수 있어요</Text>
             </View>
@@ -209,41 +212,29 @@ const styles = StyleSheet.create({
     color: colors.text.primary,
   },
   searchSection: {
-    flexDirection: 'row',
     paddingHorizontal: layout.screenPaddingH,
     marginBottom: spacing[4],
-    gap: spacing[2],
-    alignItems: 'center',
-  },
-  searchBtn: {
-    backgroundColor: colors.accent.primary,
-    borderRadius: radius.md,
-    paddingVertical: spacing[3],
-    paddingHorizontal: spacing[4],
-  },
-  searchBtnText: {
-    ...typography.button.m,
-    color: colors.text.inverse,
   },
   listContent: {
     paddingHorizontal: layout.screenPaddingH,
     paddingBottom: spacing[10],
   },
-  resultCard: {
+  resultRow: {
     flexDirection: 'row',
     alignItems: 'center',
-    backgroundColor: colors.surface.primary,
-    borderRadius: radius.lg,
-    padding: spacing[4],
+    backgroundColor: colors.bg.elevated,
+    borderRadius: radius.xl,
+    paddingVertical: spacing[4],
+    paddingHorizontal: component.resultRow.horizontalPadding,
     marginBottom: spacing[2],
-    gap: spacing[3],
-    ...shadow.sm,
+    minHeight: component.resultRow.mediaHeight,
+    gap: 16,
   },
   resultIconCircle: {
-    width: 40,
-    height: 40,
-    borderRadius: 20,
-    backgroundColor: colors.surface.tertiary,
+    width: component.resultRow.thumb,
+    height: component.resultRow.thumb,
+    borderRadius: component.resultRow.thumbRadius,
+    backgroundColor: colors.bg.soft,
     alignItems: 'center',
     justifyContent: 'center',
   },
@@ -261,7 +252,9 @@ const styles = StyleSheet.create({
   },
   emptyState: {
     alignItems: 'center',
-    paddingVertical: spacing[12],
+    paddingVertical: component.emptyState.verticalPadding,
+    maxWidth: component.emptyState.maxWidth,
+    alignSelf: 'center',
   },
   emptyTitle: {
     ...typography.title.m,

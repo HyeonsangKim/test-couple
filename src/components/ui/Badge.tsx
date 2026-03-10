@@ -1,19 +1,61 @@
 import React from 'react';
-import { View, Text, StyleSheet } from 'react-native';
-import { colors } from '@/theme/tokens';
+import { View, Text, StyleSheet, ViewStyle } from 'react-native';
+import { colors, typography, radius, component } from '@/theme/tokens';
+
+type BadgeState = 'neutral' | 'accent' | 'success' | 'warning' | 'danger';
 
 interface BadgeProps {
-  count: number;
-  color?: string;
-  size?: number;
+  /** Numeric count (renders as number) or string label */
+  label?: string;
+  count?: number;
+  state?: BadgeState;
+  compact?: boolean;
+  style?: ViewStyle;
 }
 
-export const Badge: React.FC<BadgeProps> = ({ count, color = colors.accent.danger, size = 20 }) => {
-  if (count <= 0) return null;
+const stateStyles: Record<BadgeState, { bg: string; text: string }> = {
+  neutral: { bg: colors.bg.soft, text: colors.text.secondary },
+  accent: { bg: colors.accent.primarySoft, text: colors.accent.primary },
+  success: { bg: 'rgba(39,174,96,0.12)', text: colors.accent.mint },
+  warning: { bg: 'rgba(217,164,65,0.12)', text: colors.accent.amber },
+  danger: { bg: 'rgba(214,69,69,0.10)', text: colors.accent.danger },
+};
+
+export const Badge: React.FC<BadgeProps> = ({
+  label,
+  count,
+  state = 'neutral',
+  compact = false,
+  style,
+}) => {
+  // If count is provided and <= 0, render nothing (backwards compat)
+  if (count !== undefined && count <= 0) return null;
+
+  const displayText =
+    count !== undefined
+      ? count > 99
+        ? '99+'
+        : String(count)
+      : label ?? '';
+
+  const { bg, text } = stateStyles[state];
+  const height = compact ? component.badge.compactHeight : component.badge.defaultHeight;
 
   return (
-    <View style={[styles.badge, { backgroundColor: color, minWidth: size, height: size, borderRadius: size / 2 }]}>
-      <Text style={[styles.text, { fontSize: size * 0.55 }]}>{count > 99 ? '99+' : count}</Text>
+    <View
+      style={[
+        styles.badge,
+        {
+          backgroundColor: bg,
+          minWidth: height,
+          height,
+          borderRadius: radius.full,
+          paddingHorizontal: component.badge.horizontalPadding,
+        },
+        style,
+      ]}
+    >
+      <Text style={[styles.text, { color: text }]}>{displayText}</Text>
     </View>
   );
 };
@@ -22,10 +64,8 @@ const styles = StyleSheet.create({
   badge: {
     alignItems: 'center',
     justifyContent: 'center',
-    paddingHorizontal: 4,
   },
   text: {
-    color: colors.text.inverse,
-    fontWeight: '700',
+    ...typography.caption,
   },
 });

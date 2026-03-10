@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { View, Text, StyleSheet, TextInput as RNTextInput, Alert } from 'react-native';
+import { View, Text, StyleSheet, TextInput as RNTextInput, Alert, ScrollView } from 'react-native';
 import { useRouter } from 'expo-router';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { colors, typography, spacing, radius, layout } from '@/theme/tokens';
@@ -66,14 +66,14 @@ export default function AnniversarySettingsScreen() {
           icon="chevron-back"
           onPress={() => router.back()}
           size={40}
-          backgroundColor={colors.surface.primary}
+          backgroundColor={colors.bg.elevated}
           color={colors.text.primary}
         />
         <Text style={styles.headerTitle}>기념일</Text>
         <View style={{ width: 40 }} />
       </View>
 
-      <View style={styles.content}>
+      <ScrollView style={styles.scroll} contentContainerStyle={styles.content}>
         {/* D-day Preview */}
         {dDayPreview ? (
           <Card style={styles.previewCard}>
@@ -100,17 +100,6 @@ export default function AnniversarySettingsScreen() {
           />
         </View>
 
-        {/* Actions */}
-        <Button
-          title="저장"
-          onPress={handleSave}
-          variant="primary"
-          size="lg"
-          fullWidth
-          loading={loading}
-          style={styles.saveBtn}
-        />
-
         {map?.anniversaryDate && (
           <Button
             title="기념일 삭제"
@@ -121,6 +110,19 @@ export default function AnniversarySettingsScreen() {
             style={styles.clearBtn}
           />
         )}
+      </ScrollView>
+
+      {/* Fixed Footer Save Button */}
+      <View style={styles.footer}>
+        <Button
+          title="저장"
+          onPress={handleSave}
+          variant="primary"
+          size="lg"
+          fullWidth
+          loading={loading}
+          style={styles.saveBtn}
+        />
       </View>
     </SafeAreaView>
   );
@@ -142,8 +144,10 @@ const styles = StyleSheet.create({
     ...typography.title.l,
     color: colors.text.primary,
   },
-  content: {
+  scroll: {
     flex: 1,
+  },
+  content: {
     paddingHorizontal: layout.screenPaddingH,
     paddingTop: spacing[4],
   },
@@ -173,19 +177,23 @@ const styles = StyleSheet.create({
   input: {
     ...typography.body.l,
     color: colors.text.primary,
-    backgroundColor: colors.surface.primary,
-    borderRadius: radius.md,
-    paddingVertical: spacing[3],
+    backgroundColor: colors.bg.soft,
+    borderRadius: radius.lg,
+    height: 56,
     paddingHorizontal: spacing[4],
-    borderWidth: 1,
-    borderColor: colors.border.soft,
-  },
-  saveBtn: {
-    borderRadius: radius.pill,
-    marginTop: spacing[4],
   },
   clearBtn: {
     marginTop: spacing[4],
     alignSelf: 'center',
+  },
+  footer: {
+    paddingHorizontal: layout.screenPaddingH,
+    paddingVertical: spacing[4],
+    borderTopWidth: 1,
+    borderTopColor: colors.border.soft,
+    backgroundColor: colors.bg.elevated,
+  },
+  saveBtn: {
+    borderRadius: radius['2xl'],
   },
 });

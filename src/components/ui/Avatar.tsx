@@ -1,20 +1,29 @@
 import React from 'react';
 import { View, Text, Image, StyleSheet } from 'react-native';
-import { colors } from '@/theme/tokens';
+import { colors, radius, component } from '@/theme/tokens';
 import { UserProfile } from '@/types';
+
+type AvatarSize = 'xs' | 'sm' | 'md' | 'lg' | 'xl';
 
 interface AvatarProps {
   user?: UserProfile | null;
   name?: string;
   color?: string;
-  size?: number;
+  /** Numeric pixel value or named size from design tokens */
+  size?: number | AvatarSize;
 }
 
-export const Avatar: React.FC<AvatarProps> = ({ user, name, color, size = 36 }) => {
+const resolveSize = (size: number | AvatarSize): number => {
+  if (typeof size === 'number') return size;
+  return component.avatar[size];
+};
+
+export const Avatar: React.FC<AvatarProps> = ({ user, name, color, size = 'sm' }) => {
+  const px = resolveSize(size);
   const displayName = user?.nickname ?? name ?? '?';
-  const bgColor = color ?? colors.accent.primary;
+  const bgColor = color ?? colors.bg.soft;
   const initial = displayName.charAt(0);
-  const fontSize = size * 0.45;
+  const fontSize = px * 0.45;
 
   if (user?.profileImageUri) {
     return (
@@ -22,14 +31,19 @@ export const Avatar: React.FC<AvatarProps> = ({ user, name, color, size = 36 }) 
         source={{ uri: user.profileImageUri }}
         style={[
           styles.avatar,
-          { width: size, height: size, borderRadius: size / 2 },
+          { width: px, height: px, borderRadius: radius.full },
         ]}
       />
     );
   }
 
   return (
-    <View style={[styles.avatar, { width: size, height: size, borderRadius: size / 2, backgroundColor: bgColor }]}>
+    <View
+      style={[
+        styles.avatar,
+        { width: px, height: px, borderRadius: radius.full, backgroundColor: bgColor },
+      ]}
+    >
       <Text style={[styles.initial, { fontSize }]}>{initial}</Text>
     </View>
   );
@@ -41,7 +55,7 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
   },
   initial: {
-    color: colors.text.inverse,
+    color: colors.text.secondary,
     fontWeight: '700',
   },
 });

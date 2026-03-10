@@ -1,9 +1,8 @@
 import React from 'react';
-import { View, TouchableOpacity, Text, StyleSheet, Platform } from 'react-native';
 import { Tabs } from 'expo-router';
 import { Ionicons } from '@expo/vector-icons';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
-import { colors, typography, spacing, radius, shadow, glass } from '@/theme/tokens';
+import { colors, typography, spacing, component } from '@/theme/tokens';
 
 type IoniconsName = React.ComponentProps<typeof Ionicons>['name'];
 
@@ -28,29 +27,21 @@ export default function TabsLayout() {
       screenOptions={{
         headerShown: false,
         tabBarStyle: {
-          position: 'absolute',
-          bottom: Math.max(insets.bottom, 12),
-          left: 20,
-          right: 20,
-          height: 64,
-          borderRadius: radius.xl,
-          backgroundColor: glass.fallback.background,
-          borderWidth: glass.border.width,
-          borderColor: glass.border.color,
-          borderTopWidth: glass.border.width,
-          borderTopColor: glass.border.color,
-          ...shadow.md,
-          elevation: 8,
-          paddingBottom: 0,
+          height: component.tabBar.contentHeight + insets.bottom,
+          backgroundColor: colors.bg.elevated,
+          borderTopWidth: 1,
+          borderTopColor: colors.border.soft,
+          paddingBottom: insets.bottom,
+          elevation: 0,
+          shadowOpacity: 0,
         },
         tabBarItemStyle: {
-          paddingVertical: spacing[2],
+          paddingVertical: component.tabBar.itemVerticalPadding,
         },
         tabBarActiveTintColor: colors.accent.primary,
         tabBarInactiveTintColor: colors.text.tertiary,
         tabBarLabelStyle: {
-          ...typography.caption,
-          fontSize: 11,
+          ...typography.micro,
           marginTop: 2,
         },
       }}
@@ -64,7 +55,7 @@ export default function TabsLayout() {
             tabBarIcon: ({ focused, color }) => (
               <Ionicons
                 name={focused ? tab.iconFocused : tab.icon}
-                size={22}
+                size={component.tabBar.icon}
                 color={color}
               />
             ),

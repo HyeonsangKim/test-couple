@@ -1,9 +1,9 @@
 import React, { useState, useRef } from 'react';
-import { View, Text, StyleSheet, TextInput as RNTextInput, Alert, Platform } from 'react-native';
+import { View, Text, StyleSheet, TextInput as RNTextInput, Alert } from 'react-native';
 import { useRouter } from 'expo-router';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import MapView, { Marker, Region } from 'react-native-maps';
-import { colors, typography, spacing, radius, shadow, layout } from '@/theme/tokens';
+import { colors, typography, spacing, radius, layout } from '@/theme/tokens';
 import { Button, IconButton } from '@/components/ui';
 import { usePlaceStore } from '@/stores/usePlaceStore';
 import { useMapStore } from '@/stores/useMapStore';
@@ -65,7 +65,7 @@ export default function PlaceAddPinScreen() {
           icon="chevron-back"
           onPress={() => router.back()}
           size={40}
-          backgroundColor={colors.surface.primary}
+          backgroundColor={colors.bg.elevated}
           color={colors.text.primary}
         />
         <Text style={styles.headerTitle}>지도에 핀 찍기</Text>
@@ -87,6 +87,8 @@ export default function PlaceAddPinScreen() {
             onDragEnd={(e) => setPinCoordinate(e.nativeEvent.coordinate)}
           />
         </MapView>
+      </View>
+      <View style={styles.mapHintContainer}>
         <Text style={styles.mapHint}>지도를 탭하거나 핀을 드래그해서 위치를 지정하세요</Text>
       </View>
 
@@ -101,6 +103,10 @@ export default function PlaceAddPinScreen() {
           placeholderTextColor={colors.text.tertiary}
           maxLength={50}
         />
+      </View>
+
+      {/* Fixed Footer */}
+      <View style={styles.footer}>
         <Button
           title="저장"
           onPress={handleSave}
@@ -135,23 +141,28 @@ const styles = StyleSheet.create({
   mapContainer: {
     flex: 1,
     marginHorizontal: layout.screenPaddingH,
-    borderRadius: radius.lg,
+    borderRadius: radius.xl,
     overflow: 'hidden',
-    marginBottom: spacing[4],
   },
   map: {
     flex: 1,
+  },
+  mapHintContainer: {
+    marginHorizontal: layout.screenPaddingH,
+    marginTop: spacing[2],
+    backgroundColor: colors.bg.soft,
+    borderRadius: radius.sm,
+    paddingVertical: spacing[2],
+    paddingHorizontal: spacing[3],
   },
   mapHint: {
     ...typography.body.s,
     color: colors.text.secondary,
     textAlign: 'center',
-    paddingVertical: spacing[2],
-    backgroundColor: colors.surface.primary,
   },
   inputSection: {
     paddingHorizontal: layout.screenPaddingH,
-    paddingBottom: spacing[8],
+    paddingTop: spacing[4],
   },
   inputLabel: {
     ...typography.caption,
@@ -162,15 +173,18 @@ const styles = StyleSheet.create({
   nameInput: {
     ...typography.body.l,
     color: colors.text.primary,
-    backgroundColor: colors.surface.primary,
-    borderRadius: radius.md,
-    paddingVertical: spacing[3],
+    backgroundColor: colors.bg.soft,
+    borderRadius: radius.lg,
+    height: 56,
     paddingHorizontal: spacing[4],
-    borderWidth: 1,
-    borderColor: colors.border.soft,
-    marginBottom: spacing[4],
+  },
+  footer: {
+    padding: 20,
+    borderTopWidth: 1,
+    borderTopColor: colors.border.soft,
+    backgroundColor: colors.bg.elevated,
   },
   saveBtn: {
-    borderRadius: radius.pill,
+    borderRadius: radius['2xl'],
   },
 });

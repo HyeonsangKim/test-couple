@@ -1,9 +1,9 @@
 import React, { useEffect, useState } from 'react';
-import { View, Text, StyleSheet, Alert, TouchableOpacity } from 'react-native';
+import { View, Text, StyleSheet, TouchableOpacity, TextInput as RNTextInput } from 'react-native';
 import { useRouter } from 'expo-router';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { Ionicons } from '@expo/vector-icons';
-import { colors, typography, spacing, radius, shadow, layout } from '@/theme/tokens';
+import { colors, typography, spacing, radius, layout } from '@/theme/tokens';
 import { Button, Card, IconButton } from '@/components/ui';
 import { useInviteStore } from '@/stores/useInviteStore';
 import { useMapStore } from '@/stores/useMapStore';
@@ -12,6 +12,7 @@ import { ConfirmModal } from '@/components/common/ConfirmModal';
 import { validateInviteCode } from '@/utils/validation';
 import { getRemainingHours, isExpired } from '@/utils/date';
 import * as Clipboard from 'expo-clipboard';
+import { Alert } from 'react-native';
 
 export default function InviteCenterScreen() {
   const router = useRouter();
@@ -58,7 +59,6 @@ export default function InviteCenterScreen() {
   const handleCopyCode = async () => {
     if (!invite) return;
     try {
-      // Clipboard API may not be available in all environments
       Alert.alert('복사됨', `초대 코드: ${invite.code}`);
     } catch {
       // silent
@@ -85,7 +85,6 @@ export default function InviteCenterScreen() {
       const result = await validateInvite(code.toUpperCase());
       if (result.valid && result.mapId && currentUser) {
         if (isConnected) {
-          // PRD: destructive confirmation before switching maps
           setPendingJoinMapId(result.mapId);
           setShowRejoinConfirm(true);
         } else {
@@ -127,7 +126,7 @@ export default function InviteCenterScreen() {
           icon="chevron-back"
           onPress={() => router.back()}
           size={40}
-          backgroundColor={colors.surface.primary}
+          backgroundColor={colors.bg.elevated}
           color={colors.text.primary}
         />
         <Text style={styles.headerTitle}>초대/연결 관리</Text>
@@ -139,7 +138,7 @@ export default function InviteCenterScreen() {
         {isConnected && partner && (
           <Card style={styles.connectedCard}>
             <View style={styles.connectedRow}>
-              <Ionicons name="checkmark-circle" size={20} color={colors.accent.success} />
+              <Ionicons name="checkmark-circle" size={20} color={colors.accent.mint} />
               <Text style={styles.connectedText}>{partner.nickname}과 연결됨</Text>
             </View>
             <Button
@@ -187,62 +186,33 @@ export default function InviteCenterScreen() {
           )}
         </Card>
 
-        {/* Join with Code Section — visible even when connected (PRD 5-1) */}
+        {/* Join with Code Section */}
         <Card style={styles.joinCard}>
-            <Text style={styles.sectionTitle}>초대 코드 입력</Text>
-            <Text style={styles.joinDesc}>상대방에게 받은 8자리 초대 코드를 입력하세요</Text>
-            <View style={styles.codeInputRow}>
-              <View style={styles.codeInputWrap}>
-                <View style={styles.codeInputBox}>
-                  <Ionicons name="key-outline" size={18} color={colors.text.tertiary} />
-                  <Text
-                    style={[styles.codeInputText, !code && styles.codeInputPlaceholder]}
-                    numberOfLines={1}
-                  >
-                    {code || 'ABCD1234'}
-                  </Text>
-                </View>
-                {/* We manually create a touchable text input because the TextInput component uses old tokens */}
-                <TouchableOpacity
-                  style={styles.codeInputOverlay}
-                  onPress={() => {
-                    Alert.prompt?.(
-                      '초대 코드',
-                      '8자리 코드를 입력해주세요',
-                      [
-                        { text: '취소', style: 'cancel' },
-                        {
-                          text: '확인',
-                          onPress: (val?: string) => {
-                            if (val) setCode(val.toUpperCase());
-                          },
-                        },
-                      ],
-                      'plain-text',
-                      code,
-                    ) ??
-                      (() => {
-                        // Fallback for Android
-                        const mockCode = 'AB12CD34';
-                        setCode(mockCode);
-                      })();
-                  }}
-                />
-              </View>
-              <Button
-                title="참여"
-                onPress={handleJoin}
-                variant="primary"
-                size="md"
-                loading={isLoading}
-                disabled={!code}
-                style={styles.joinBtn}
-              />
-            </View>
-            {(codeError || error) && (
-              <Text style={styles.errorText}>{codeError || error}</Text>
-            )}
-          </Card>
+          <Text style={styles.sectionTitle}>초대 코드 입력</Text>
+          <Text style={styles.joinDesc}>상대방에게 받은 8자리 초대 코드를 입력하세요</Text>
+          <RNTextInput
+            style={styles.codeInput}
+            value={code}
+            onChangeText={(val) => setCode(val.toUpperCase())}
+            placeholder="ABCD1234"
+            placeholderTextColor={colors.text.tertiary}
+            autoCapitalize="characters"
+            maxLength={8}
+          />
+          <Button
+            title="참여하기"
+            onPress={handleJoin}
+            variant="primary"
+            size="lg"
+            fullWidth
+            loading={isLoading}
+            disabled={!code}
+            style={styles.joinBtn}
+          />
+          {(codeError || error) && (
+            <Text style={styles.errorText}>{codeError || error}</Text>
+          )}
+        </Card>
       </View>
 
       {/* Destructive rejoin confirmation */}
@@ -292,24 +262,23 @@ const styles = StyleSheet.create({
   },
   connectedText: {
     ...typography.title.m,
-    color: colors.accent.success,
+    color: colors.accent.mint,
   },
-  codeCard: {},
+  codeCard: {
+    backgroundColor: colors.bg.elevated,
+  },
   sectionTitle: {
     ...typography.title.l,
     color: colors.text.primary,
     marginBottom: spacing[3],
   },
   codeBox: {
-    backgroundColor: colors.surface.tertiary,
-    borderRadius: radius.md,
+    backgroundColor: colors.bg.soft,
+    borderRadius: radius.lg,
     paddingVertical: spacing[4],
     paddingHorizontal: spacing[6],
     alignItems: 'center',
     marginBottom: spacing[2],
-    borderWidth: 2,
-    borderColor: colors.border.strong,
-    borderStyle: 'dashed',
   },
   codeText: {
     fontSize: 28,
@@ -319,7 +288,7 @@ const styles = StyleSheet.create({
   },
   timerText: {
     ...typography.caption,
-    color: colors.accent.warning,
+    color: colors.accent.amber,
     textAlign: 'center',
     marginBottom: spacing[3],
   },
@@ -329,7 +298,7 @@ const styles = StyleSheet.create({
     gap: spacing[3],
   },
   codeActionBtn: {
-    borderRadius: radius.pill,
+    borderRadius: radius.full,
   },
   codeDesc: {
     ...typography.body.m,
@@ -338,51 +307,29 @@ const styles = StyleSheet.create({
     marginBottom: spacing[4],
   },
   generateBtn: {
-    borderRadius: radius.pill,
+    borderRadius: radius.full,
   },
-  joinCard: {},
+  joinCard: {
+    backgroundColor: colors.bg.elevated,
+  },
   joinDesc: {
     ...typography.body.m,
     color: colors.text.secondary,
     marginBottom: spacing[4],
   },
-  codeInputRow: {
-    flexDirection: 'row',
-    gap: spacing[2],
-    alignItems: 'center',
-  },
-  codeInputWrap: {
-    flex: 1,
-    position: 'relative',
-  },
-  codeInputBox: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    backgroundColor: colors.surface.secondary,
-    borderRadius: radius.md,
-    paddingVertical: spacing[3],
-    paddingHorizontal: spacing[4],
-    gap: spacing[2],
-    borderWidth: 1,
-    borderColor: colors.border.soft,
-  },
-  codeInputText: {
+  codeInput: {
     ...typography.body.l,
     color: colors.text.primary,
-    flex: 1,
+    backgroundColor: colors.bg.soft,
+    borderRadius: radius.lg,
+    height: 56,
+    paddingHorizontal: spacing[4],
     letterSpacing: 2,
     fontWeight: '600',
-  },
-  codeInputPlaceholder: {
-    color: colors.text.tertiary,
-    fontWeight: '400',
-  },
-  codeInputOverlay: {
-    ...StyleSheet.absoluteFillObject,
+    marginBottom: spacing[4],
   },
   joinBtn: {
-    borderRadius: radius.md,
-    minWidth: 72,
+    borderRadius: radius['2xl'],
   },
   errorText: {
     ...typography.body.s,

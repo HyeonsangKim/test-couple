@@ -1,6 +1,6 @@
 import React from 'react';
 import { View, Text, StyleSheet, ScrollView, TouchableOpacity } from 'react-native';
-import { colors, typography, spacing, radius } from '@/theme/tokens';
+import { colors, typography, spacing, component } from '@/theme/tokens';
 import { Chip, Button } from '@/components/ui';
 import { usePlaceStore } from '@/stores/usePlaceStore';
 import { PlaceStatus, PlaceCategory } from '@/types';
@@ -26,56 +26,74 @@ export const FilterBottomSheet: React.FC<FilterBottomSheetProps> = ({ onClose })
 
   return (
     <View style={styles.container}>
-      <View style={styles.header}>
-        <Text style={styles.title}>필터</Text>
-        <TouchableOpacity onPress={() => { resetFilter(); }}>
-          <Text style={styles.resetBtn}>초기화</Text>
-        </TouchableOpacity>
+      <View style={styles.handle} />
+      <View style={styles.inner}>
+        <View style={styles.header}>
+          <Text style={styles.title}>필터</Text>
+          <TouchableOpacity onPress={() => { resetFilter(); }}>
+            <Text style={styles.resetBtn}>초기화</Text>
+          </TouchableOpacity>
+        </View>
+
+        <Text style={styles.sectionLabel}>상태</Text>
+        <ScrollView horizontal showsHorizontalScrollIndicator={false} style={styles.chipRow}>
+          {statusOptions.map((opt) => (
+            <Chip
+              key={opt.key}
+              label={opt.label}
+              selected={filter.status === opt.key}
+              onPress={() => setFilter({ status: opt.key })}
+              color={colors.accent.primary}
+              style={styles.chip}
+            />
+          ))}
+        </ScrollView>
+
+        <Text style={styles.sectionLabel}>카테고리</Text>
+        <ScrollView horizontal showsHorizontalScrollIndicator={false} style={styles.chipRow}>
+          {categoryOptions.map((opt) => (
+            <Chip
+              key={opt.key}
+              label={opt.label}
+              selected={filter.category === opt.key}
+              onPress={() => setFilter({ category: opt.key })}
+              color={colors.accent.primarySoft}
+              style={styles.chip}
+            />
+          ))}
+        </ScrollView>
+
+        <Button
+          title="적용"
+          onPress={onClose}
+          variant="primary"
+          size="lg"
+          fullWidth
+          style={styles.applyBtn}
+        />
       </View>
-
-      <Text style={styles.sectionLabel}>상태</Text>
-      <ScrollView horizontal showsHorizontalScrollIndicator={false} style={styles.chipRow}>
-        {statusOptions.map((opt) => (
-          <Chip
-            key={opt.key}
-            label={opt.label}
-            selected={filter.status === opt.key}
-            onPress={() => setFilter({ status: opt.key })}
-            color={colors.accent.primary}
-            style={styles.chip}
-          />
-        ))}
-      </ScrollView>
-
-      <Text style={styles.sectionLabel}>카테고리</Text>
-      <ScrollView horizontal showsHorizontalScrollIndicator={false} style={styles.chipRow}>
-        {categoryOptions.map((opt) => (
-          <Chip
-            key={opt.key}
-            label={opt.label}
-            selected={filter.category === opt.key}
-            onPress={() => setFilter({ category: opt.key })}
-            color={colors.accent.secondary}
-            style={styles.chip}
-          />
-        ))}
-      </ScrollView>
-
-      <Button
-        title="적용"
-        onPress={onClose}
-        variant="primary"
-        size="lg"
-        fullWidth
-        style={styles.applyBtn}
-      />
     </View>
   );
 };
 
 const styles = StyleSheet.create({
   container: {
-    padding: spacing[6],
+    backgroundColor: colors.bg.elevated,
+    borderTopLeftRadius: component.sheet.topRadius,
+    borderTopRightRadius: component.sheet.topRadius,
+    paddingTop: component.sheet.topPadding,
+  },
+  handle: {
+    width: component.sheet.handleWidth,
+    height: component.sheet.handleHeight,
+    borderRadius: component.sheet.handleHeight / 2,
+    backgroundColor: colors.border.strong,
+    alignSelf: 'center',
+    marginBottom: spacing[3],
+  },
+  inner: {
+    paddingHorizontal: component.sheet.innerHorizontalPadding,
+    paddingBottom: spacing[6],
   },
   header: {
     flexDirection: 'row',
@@ -84,7 +102,7 @@ const styles = StyleSheet.create({
     marginBottom: spacing[5],
   },
   title: {
-    ...typography.heading.m,
+    ...typography.title.l,
     color: colors.text.primary,
   },
   resetBtn: {

@@ -4,7 +4,7 @@ import { useRouter } from 'expo-router';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import MapView, { Region } from 'react-native-maps';
 import { Ionicons } from '@expo/vector-icons';
-import { colors, typography, spacing, radius, shadow, glass, layout } from '@/theme/tokens';
+import { colors, typography, spacing, radius, shadow, layout, component, glass } from '@/theme/tokens';
 import { SearchBar } from '@/components/filter/SearchBar';
 import { PlaceMarker } from '@/components/map/PlaceMarker';
 import { MapSearchResultsSheet } from '@/components/map/MapSearchResultsSheet';
@@ -148,6 +148,7 @@ export default function MapScreen() {
               onChangeText={handleSearchChange}
               onClear={handleSearchClear}
               placeholder="장소 검색..."
+              variant="glass"
             />
           </View>
           <TouchableOpacity
@@ -164,6 +165,18 @@ export default function MapScreen() {
         </View>
       </SafeAreaView>
 
+      {/* Floating Location Button */}
+      <TouchableOpacity
+        style={styles.locationBtn}
+        onPress={() => {
+          // Show user location on map
+          mapRef.current?.animateToRegion(DEFAULT_MAP_REGION as Region, 300);
+        }}
+        activeOpacity={0.7}
+      >
+        <Ionicons name="locate-outline" size={22} color={colors.text.primary} />
+      </TouchableOpacity>
+
       {/* FAB - Add Place */}
       <TouchableOpacity
         style={styles.fab}
@@ -173,19 +186,22 @@ export default function MapScreen() {
         <Ionicons name="add" size={28} color={colors.text.inverse} />
       </TouchableOpacity>
 
-      {/* Add Menu Modal */}
-      <Modal visible={addMenuVisible} transparent animationType="fade">
+      {/* Add Menu Bottom Sheet Modal */}
+      <Modal visible={addMenuVisible} transparent animationType="slide">
         <TouchableOpacity
           style={styles.overlay}
           activeOpacity={1}
           onPress={() => setAddMenuVisible(false)}
         >
           <TouchableOpacity activeOpacity={1} style={styles.addMenu}>
+            {/* Handle bar */}
+            <View style={styles.handleBar} />
+
             <Text style={styles.addMenuTitle}>장소 추가</Text>
 
             <TouchableOpacity style={styles.addMenuItem} onPress={handleAddBySearch}>
               <View style={styles.addMenuIconCircle}>
-                <Ionicons name="search" size={22} color={colors.accent.primary} />
+                <Ionicons name="search" size={20} color={colors.accent.primary} />
               </View>
               <View style={styles.addMenuTextWrap}>
                 <Text style={styles.addMenuLabel}>검색으로 추가</Text>
@@ -195,7 +211,7 @@ export default function MapScreen() {
 
             <TouchableOpacity style={styles.addMenuItem} onPress={handleAddByPin}>
               <View style={styles.addMenuIconCircle}>
-                <Ionicons name="pin-outline" size={22} color={colors.accent.primary} />
+                <Ionicons name="pin-outline" size={20} color={colors.accent.primary} />
               </View>
               <View style={styles.addMenuTextWrap}>
                 <Text style={styles.addMenuLabel}>지도에 핀 찍기</Text>
@@ -205,7 +221,7 @@ export default function MapScreen() {
 
             <TouchableOpacity style={styles.addMenuItem} onPress={handleAddByPhoto}>
               <View style={styles.addMenuIconCircle}>
-                <Ionicons name="camera-outline" size={22} color={colors.accent.primary} />
+                <Ionicons name="camera-outline" size={20} color={colors.accent.primary} />
               </View>
               <View style={styles.addMenuTextWrap}>
                 <Text style={styles.addMenuLabel}>사진으로 추가</Text>
@@ -269,23 +285,39 @@ const styles = StyleSheet.create({
     flex: 1,
   },
   filterBtn: {
-    width: 44,
-    height: 44,
-    borderRadius: 22,
-    backgroundColor: colors.surface.primary,
+    width: component.button.floatingIcon,
+    height: component.button.floatingIcon,
+    borderRadius: radius.xl,
+    backgroundColor: glass.fillStrong,
+    borderWidth: glass.border.width,
+    borderColor: glass.border.color,
     alignItems: 'center',
     justifyContent: 'center',
-    ...shadow.sm,
+    ...shadow.glass,
   },
   filterBtnActive: {
     backgroundColor: colors.accent.primary,
+  },
+  locationBtn: {
+    position: 'absolute',
+    right: layout.screenPaddingH,
+    top: 160,
+    width: component.button.floatingIcon,
+    height: component.button.floatingIcon,
+    borderRadius: radius.xl,
+    backgroundColor: glass.fillStrong,
+    borderWidth: glass.border.width,
+    borderColor: glass.border.color,
+    alignItems: 'center',
+    justifyContent: 'center',
+    ...shadow.glass,
   },
   fab: {
     position: 'absolute',
     bottom: 100,
     right: layout.screenPaddingH,
-    width: 56,
-    height: 56,
+    width: component.button.fab,
+    height: component.button.fab,
     borderRadius: 28,
     backgroundColor: colors.accent.primary,
     alignItems: 'center',
@@ -296,13 +328,22 @@ const styles = StyleSheet.create({
     flex: 1,
     backgroundColor: colors.overlay.dim,
     justifyContent: 'flex-end',
-    padding: layout.screenPaddingH,
-    paddingBottom: spacing[10],
   },
   addMenu: {
-    backgroundColor: colors.surface.primary,
-    borderRadius: radius.xl,
-    padding: spacing[6],
+    backgroundColor: colors.bg.elevated,
+    borderTopLeftRadius: radius.sheet,
+    borderTopRightRadius: radius.sheet,
+    paddingHorizontal: layout.screenPaddingH,
+    paddingBottom: spacing[10],
+  },
+  handleBar: {
+    width: component.sheet.handleWidth,
+    height: component.sheet.handleHeight,
+    borderRadius: radius.full,
+    backgroundColor: colors.border.strong,
+    alignSelf: 'center',
+    marginTop: component.sheet.topPadding,
+    marginBottom: spacing[3],
   },
   addMenuTitle: {
     ...typography.heading.m,
@@ -312,14 +353,14 @@ const styles = StyleSheet.create({
   addMenuItem: {
     flexDirection: 'row',
     alignItems: 'center',
-    paddingVertical: spacing[3],
+    height: component.actionSheetRow.height,
     gap: spacing[3],
   },
   addMenuIconCircle: {
     width: 48,
     height: 48,
     borderRadius: 24,
-    backgroundColor: colors.surface.tertiary,
+    backgroundColor: colors.bg.soft,
     alignItems: 'center',
     justifyContent: 'center',
   },
@@ -341,8 +382,8 @@ const styles = StyleSheet.create({
     justifyContent: 'flex-end',
   },
   filterSheet: {
-    backgroundColor: colors.surface.primary,
-    borderTopLeftRadius: radius.xl,
-    borderTopRightRadius: radius.xl,
+    backgroundColor: colors.bg.elevated,
+    borderTopLeftRadius: radius.sheet,
+    borderTopRightRadius: radius.sheet,
   },
 });

@@ -1,11 +1,40 @@
 import React from 'react';
-import { TouchableOpacity, Text, StyleSheet, ActivityIndicator, ViewStyle, TextStyle } from 'react-native';
-import { colors, typography, spacing, radius } from '@/theme/tokens';
+import {
+  TouchableOpacity,
+  Text,
+  StyleSheet,
+  ActivityIndicator,
+  ViewStyle,
+  TextStyle,
+} from 'react-native';
+import { colors, typography, radius, component } from '@/theme/tokens';
+
+/**
+ * New canonical variants:
+ *   fill-primary | fill-dark | soft-secondary | ghost | ghost-danger
+ *
+ * Legacy names are mapped for backwards compatibility:
+ *   primary   → fill-primary
+ *   secondary → soft-secondary
+ *   outline   → soft-secondary
+ *   danger    → ghost-danger
+ */
+type Variant =
+  | 'fill-primary'
+  | 'fill-dark'
+  | 'soft-secondary'
+  | 'ghost'
+  | 'ghost-danger'
+  // legacy aliases
+  | 'primary'
+  | 'secondary'
+  | 'outline'
+  | 'danger';
 
 interface ButtonProps {
   title: string;
   onPress: () => void;
-  variant?: 'primary' | 'secondary' | 'outline' | 'ghost' | 'danger';
+  variant?: Variant;
   size?: 'sm' | 'md' | 'lg';
   disabled?: boolean;
   loading?: boolean;
@@ -13,6 +42,21 @@ interface ButtonProps {
   textStyle?: TextStyle;
   fullWidth?: boolean;
 }
+
+// Normalise legacy variant names to canonical ones
+const resolveVariant = (v: Variant): Exclude<Variant, 'primary' | 'secondary' | 'outline' | 'danger'> => {
+  switch (v) {
+    case 'primary':
+      return 'fill-primary';
+    case 'secondary':
+    case 'outline':
+      return 'soft-secondary';
+    case 'danger':
+      return 'ghost-danger';
+    default:
+      return v;
+  }
+};
 
 export const Button: React.FC<ButtonProps> = ({
   title,
@@ -25,26 +69,30 @@ export const Button: React.FC<ButtonProps> = ({
   textStyle,
   fullWidth = false,
 }) => {
-  const bgColor = {
-    primary: colors.accent.primary,
-    secondary: colors.accent.secondary,
-    outline: 'transparent',
-    ghost: 'transparent',
-    danger: colors.accent.danger,
-  }[variant];
+  const resolved = resolveVariant(variant);
 
-  const txtColor = {
-    primary: colors.text.inverse,
-    secondary: colors.text.primary,
-    outline: colors.accent.primary,
-    ghost: colors.text.primary,
-    danger: colors.text.inverse,
-  }[variant];
+  const bgColor: Record<string, string> = {
+    'fill-primary': colors.accent.primary,
+    'fill-dark': colors.bg.strong,
+    'soft-secondary': colors.bg.soft,
+    'ghost': 'transparent',
+    'ghost-danger': 'transparent',
+  };
 
-  const borderClr = variant === 'outline' ? colors.accent.primary : 'transparent';
+  const txtColor: Record<string, string> = {
+    'fill-primary': colors.text.inverse,
+    'fill-dark': colors.text.inverse,
+    'soft-secondary': colors.text.primary,
+    'ghost': colors.text.primary,
+    'ghost-danger': colors.accent.danger,
+  };
 
-  const paddingV = { sm: spacing[2], md: spacing[3], lg: spacing[4] }[size];
-  const paddingH = { sm: spacing[4], md: spacing[5], lg: spacing[6] }[size];
+  const height = size === 'lg'
+    ? component.button.primaryHeight
+    : size === 'sm'
+      ? 40
+      : 48;
+
   const typo = size === 'lg' ? typography.button.l : typography.button.m;
 
   return (
@@ -55,25 +103,26 @@ export const Button: React.FC<ButtonProps> = ({
       style={[
         styles.base,
         {
-          backgroundColor: disabled ? colors.border.strong : bgColor,
-          borderColor: disabled ? colors.border.strong : borderClr,
-          borderWidth: variant === 'outline' ? 1.5 : 0,
-          paddingVertical: paddingV,
-          paddingHorizontal: paddingH,
+          backgroundColor: bgColor[resolved],
+          height,
+          borderRadius: height / 2,
+          paddingHorizontal: 24,
+          opacity: disabled ? 0.45 : 1,
         },
         fullWidth && styles.fullWidth,
         style,
       ]}
     >
       {loading ? (
-        <ActivityIndicator color={txtColor} size="small" />
+        <ActivityIndicator color={txtColor[resolved]} size="small" />
       ) : (
         <Text
           style={[
             styles.text,
             {
-              color: disabled ? colors.text.tertiary : txtColor,
+              color: txtColor[resolved],
               fontSize: typo.fontSize,
+              lineHeight: typo.lineHeight,
               fontWeight: typo.fontWeight,
             },
             textStyle,
@@ -88,7 +137,6 @@ export const Button: React.FC<ButtonProps> = ({
 
 const styles = StyleSheet.create({
   base: {
-    borderRadius: radius.md,
     alignItems: 'center',
     justifyContent: 'center',
     flexDirection: 'row',

@@ -14,7 +14,7 @@ export default function WelcomeScreen() {
   const createMap = useMapStore((s) => s.createMap);
 
   const handleInvite = async () => {
-    // PRD: Invite Partner → create map → enter PG_INVITE_CENTER
+    // PRD: Invite Partner -> create map -> enter PG_INVITE_CENTER
     if (!currentUser) return;
     try {
       await createMap(currentUser.userId);
@@ -54,7 +54,11 @@ export default function WelcomeScreen() {
         </View>
 
         <View style={styles.options}>
-          <TouchableOpacity style={styles.optionCard} onPress={handleInvite} activeOpacity={0.7}>
+          <TouchableOpacity
+            style={[styles.optionCard, styles.inviteOptionCard]}
+            onPress={handleInvite}
+            activeOpacity={0.7}
+          >
             <View style={styles.optionIconCircle}>
               <Ionicons name="paper-plane-outline" size={24} color={colors.accent.primary} />
             </View>
@@ -110,7 +114,7 @@ const styles = StyleSheet.create({
     width: 80,
     height: 80,
     borderRadius: 40,
-    backgroundColor: colors.surface.primary,
+    backgroundColor: colors.bg.elevated,
     alignItems: 'center',
     justifyContent: 'center',
     marginBottom: spacing[6],
@@ -132,16 +136,20 @@ const styles = StyleSheet.create({
   optionCard: {
     flexDirection: 'row',
     alignItems: 'center',
-    backgroundColor: colors.surface.primary,
-    borderRadius: radius.lg,
-    padding: spacing[4],
+    backgroundColor: colors.bg.elevated,
+    borderRadius: radius.xl,
+    padding: spacing[5],
     ...shadow.sm,
+  },
+  inviteOptionCard: {
+    borderWidth: 2,
+    borderColor: colors.accent.primarySoft,
   },
   optionIconCircle: {
     width: 48,
     height: 48,
     borderRadius: 24,
-    backgroundColor: colors.surface.tertiary,
+    backgroundColor: colors.bg.soft,
     alignItems: 'center',
     justifyContent: 'center',
     marginRight: spacing[3],

@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import { View, Text, StyleSheet, TouchableOpacity, Modal } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
-import { colors, typography, spacing, radius } from '@/theme/tokens';
+import { colors, typography, spacing, radius, component } from '@/theme/tokens';
 import { format, parseISO, addMonths, subMonths, getDaysInMonth, startOfMonth, getDay } from 'date-fns';
 
 interface DatePickerProps {
@@ -9,6 +9,8 @@ interface DatePickerProps {
   onChange: (date: string) => void;
   label?: string;
 }
+
+const DAY_CELL_SIZE = 44;
 
 export const DatePicker: React.FC<DatePickerProps> = ({ value, onChange, label }) => {
   const [visible, setVisible] = useState(false);
@@ -102,11 +104,12 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'space-between',
-    borderWidth: 1.5,
+    borderWidth: 1,
     borderColor: colors.border.soft,
-    borderRadius: radius.md,
-    padding: spacing[4],
-    backgroundColor: colors.surface.primary,
+    borderRadius: component.input.radius,
+    paddingVertical: component.input.verticalPadding,
+    paddingHorizontal: component.input.horizontalPadding,
+    backgroundColor: colors.bg.elevated,
   },
   triggerText: {
     ...typography.body.m,
@@ -123,9 +126,9 @@ const styles = StyleSheet.create({
     padding: spacing[6],
   },
   calendar: {
-    backgroundColor: colors.surface.primary,
-    borderRadius: radius.xl,
-    padding: spacing[4],
+    backgroundColor: colors.bg.elevated,
+    borderRadius: radius['2xl'],
+    padding: spacing[5],
     width: 320,
   },
   header: {
@@ -157,7 +160,7 @@ const styles = StyleSheet.create({
   },
   dayCell: {
     width: '14.28%',
-    aspectRatio: 1,
+    height: DAY_CELL_SIZE,
     alignItems: 'center',
     justifyContent: 'center',
   },
@@ -167,7 +170,9 @@ const styles = StyleSheet.create({
   },
   selectedDay: {
     backgroundColor: colors.accent.primary,
-    borderRadius: 999,
+    borderRadius: radius.full,
+    width: DAY_CELL_SIZE,
+    height: DAY_CELL_SIZE,
   },
   selectedDayText: {
     color: colors.text.inverse,

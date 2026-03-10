@@ -1,7 +1,7 @@
 import React from 'react';
 import { View, Text, Image, StyleSheet, ScrollView, TouchableOpacity } from 'react-native';
 import { Visit, VisitImage } from '@/types';
-import { colors, typography, spacing, radius } from '@/theme/tokens';
+import { colors, typography, spacing, radius, component } from '@/theme/tokens';
 import { formatDate } from '@/utils/date';
 import { useAuthStore } from '@/stores/useAuthStore';
 
@@ -42,7 +42,7 @@ export const VisitRecordCard: React.FC<VisitRecordCardProps> = ({ visit, images 
 
 const styles = StyleSheet.create({
   card: {
-    backgroundColor: colors.surface.primary,
+    backgroundColor: colors.bg.elevated,
     borderRadius: radius.md,
     padding: spacing[4],
     marginBottom: spacing[2],
@@ -65,14 +65,14 @@ const styles = StyleSheet.create({
     color: colors.text.primary,
   },
   visitBadge: {
-    backgroundColor: colors.surface.tertiary,
-    borderRadius: radius.pill,
+    backgroundColor: colors.bg.soft,
+    borderRadius: radius.full,
     paddingHorizontal: spacing[2],
     paddingVertical: 2,
   },
   visitBadgeText: {
     ...typography.caption,
-    color: colors.accent.success,
+    color: colors.accent.mint,
     fontWeight: '700',
   },
   author: {
@@ -84,10 +84,10 @@ const styles = StyleSheet.create({
     marginTop: spacing[1],
   },
   thumbnail: {
-    width: 64,
-    height: 64,
-    borderRadius: radius.sm,
-    marginRight: spacing[2],
-    backgroundColor: colors.surface.tertiary,
+    width: component.gallery.trayThumb,
+    height: component.gallery.trayThumb,
+    borderRadius: component.gallery.radius,
+    marginRight: component.gallery.gap,
+    backgroundColor: colors.bg.soft,
   },
 });

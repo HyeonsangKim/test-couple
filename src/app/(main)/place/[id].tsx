@@ -1,12 +1,12 @@
 import React, { useEffect, useState } from 'react';
 import {
   View, Text, Image, StyleSheet, ScrollView, TouchableOpacity, Alert,
-  KeyboardAvoidingView, Platform, Modal, TextInput as RNTextInput,
+  KeyboardAvoidingView, Platform, Modal, TextInput as RNTextInput, Dimensions,
 } from 'react-native';
 import { useLocalSearchParams, useRouter } from 'expo-router';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { Ionicons } from '@expo/vector-icons';
-import { colors, typography, spacing, radius, shadow, layout } from '@/theme/tokens';
+import { colors, typography, spacing, radius, layout, component } from '@/theme/tokens';
 import { Button, Chip, IconButton, Card } from '@/components/ui';
 import { ConfirmModal } from '@/components/common/ConfirmModal';
 import { usePlaceStore } from '@/stores/usePlaceStore';
@@ -19,6 +19,11 @@ import { CATEGORIES, STATUS_LABELS, CATEGORY_LABELS, LIMITS } from '@/constants'
 import { formatDate, formatRelative } from '@/utils/date';
 import { validateThreadMessage } from '@/utils/validation';
 import { CURRENT_USER_ID } from '@/mock/data';
+
+const SCREEN_WIDTH = Dimensions.get('window').width;
+const IMAGE_GAP = 8;
+const IMAGE_PADDING = layout.screenPaddingH * 2;
+const IMAGE_TILE_SIZE = (SCREEN_WIDTH - IMAGE_PADDING - IMAGE_GAP * 2) / 3;
 
 export default function PlaceDetailScreen() {
   const { id } = useLocalSearchParams<{ id: string }>();
@@ -132,7 +137,7 @@ export default function PlaceDetailScreen() {
     return (
       <SafeAreaView style={styles.safe}>
         <View style={styles.emptyContainer}>
-          <Ionicons name="help-circle-outline" size={56} color={colors.text.tertiary} />
+          <Ionicons name="help-circle-outline" size={component.emptyState.icon} color={colors.text.tertiary} />
           <Text style={styles.emptyTitle}>장소를 찾을 수 없어요</Text>
           <Text style={styles.emptyDesc}>삭제되었거나 존재하지 않는 장소입니다.</Text>
           <Button title="뒤로 가기" onPress={() => router.back()} variant="primary" size="md" style={styles.emptyBtn} />
@@ -157,27 +162,6 @@ export default function PlaceDetailScreen() {
     <SafeAreaView style={styles.safe} edges={['top']}>
       <KeyboardAvoidingView style={{ flex: 1 }} behavior={Platform.OS === 'ios' ? 'padding' : undefined}>
         <ScrollView style={styles.scroll} contentContainerStyle={styles.scrollContent}>
-          {/* Header */}
-          <View style={styles.header}>
-            <IconButton
-              icon="chevron-back"
-              onPress={() => router.back()}
-              size={40}
-              backgroundColor={colors.surface.primary}
-              color={colors.text.primary}
-            />
-            <View style={styles.headerActions}>
-              {place.status === 'orphan' && (
-                <Button
-                  title="위시리스트에 추가"
-                  onPress={() => updatePlace(place.placeId, { status: 'wishlist' })}
-                  variant="outline"
-                  size="sm"
-                />
-              )}
-            </View>
-          </View>
-
           {/* Hero Image */}
           {heroImage ? (
             <Image source={{ uri: heroImage.uri }} style={styles.heroImage} />
@@ -193,17 +177,41 @@ export default function PlaceDetailScreen() {
             </View>
           )}
 
-          {/* Delete Request Banner */}
+          {/* Floating Back Button */}
+          <View style={styles.floatingBack}>
+            <IconButton
+              icon="chevron-back"
+              onPress={() => router.back()}
+              size={component.button.floatingIcon}
+              backgroundColor={colors.glass.fill}
+              color={colors.text.primary}
+            />
+          </View>
+
+          {/* Floating Wishlist Action */}
+          {place.status === 'orphan' && (
+            <View style={styles.floatingAction}>
+              <Button
+                title="위시리스트에 추가"
+                onPress={() => updatePlace(place.placeId, { status: 'wishlist' })}
+                variant="outline"
+                size="sm"
+              />
+            </View>
+          )}
+
+          {/* Delete Request Banner — Warning Block pattern */}
           {gracePeriod.isActive && (
-            <Card style={styles.deleteBanner}>
+            <View style={styles.deleteBanner}>
               <View style={styles.deleteBannerRow}>
-                <Ionicons name="trash-outline" size={24} color={colors.accent.danger} />
+                <Ionicons name="trash-outline" size={component.warningBlock.icon} color={colors.accent.danger} />
                 <View style={styles.deleteBannerContent}>
+                  <Text style={styles.deleteBannerTitle}>삭제 요청됨</Text>
                   <Text style={styles.deleteBannerText}>
-                    삭제 요청됨 ·{' '}
                     {gracePeriod.remainingDays > 0
                       ? `${gracePeriod.remainingDays}일 후 삭제`
                       : `${gracePeriod.remainingHours}시간 후 삭제`}
+                    {' '}· 모든 방문기록과 사진이 삭제됩니다.
                   </Text>
                   <View style={styles.deleteBannerActions}>
                     {place.deleteRequest?.requestedByUserId === CURRENT_USER_ID ? (
@@ -227,11 +235,11 @@ export default function PlaceDetailScreen() {
                   </View>
                 </View>
               </View>
-            </Card>
+            </View>
           )}
 
-          {/* Place Info */}
-          <View style={styles.infoSection}>
+          {/* Summary Card */}
+          <View style={styles.summaryCard}>
             <Text style={styles.placeName}>{place.name}</Text>
             {place.addressText && (
               <Text style={styles.placeAddress}>{place.addressText}</Text>
@@ -262,7 +270,10 @@ export default function PlaceDetailScreen() {
               />
             </View>
             {placeVisits.length === 0 ? (
-              <Text style={styles.emptyText}>아직 방문 기록이 없어요</Text>
+              <View style={styles.emptySection}>
+                <Ionicons name="calendar-outline" size={component.emptyState.icon} color={colors.text.tertiary} />
+                <Text style={styles.emptySectionText}>아직 방문 기록이 없어요</Text>
+              </View>
             ) : (
               placeVisits.map((visit, index) => {
                 const author = getUserById(visit.createdByUserId);
@@ -311,7 +322,10 @@ export default function PlaceDetailScreen() {
           <View style={styles.section}>
             <Text style={styles.sectionTitle}>공유 메모</Text>
             {messages.length === 0 ? (
-              <Text style={styles.emptyText}>첫 번째 메모를 남겨보세요</Text>
+              <View style={styles.emptySection}>
+                <Ionicons name="chatbubble-outline" size={component.emptyState.icon} color={colors.text.tertiary} />
+                <Text style={styles.emptySectionText}>첫 번째 메모를 남겨보세요</Text>
+              </View>
             ) : (
               messages.map((msg) => {
                 const author = getUserById(msg.authorUserId);
@@ -384,7 +398,7 @@ export default function PlaceDetailScreen() {
           )}
         </ScrollView>
 
-        {/* Message Input Bar */}
+        {/* Message Composer Bar */}
         <View style={styles.inputBar}>
           <View style={styles.inputWrapper}>
             <RNTextInput
@@ -472,55 +486,75 @@ const styles = StyleSheet.create({
   },
   emptyTitle: { ...typography.heading.m, color: colors.text.primary, marginTop: spacing[4], marginBottom: spacing[2] },
   emptyDesc: { ...typography.body.m, color: colors.text.secondary, textAlign: 'center', marginBottom: spacing[6] },
-  emptyBtn: { borderRadius: radius.pill },
+  emptyBtn: { borderRadius: radius.full },
   scroll: { flex: 1 },
   scrollContent: { paddingBottom: 100 },
-  header: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    alignItems: 'center',
-    paddingHorizontal: layout.screenPaddingH,
-    paddingVertical: spacing[2],
-    position: 'absolute',
-    top: 0,
-    left: 0,
-    right: 0,
-    zIndex: 10,
-  },
-  headerActions: { flexDirection: 'row', gap: spacing[2] },
+
+  /* Hero */
   heroImage: {
     width: '100%',
-    height: 240,
-    backgroundColor: colors.surface.tertiary,
+    height: component.hero.height,
+    backgroundColor: colors.bg.soft,
   },
   heroPlaceholder: {
     alignItems: 'center',
     justifyContent: 'center',
   },
+
+  /* Floating back button above hero */
+  floatingBack: {
+    position: 'absolute',
+    top: component.hero.overlayOffset,
+    left: layout.screenPaddingH,
+    zIndex: 10,
+  },
+  floatingAction: {
+    position: 'absolute',
+    top: component.hero.overlayOffset,
+    right: layout.screenPaddingH,
+    zIndex: 10,
+  },
+
+  /* Delete Request Banner — Warning Block */
   deleteBanner: {
     marginHorizontal: layout.screenPaddingH,
     marginTop: spacing[3],
     backgroundColor: colors.status.deleteBg,
-    borderWidth: 1,
-    borderColor: colors.accent.danger,
+    borderRadius: component.warningBlock.radius,
+    padding: component.warningBlock.padding,
   },
   deleteBannerRow: {
     flexDirection: 'row',
-    alignItems: 'center',
+    alignItems: 'flex-start',
     gap: spacing[3],
   },
   deleteBannerContent: { flex: 1 },
-  deleteBannerText: {
-    ...typography.caption,
+  deleteBannerTitle: {
+    ...typography.title.m,
     color: colors.accent.danger,
-    fontWeight: '600',
     marginBottom: spacing[1],
   },
+  deleteBannerText: {
+    ...typography.body.s,
+    color: colors.accent.danger,
+    marginBottom: spacing[2],
+  },
   deleteBannerActions: { flexDirection: 'row', gap: spacing[2] },
-  infoSection: { padding: layout.screenPaddingH, paddingTop: spacing[4] },
+
+  /* Summary Card */
+  summaryCard: {
+    backgroundColor: colors.bg.elevated,
+    borderRadius: radius.xl,
+    padding: 20,
+    marginHorizontal: layout.screenPaddingH,
+    marginTop: spacing[4],
+    marginBottom: layout.sectionGap,
+  },
   placeName: { ...typography.heading.l, color: colors.text.primary, marginBottom: spacing[1] },
   placeAddress: { ...typography.body.m, color: colors.text.secondary, marginBottom: spacing[3] },
   chipRow: { flexDirection: 'row', flexWrap: 'wrap', gap: spacing[2] },
+
+  /* Sections */
   section: { paddingHorizontal: layout.screenPaddingH, marginBottom: layout.sectionGap },
   sectionHeader: {
     flexDirection: 'row',
@@ -529,19 +563,25 @@ const styles = StyleSheet.create({
     marginBottom: spacing[3],
   },
   sectionTitle: { ...typography.title.l, color: colors.text.primary },
-  emptyText: {
+
+  /* Empty section state */
+  emptySection: {
+    alignItems: 'center',
+    paddingVertical: component.emptyState.verticalPadding,
+  },
+  emptySectionText: {
     ...typography.body.m,
     color: colors.text.tertiary,
     textAlign: 'center',
-    paddingVertical: spacing[6],
+    marginTop: spacing[3],
   },
+
+  /* Visit cards */
   visitCard: {
-    backgroundColor: colors.surface.primary,
-    borderRadius: radius.md,
-    padding: spacing[3],
+    backgroundColor: colors.bg.elevated,
+    borderRadius: radius.lg,
+    padding: spacing[4],
     marginBottom: spacing[2],
-    borderWidth: 1,
-    borderColor: colors.border.soft,
   },
   visitHeader: {
     flexDirection: 'row',
@@ -555,25 +595,29 @@ const styles = StyleSheet.create({
   },
   visitDate: { ...typography.title.m, color: colors.text.primary },
   visitBadge: {
-    backgroundColor: colors.surface.tertiary,
-    borderRadius: radius.pill,
+    backgroundColor: colors.accent.primarySoft,
+    borderRadius: radius.full,
     paddingHorizontal: spacing[2],
     paddingVertical: 2,
   },
-  visitBadgeText: { ...typography.caption, color: colors.accent.success, fontWeight: '700' },
+  visitBadgeText: { ...typography.caption, color: colors.accent.primary, fontWeight: '700' },
   visitAuthor: { ...typography.body.s, color: colors.text.secondary },
+
+  /* Image grid — 3 columns */
   imageGrid: {
     flexDirection: 'row',
     flexWrap: 'wrap',
-    gap: spacing[2],
+    gap: IMAGE_GAP,
     marginTop: spacing[3],
   },
   gridImage: {
-    width: 100,
-    height: 100,
-    borderRadius: radius.sm,
-    backgroundColor: colors.surface.tertiary,
+    width: IMAGE_TILE_SIZE,
+    height: IMAGE_TILE_SIZE,
+    borderRadius: radius.md,
+    backgroundColor: colors.bg.soft,
   },
+
+  /* Thread messages */
   msgRow: {
     flexDirection: 'row',
     marginBottom: spacing[3],
@@ -587,11 +631,11 @@ const styles = StyleSheet.create({
     padding: spacing[3],
   },
   msgBubbleMine: {
-    backgroundColor: colors.accent.secondary,
+    backgroundColor: colors.accent.primarySoft,
     borderBottomRightRadius: 4,
   },
   msgBubblePartner: {
-    backgroundColor: colors.surface.primary,
+    backgroundColor: colors.bg.elevated,
     borderBottomLeftRadius: 4,
     borderWidth: 1,
     borderColor: colors.border.soft,
@@ -616,7 +660,7 @@ const styles = StyleSheet.create({
   editInput: {
     ...typography.body.m,
     color: colors.text.primary,
-    backgroundColor: colors.surface.secondary,
+    backgroundColor: colors.bg.soft,
     borderRadius: radius.sm,
     paddingHorizontal: spacing[2],
     paddingVertical: spacing[1],
@@ -630,20 +674,22 @@ const styles = StyleSheet.create({
   },
   editCancel: { ...typography.caption, color: colors.text.tertiary, fontWeight: '600' },
   editSave: { ...typography.caption, color: colors.accent.primary, fontWeight: '600' },
+
+  /* Message Composer Bar */
   inputBar: {
     flexDirection: 'row',
     alignItems: 'flex-end',
     paddingHorizontal: layout.screenPaddingH,
     paddingVertical: spacing[2],
-    backgroundColor: colors.surface.primary,
+    backgroundColor: colors.bg.elevated,
     borderTopWidth: 1,
     borderTopColor: colors.border.soft,
     gap: spacing[2],
   },
   inputWrapper: {
     flex: 1,
-    backgroundColor: colors.surface.secondary,
-    borderRadius: radius.md,
+    backgroundColor: colors.bg.soft,
+    borderRadius: radius.lg,
     paddingHorizontal: spacing[3],
   },
   messageInput: {
@@ -653,16 +699,18 @@ const styles = StyleSheet.create({
     paddingVertical: spacing[2],
   },
   sendBtn: {
-    width: 40,
-    height: 40,
-    borderRadius: 20,
-    backgroundColor: colors.surface.tertiary,
+    width: 44,
+    height: 44,
+    borderRadius: 22,
+    backgroundColor: colors.bg.soft,
     alignItems: 'center',
     justifyContent: 'center',
   },
   sendBtnActive: {
     backgroundColor: colors.accent.primary,
   },
+
+  /* Category Picker Modal */
   modalOverlay: {
     flex: 1,
     backgroundColor: colors.overlay.dim,
@@ -671,11 +719,11 @@ const styles = StyleSheet.create({
     padding: spacing[6],
   },
   categoryPicker: {
-    backgroundColor: colors.surface.primary,
-    borderRadius: radius.xl,
-    padding: spacing[6],
+    backgroundColor: colors.bg.elevated,
+    borderRadius: component.modal.radius,
+    padding: component.modal.padding,
     width: '100%',
-    maxWidth: 320,
+    maxWidth: component.modal.maxWidth,
   },
   categoryPickerTitle: {
     ...typography.heading.m,
@@ -690,7 +738,7 @@ const styles = StyleSheet.create({
     borderRadius: radius.md,
     gap: spacing[3],
   },
-  categoryOptionActive: { backgroundColor: colors.surface.tertiary },
+  categoryOptionActive: { backgroundColor: colors.bg.soft },
   categoryLabel: { ...typography.body.l, color: colors.text.primary },
   categoryLabelActive: { fontWeight: '700', color: colors.accent.primary },
 });

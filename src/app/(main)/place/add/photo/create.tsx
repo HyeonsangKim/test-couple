@@ -12,7 +12,7 @@ import { useRouter, useLocalSearchParams } from 'expo-router';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import MapView, { Marker, Region } from 'react-native-maps';
 import { colors, typography, spacing, radius, layout } from '@/theme/tokens';
-import { Button, IconButton, Card } from '@/components/ui';
+import { Button, IconButton } from '@/components/ui';
 import { usePlaceStore } from '@/stores/usePlaceStore';
 import { useVisitStore } from '@/stores/useVisitStore';
 import { useMapStore } from '@/stores/useMapStore';
@@ -71,7 +71,6 @@ export default function PlaceCreateFromPhotoScreen() {
 
     setLoading(true);
     try {
-      // 1. Create new place
       const place = await addPlace({
         name: placeName.trim(),
         latitude: pinCoordinate.latitude,
@@ -81,14 +80,12 @@ export default function PlaceCreateFromPhotoScreen() {
         sourceType: 'custom_pin',
       });
 
-      // 2. Create first visit (PRD: 신규 장소 저장과 동시에 첫 방문기록이 생성된다)
       const visit = await addVisit({
         placeId: place.placeId,
         visitDate: format(new Date(), 'yyyy-MM-dd'),
         createdByUserId: currentUser.userId,
       });
 
-      // 3. Add images to the visit
       let createdImages: { imageId: string }[] = [];
       if (draftImageUris.length > 0) {
         createdImages = await addImages(
@@ -96,7 +93,6 @@ export default function PlaceCreateFromPhotoScreen() {
         );
       }
 
-      // 4. Set first image as hero using real imageId (PRD 5-4)
       if (createdImages.length > 0) {
         await updatePlace(place.placeId, {
           heroImageId: createdImages[0].imageId,
@@ -104,7 +100,6 @@ export default function PlaceCreateFromPhotoScreen() {
         });
       }
 
-      // Navigate to place detail (PRD: 저장 완료 시 PG_PLACE_DETAIL(placeId))
       router.replace(`/(main)/place/${place.placeId}`);
     } catch {
       Alert.alert('오류', '저장에 실패했습니다.');
@@ -121,7 +116,7 @@ export default function PlaceCreateFromPhotoScreen() {
           icon="chevron-back"
           onPress={() => router.back()}
           size={40}
-          backgroundColor={colors.surface.primary}
+          backgroundColor={colors.bg.elevated}
           color={colors.text.primary}
         />
         <Text style={styles.headerTitle}>새 장소 생성</Text>
@@ -245,35 +240,32 @@ const styles = StyleSheet.create({
     width: 80,
     height: 80,
     borderRadius: radius.md,
-    backgroundColor: colors.surface.tertiary,
+    backgroundColor: colors.bg.soft,
     marginRight: spacing[2],
   },
   nameInput: {
     ...typography.body.l,
     color: colors.text.primary,
-    backgroundColor: colors.surface.primary,
-    borderRadius: radius.md,
-    paddingVertical: spacing[3],
+    backgroundColor: colors.bg.soft,
+    borderRadius: radius.lg,
+    height: 56,
     paddingHorizontal: spacing[4],
-    borderWidth: 1,
-    borderColor: colors.border.soft,
   },
   mapContainer: {
     height: 250,
-    borderRadius: radius.lg,
+    borderRadius: radius.xl,
     overflow: 'hidden',
   },
   map: {
     flex: 1,
   },
   footer: {
-    paddingHorizontal: layout.screenPaddingH,
-    paddingVertical: spacing[4],
+    padding: 20,
     borderTopWidth: 1,
     borderTopColor: colors.border.soft,
-    backgroundColor: colors.surface.primary,
+    backgroundColor: colors.bg.elevated,
   },
   saveBtn: {
-    borderRadius: radius.pill,
+    borderRadius: radius['2xl'],
   },
 });

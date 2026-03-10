@@ -1,5 +1,5 @@
-import React, { useEffect, useState } from 'react';
-import { View, Text, StyleSheet, Alert } from 'react-native';
+import React, { useEffect } from 'react';
+import { View, Text, StyleSheet, Alert, ScrollView } from 'react-native';
 import { useRouter } from 'expo-router';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { Ionicons } from '@expo/vector-icons';
@@ -66,7 +66,7 @@ export default function RestoreDecisionScreen() {
             icon="chevron-back"
             onPress={() => router.back()}
             size={40}
-            backgroundColor={colors.surface.primary}
+            backgroundColor={colors.bg.elevated}
             color={colors.text.primary}
           />
           <Text style={styles.headerTitle}>데이터 복구</Text>
@@ -96,24 +96,26 @@ export default function RestoreDecisionScreen() {
           icon="chevron-back"
           onPress={() => router.back()}
           size={40}
-          backgroundColor={colors.surface.primary}
+          backgroundColor={colors.bg.elevated}
           color={colors.text.primary}
         />
         <Text style={styles.headerTitle}>데이터 복구</Text>
         <View style={{ width: 40 }} />
       </View>
 
-      <View style={styles.content}>
-        <View style={styles.iconCircle}>
-          <Ionicons name="refresh-outline" size={40} color={colors.accent.primary} />
+      <ScrollView style={styles.scroll} contentContainerStyle={styles.content}>
+        {/* Structured Header */}
+        <View style={styles.pageHeader}>
+          <View style={styles.headerIcon}>
+            <Ionicons name="refresh-outline" size={28} color={colors.accent.primary} />
+          </View>
+          <Text style={styles.title}>이전 데이터를 복구할까요?</Text>
+          <Text style={styles.description}>
+            이전 연결에서 저장된 스냅샷을 발견했습니다. 복구하거나 새로 시작할 수 있습니다.
+          </Text>
         </View>
 
-        <Text style={styles.title}>이전 데이터를 복구할까요?</Text>
-        <Text style={styles.description}>
-          이전 연결에서 저장된 데이터를 현재 지도에 복구할 수 있습니다.
-        </Text>
-
-        {/* Snapshot Preview */}
+        {/* Snapshot Summary Card */}
         <Card style={styles.previewCard}>
           <View style={styles.previewRow}>
             <Ionicons name="camera-outline" size={20} color={colors.text.secondary} />
@@ -137,25 +139,49 @@ export default function RestoreDecisionScreen() {
           </View>
         </Card>
 
-        {/* Actions */}
-        <View style={styles.actions}>
-          <Button
-            title="스냅샷에서 복구"
-            onPress={handleRestore}
-            variant="primary"
-            size="lg"
-            fullWidth
-            style={styles.actionBtn}
-          />
-          <Button
-            title="새로 시작하기"
-            onPress={handleNewStart}
-            variant="secondary"
-            size="lg"
-            fullWidth
-            style={styles.actionBtn}
-          />
+        {/* Consequence Explanation */}
+        <Text style={styles.sectionTitle}>각 선택의 결과</Text>
+        <View style={styles.consequenceBlock}>
+          <View style={styles.consequenceItem}>
+            <Ionicons name="checkmark-circle" size={18} color={colors.accent.mint} />
+            <Text style={styles.consequenceText}>
+              <Text style={styles.consequenceBold}>복구: </Text>
+              스냅샷의 장소, 방문기록, 사진을 현재 지도에 추가합니다. 기존 데이터는 유지됩니다.
+            </Text>
+          </View>
+          <View style={styles.consequenceItem}>
+            <Ionicons name="add-circle" size={18} color={colors.accent.info} />
+            <Text style={styles.consequenceText}>
+              <Text style={styles.consequenceBold}>새로 시작: </Text>
+              이전 데이터 없이 빈 지도로 시작합니다. 스냅샷은 보관되며 나중에 복구할 수 있습니다.
+            </Text>
+          </View>
         </View>
+
+        {/* Warning */}
+        <Text style={styles.warningText}>
+          복구는 되돌릴 수 없으며, 중복 장소는 자동으로 병합됩니다.
+        </Text>
+      </ScrollView>
+
+      {/* Fixed Footer Actions */}
+      <View style={styles.footer}>
+        <Button
+          title="스냅샷에서 복구"
+          onPress={handleRestore}
+          variant="primary"
+          size="lg"
+          fullWidth
+          style={styles.actionBtn}
+        />
+        <Button
+          title="새로 시작하기"
+          onPress={handleNewStart}
+          variant="secondary"
+          size="lg"
+          fullWidth
+          style={styles.actionBtnSecondary}
+        />
       </View>
     </SafeAreaView>
   );
@@ -177,38 +203,39 @@ const styles = StyleSheet.create({
     ...typography.title.l,
     color: colors.text.primary,
   },
-  content: {
+  scroll: {
     flex: 1,
-    paddingHorizontal: layout.screenPaddingH,
-    alignItems: 'center',
-    justifyContent: 'center',
   },
-  iconCircle: {
-    width: 80,
-    height: 80,
-    borderRadius: 40,
-    backgroundColor: colors.surface.primary,
+  content: {
+    paddingHorizontal: layout.screenPaddingH,
+    paddingTop: spacing[4],
+    paddingBottom: spacing[6],
+  },
+  pageHeader: {
+    marginBottom: spacing[6],
+  },
+  headerIcon: {
+    width: 56,
+    height: 56,
+    borderRadius: 28,
+    backgroundColor: colors.bg.elevated,
     alignItems: 'center',
     justifyContent: 'center',
-    marginBottom: spacing[6],
+    marginBottom: spacing[4],
     ...shadow.sm,
   },
   title: {
     ...typography.heading.m,
     color: colors.text.primary,
-    textAlign: 'center',
-    marginBottom: spacing[3],
+    marginBottom: spacing[2],
   },
   description: {
     ...typography.body.m,
     color: colors.text.secondary,
-    textAlign: 'center',
-    marginBottom: spacing[6],
     lineHeight: 22,
   },
   previewCard: {
-    width: '100%',
-    marginBottom: spacing[8],
+    marginBottom: spacing[6],
   },
   previewRow: {
     flexDirection: 'row',
@@ -236,12 +263,48 @@ const styles = StyleSheet.create({
     color: colors.text.secondary,
     marginTop: 2,
   },
-  actions: {
-    width: '100%',
+  sectionTitle: {
+    ...typography.title.m,
+    color: colors.text.primary,
+    marginBottom: spacing[3],
+  },
+  consequenceBlock: {
+    gap: spacing[3],
+    marginBottom: spacing[6],
+  },
+  consequenceItem: {
+    flexDirection: 'row',
+    alignItems: 'flex-start',
+    gap: spacing[3],
+  },
+  consequenceText: {
+    ...typography.body.m,
+    color: colors.text.secondary,
+    flex: 1,
+    lineHeight: 22,
+  },
+  consequenceBold: {
+    fontWeight: '600',
+    color: colors.text.primary,
+  },
+  warningText: {
+    ...typography.body.s,
+    color: colors.text.tertiary,
+  },
+  footer: {
+    paddingHorizontal: layout.screenPaddingH,
+    paddingVertical: spacing[4],
+    borderTopWidth: 1,
+    borderTopColor: colors.border.soft,
+    backgroundColor: colors.bg.elevated,
     gap: spacing[3],
   },
   actionBtn: {
-    borderRadius: radius.pill,
+    borderRadius: radius['2xl'],
+  },
+  actionBtnSecondary: {
+    borderRadius: radius['2xl'],
+    backgroundColor: colors.bg.soft,
   },
   emptyContainer: {
     flex: 1,
@@ -262,6 +325,6 @@ const styles = StyleSheet.create({
     marginBottom: spacing[6],
   },
   emptyBtn: {
-    borderRadius: radius.pill,
+    borderRadius: radius['2xl'],
   },
 });

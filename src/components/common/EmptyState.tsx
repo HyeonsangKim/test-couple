@@ -1,7 +1,7 @@
 import React from 'react';
 import { View, Text, StyleSheet } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
-import { colors, typography, spacing } from '@/theme/tokens';
+import { colors, typography, spacing, component } from '@/theme/tokens';
 import { Button } from '@/components/ui';
 
 type IoniconsName = React.ComponentProps<typeof Ionicons>['name'];
@@ -16,7 +16,7 @@ interface EmptyStateProps {
 
 export const EmptyState: React.FC<EmptyStateProps> = ({ icon, title, description, actionLabel, onAction }) => (
   <View style={styles.container}>
-    <Ionicons name={icon} size={56} color={colors.text.tertiary} style={styles.icon} />
+    <Ionicons name={icon} size={component.emptyState.icon} color={colors.text.tertiary} style={styles.icon} />
     <Text style={styles.title}>{title}</Text>
     <Text style={styles.description}>{description}</Text>
     {actionLabel && onAction && (
@@ -29,13 +29,16 @@ const styles = StyleSheet.create({
   container: {
     alignItems: 'center',
     justifyContent: 'center',
-    padding: spacing[12],
+    paddingVertical: component.emptyState.verticalPadding,
+    paddingHorizontal: spacing[4],
+    maxWidth: component.emptyState.maxWidth,
+    alignSelf: 'center',
   },
   icon: {
     marginBottom: spacing[4],
   },
   title: {
-    ...typography.heading.m,
+    ...typography.title.m,
     color: colors.text.primary,
     marginBottom: spacing[2],
     textAlign: 'center',

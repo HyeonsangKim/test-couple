@@ -3,8 +3,8 @@ import { View, Text, StyleSheet, FlatList } from 'react-native';
 import { useLocalSearchParams, useRouter } from 'expo-router';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { Ionicons } from '@expo/vector-icons';
-import { colors, typography, spacing, radius, layout, shadow } from '@/theme/tokens';
-import { IconButton, Card, Chip } from '@/components/ui';
+import { colors, typography, spacing, radius, layout, component } from '@/theme/tokens';
+import { IconButton, Chip } from '@/components/ui';
 import { useSnapshotStore } from '@/stores/useSnapshotStore';
 import { STATUS_LABELS, CATEGORY_LABELS } from '@/constants';
 import { formatDate } from '@/utils/date';
@@ -22,7 +22,7 @@ export default function SnapshotDetailScreen() {
     return (
       <SafeAreaView style={styles.safe}>
         <View style={styles.emptyContainer}>
-          <Ionicons name="camera-outline" size={56} color={colors.text.tertiary} />
+          <Ionicons name="camera-outline" size={component.emptyState.icon} color={colors.text.tertiary} />
           <Text style={styles.emptyTitle}>스냅샷을 찾을 수 없어요</Text>
         </View>
       </SafeAreaView>
@@ -37,7 +37,7 @@ export default function SnapshotDetailScreen() {
           icon="close"
           onPress={() => router.back()}
           size={40}
-          backgroundColor={colors.surface.primary}
+          backgroundColor={colors.bg.elevated}
           color={colors.text.primary}
         />
         <Text style={styles.headerTitle}>스냅샷</Text>
@@ -67,7 +67,7 @@ export default function SnapshotDetailScreen() {
           ).length;
 
           return (
-            <Card style={styles.placeCard}>
+            <View style={styles.placeCard}>
               <Text style={styles.placeName}>{item.name}</Text>
               {item.addressText && (
                 <Text style={styles.placeAddress}>{item.addressText}</Text>
@@ -93,12 +93,12 @@ export default function SnapshotDetailScreen() {
                   <Text style={styles.visitCountText}>{visitCount}회 방문</Text>
                 )}
               </View>
-            </Card>
+            </View>
           );
         }}
         ListEmptyComponent={
           <View style={styles.emptyContainer}>
-            <Ionicons name="location-outline" size={48} color={colors.text.tertiary} />
+            <Ionicons name="location-outline" size={component.emptyState.icon} color={colors.text.tertiary} />
             <Text style={styles.emptyTitle}>장소가 없어요</Text>
             <Text style={styles.emptyDesc}>이 스냅샷에는 저장된 장소가 없습니다.</Text>
           </View>
@@ -119,7 +119,7 @@ const styles = StyleSheet.create({
   },
   headerTitle: { ...typography.title.l, color: colors.text.primary },
   banner: {
-    backgroundColor: colors.surface.tertiary,
+    backgroundColor: colors.bg.soft,
     paddingVertical: spacing[5],
     alignItems: 'center',
     marginBottom: spacing[4],
@@ -127,8 +127,8 @@ const styles = StyleSheet.create({
   bannerBadge: {
     flexDirection: 'row',
     alignItems: 'center',
-    backgroundColor: colors.accent.primary,
-    borderRadius: radius.pill,
+    backgroundColor: colors.text.secondary,
+    borderRadius: radius.full,
     paddingVertical: spacing[1],
     paddingHorizontal: spacing[3],
     gap: spacing[1],
@@ -153,6 +153,10 @@ const styles = StyleSheet.create({
     paddingBottom: spacing[10],
   },
   placeCard: {
+    backgroundColor: colors.bg.elevated,
+    borderRadius: radius.lg,
+    padding: 16,
+    minHeight: component.archiveRow.minHeight,
     marginBottom: layout.cardGap,
   },
   placeName: {
@@ -168,7 +172,7 @@ const styles = StyleSheet.create({
   chipRow: {
     flexDirection: 'row',
     alignItems: 'center',
-    gap: spacing[2],
+    gap: layout.cardGap,
     marginTop: spacing[2],
   },
   visitCountText: {
@@ -177,7 +181,9 @@ const styles = StyleSheet.create({
   },
   emptyContainer: {
     alignItems: 'center',
-    paddingVertical: spacing[12],
+    paddingVertical: component.emptyState.verticalPadding,
+    maxWidth: component.emptyState.maxWidth,
+    alignSelf: 'center',
   },
   emptyTitle: {
     ...typography.heading.m,

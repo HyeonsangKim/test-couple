@@ -1,52 +1,72 @@
 import React from 'react';
 import { TouchableOpacity, Text, StyleSheet, ViewStyle } from 'react-native';
-import { colors, typography, spacing, radius } from '@/theme/tokens';
+import { colors, typography, component } from '@/theme/tokens';
+
+type ChipSelection = 'neutral' | 'accent';
 
 interface ChipProps {
   label: string;
   selected?: boolean;
+  /** Which selection style to use when `selected` is true */
+  selectionStyle?: ChipSelection;
   onPress?: () => void;
-  color?: string;
+  disabled?: boolean;
   style?: ViewStyle;
+  /** @deprecated Legacy prop -- kept for backwards compatibility. Ignored in the new design. */
+  color?: string;
+  /** @deprecated Legacy prop -- kept for backwards compatibility. 'sm' renders a compact chip. */
   size?: 'sm' | 'md';
 }
 
 export const Chip: React.FC<ChipProps> = ({
   label,
   selected = false,
+  selectionStyle = 'neutral',
   onPress,
-  color = colors.accent.primary,
+  disabled = false,
   style,
+  color,
   size = 'md',
 }) => {
-  const paddingV = size === 'sm' ? spacing[1] : spacing[2];
-  const paddingH = size === 'sm' ? spacing[3] : spacing[4];
-  const typo = size === 'sm' ? typography.caption : typography.body.s;
+  const isCompact = size === 'sm';
+
+  const getBg = (): string => {
+    if (!selected) return colors.bg.elevated;
+    if (color) return `${color}20`; // 12% opacity tint of the status color
+    return selectionStyle === 'accent'
+      ? colors.accent.primarySoft
+      : colors.bg.soft;
+  };
+
+  const getTextColor = (): string => {
+    if (!selected) return colors.text.secondary;
+    if (color) return color;
+    return selectionStyle === 'accent'
+      ? colors.accent.primary
+      : colors.text.primary;
+  };
 
   return (
     <TouchableOpacity
       onPress={onPress}
       activeOpacity={0.7}
-      disabled={!onPress}
+      disabled={disabled || !onPress}
       style={[
         styles.chip,
         {
-          backgroundColor: selected ? color : colors.surface.primary,
-          borderColor: selected ? color : colors.border.soft,
-          paddingVertical: paddingV,
-          paddingHorizontal: paddingH,
+          backgroundColor: getBg(),
+          opacity: disabled ? 0.45 : 1,
+          height: isCompact ? 36 : component.chip.height,
+          borderRadius: isCompact ? 18 : component.chip.radius,
+          paddingHorizontal: isCompact ? 12 : 16,
         },
         style,
       ]}
     >
       <Text
         style={[
-          styles.label,
-          {
-            color: selected ? colors.text.inverse : colors.text.secondary,
-            fontSize: typo.fontSize,
-            fontWeight: typo.fontWeight,
-          },
+          isCompact ? styles.labelCompact : styles.label,
+          { color: getTextColor() },
         ]}
       >
         {label}
@@ -57,12 +77,17 @@ export const Chip: React.FC<ChipProps> = ({
 
 const styles = StyleSheet.create({
   chip: {
-    borderRadius: radius.pill,
-    borderWidth: 1,
     alignItems: 'center',
     justifyContent: 'center',
   },
   label: {
-    fontWeight: '600',
+    fontSize: typography.title.m.fontSize,
+    lineHeight: typography.title.m.lineHeight,
+    fontWeight: typography.title.m.fontWeight,
+  },
+  labelCompact: {
+    fontSize: typography.caption.fontSize,
+    lineHeight: typography.caption.lineHeight,
+    fontWeight: typography.caption.fontWeight,
   },
 });
