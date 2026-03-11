@@ -7,6 +7,7 @@ import { colors, typography, spacing, radius, shadow, layout, component } from '
 import { PlaceMarker } from '@/components/map/PlaceMarker';
 import { usePlaceStore } from '@/stores/usePlaceStore';
 import { useFilteredPlaces } from '@/hooks/useFilteredPlaces';
+import { useMapCurrentLocation } from '@/hooks/useMapCurrentLocation';
 import { Place, MapApiResult } from '@/types';
 import { DEFAULT_MAP_REGION } from '@/constants';
 import { FilterBottomSheet } from '@/components/filter/FilterBottomSheet';
@@ -16,14 +17,21 @@ export default function MapScreen() {
   const router = useRouter();
   const navigation = useNavigation();
   const mapRef = useRef<MapView>(null);
+  const currentRegionRef = useRef<Region>(DEFAULT_MAP_REGION as Region);
   const searchOverlayRef = useRef<MapSearchOverlayHandle>(null);
   const [filterVisible, setFilterVisible] = useState(false);
   const [addMenuVisible, setAddMenuVisible] = useState(false);
 
   const { filter } = usePlaceStore();
   const filteredPlaces = useFilteredPlaces();
+  const {
+    centerToUser,
+    handleUserLocationChange,
+    hasForegroundPermission,
+    isLocating,
+  } = useMapCurrentLocation();
 
-  // Saved places for deduplication and display in the sheet
+  // Saved places for deduplication and display in the search panel
   const { places } = usePlaceStore();
 
   const handleSavedPlacePress = useCallback(
@@ -89,6 +97,13 @@ export default function MapScreen() {
     setAddMenuVisible(true);
   };
 
+  const handleLocatePress = useCallback(() => {
+    void centerToUser({
+      mapRef,
+      currentRegion: currentRegionRef.current,
+    });
+  }, [centerToUser]);
+
   const hasActiveFilter = filter.status !== 'all' || filter.category !== 'all';
 
   return (
@@ -97,7 +112,11 @@ export default function MapScreen() {
         ref={mapRef}
         style={styles.map}
         initialRegion={DEFAULT_MAP_REGION as Region}
-        showsUserLocation
+        onRegionChangeComplete={(region) => {
+          currentRegionRef.current = region;
+        }}
+        onUserLocationChange={handleUserLocationChange}
+        showsUserLocation={hasForegroundPermission}
         showsMyLocationButton={false}
       >
         {filteredPlaces.map((place) => (
@@ -117,14 +136,16 @@ export default function MapScreen() {
 
       {/* Floating Location Button */}
       <TouchableOpacity
-        style={styles.locationBtn}
-        onPress={() => {
-          // Show user location on map
-          mapRef.current?.animateToRegion(DEFAULT_MAP_REGION as Region, 300);
-        }}
-        activeOpacity={0.7}
+        style={[styles.locationBtn, isLocating && styles.locationBtnDisabled]}
+        onPress={handleLocatePress}
+        activeOpacity={isLocating ? 1 : 0.7}
+        disabled={isLocating}
       >
-        <Ionicons name="locate-outline" size={22} color={colors.text.primary} />
+        <Ionicons
+          name="locate-outline"
+          size={22}
+          color={isLocating ? colors.text.tertiary : colors.text.primary}
+        />
       </TouchableOpacity>
 
       {/* FAB - Add Place */}
@@ -220,6 +241,9 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
     zIndex: 10,
     ...shadow.sm,
+  },
+  locationBtnDisabled: {
+    opacity: 0.72,
   },
   fab: {
     position: 'absolute',
