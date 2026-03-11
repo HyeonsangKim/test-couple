@@ -1,7 +1,7 @@
 import React from 'react';
 import { View, TextInput, StyleSheet, TouchableOpacity, ViewStyle, StyleProp } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
-import { colors, typography, spacing, shadow, component } from '@/theme/tokens';
+import { colors, typography, component } from '@/theme/tokens';
 
 interface SearchBarProps {
   value: string;
@@ -20,7 +20,7 @@ export const SearchBar: React.FC<SearchBarProps> = ({
   variant = 'solid',
   style,
 }) => (
-  <View style={[styles.container, variant === 'glass' ? styles.containerGlass : styles.containerSolid, style]}>
+  <View style={[styles.container, style]}>
     <Ionicons name="search" size={component.searchBar.icon} color={colors.text.tertiary} style={styles.icon} />
     <TextInput
       style={styles.input}
@@ -32,7 +32,7 @@ export const SearchBar: React.FC<SearchBarProps> = ({
     />
     {value.length > 0 && (
       <TouchableOpacity onPress={onClear} style={styles.clearBtn}>
-        <Ionicons name="close" size={component.searchBar.icon} color={colors.text.tertiary} />
+        <Ionicons name="close-circle" size={16} color={colors.text.tertiary} />
       </TouchableOpacity>
     )}
   </View>
@@ -45,19 +45,12 @@ const styles = StyleSheet.create({
     height: component.searchBar.height,
     borderRadius: component.searchBar.radius,
     paddingHorizontal: component.searchBar.horizontalPadding,
-  },
-  containerSolid: {
-    backgroundColor: colors.bg.elevated,
-    ...shadow.sm,
-  },
-  containerGlass: {
-    backgroundColor: colors.glass.fillStrong,
+    backgroundColor: colors.bg.subtle,
     borderWidth: 1,
-    borderColor: colors.glass.stroke,
-    ...shadow.glass,
+    borderColor: colors.line.default,
   },
   icon: {
-    marginRight: spacing[2],
+    marginRight: 8,
   },
   input: {
     flex: 1,
@@ -66,6 +59,6 @@ const styles = StyleSheet.create({
     padding: 0,
   },
   clearBtn: {
-    padding: spacing[1],
+    padding: 4,
   },
 });

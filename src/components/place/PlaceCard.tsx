@@ -2,8 +2,7 @@ import React from 'react';
 import { View, Text, Image, StyleSheet, TouchableOpacity } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import { Place } from '@/types';
-import { colors, typography, spacing, shadow, component } from '@/theme/tokens';
-import { Chip } from '@/components/ui';
+import { colors, typography, spacing, component } from '@/theme/tokens';
 import { CATEGORY_LABELS, STATUS_LABELS } from '@/constants';
 
 type IoniconsName = React.ComponentProps<typeof Ionicons>['name'];
@@ -25,69 +24,79 @@ const getStatusIcon = (status: string): { icon: IoniconsName; color: string } =>
   }
 };
 
+const getStatusBadgeStyle = (status: string): { bg: string; text: string } => {
+  switch (status) {
+    case 'wishlist':
+      return { bg: 'rgba(245,158,11,0.10)', text: colors.marker.wishlist };
+    case 'visited':
+      return { bg: 'rgba(24,178,107,0.10)', text: colors.marker.visited };
+    default:
+      return { bg: colors.bg.muted, text: colors.text.tertiary };
+  }
+};
+
 export const PlaceCard: React.FC<PlaceCardProps> = ({ place, visitCount, onPress }) => {
-  const statusColor = place.status === 'wishlist'
-    ? colors.marker.wishlist
-    : place.status === 'visited'
-      ? colors.marker.visited
-      : colors.marker.orphan;
   const statusInfo = getStatusIcon(place.status);
+  const badgeStyle = getStatusBadgeStyle(place.status);
 
   return (
-    <TouchableOpacity style={styles.card} onPress={onPress} activeOpacity={0.7}>
+    <TouchableOpacity style={styles.row} onPress={onPress} activeOpacity={0.6}>
+      {/* Thumbnail */}
       {place.heroImageId ? (
-        <Image source={{ uri: place.heroImageId }} style={styles.image} />
+        <Image source={{ uri: place.heroImageId }} style={styles.thumbnail} />
       ) : (
-        <View style={[styles.image, styles.placeholder]}>
-          <Ionicons name={statusInfo.icon} size={28} color={statusInfo.color} />
+        <View style={[styles.thumbnail, styles.placeholder]}>
+          <Ionicons name={statusInfo.icon} size={20} color={statusInfo.color} />
         </View>
       )}
+
+      {/* Content */}
       <View style={styles.content}>
         <View style={styles.nameRow}>
           <Text style={styles.name} numberOfLines={1}>{place.name}</Text>
           {place.deleteRequest && (
-            <Ionicons name="trash-outline" size={14} color={colors.status.deleteRequest} style={styles.trashIcon} />
+            <Ionicons name="trash-outline" size={12} color={colors.status.deleteRequest} style={styles.trashIcon} />
           )}
         </View>
-        <Text style={styles.address} numberOfLines={1}>{place.addressText}</Text>
-        <View style={styles.metaRow}>
-          <Chip
-            label={STATUS_LABELS[place.status] || place.status}
-            color={statusColor}
-            selected
-            size="sm"
-          />
+        {place.addressText ? (
+          <Text style={styles.address} numberOfLines={1}>{place.addressText}</Text>
+        ) : null}
+        <View style={styles.badgeRow}>
+          <View style={[styles.badge, { backgroundColor: badgeStyle.bg }]}>
+            <Text style={[styles.badgeText, { color: badgeStyle.text }]}>
+              {STATUS_LABELS[place.status] || place.status}
+            </Text>
+          </View>
           {place.category !== 'uncategorized' && (
-            <Chip
-              label={CATEGORY_LABELS[place.category] || place.category}
-              size="sm"
-              style={styles.categoryChip}
-            />
+            <View style={styles.badge}>
+              <Text style={styles.badgeText}>{CATEGORY_LABELS[place.category] || place.category}</Text>
+            </View>
           )}
           {visitCount > 1 && (
-            <Text style={styles.visitCount}>{visitCount}회 방문</Text>
+            <Text style={styles.visitCount}>{visitCount}회</Text>
           )}
         </View>
       </View>
+
+      <Ionicons name="chevron-forward" size={16} color={colors.text.tertiary} />
     </TouchableOpacity>
   );
 };
 
 const styles = StyleSheet.create({
-  card: {
+  row: {
     flexDirection: 'row',
-    backgroundColor: colors.bg.elevated,
-    borderRadius: component.listCard.radius,
-    padding: component.listCard.padding,
-    marginBottom: spacing[4],
+    alignItems: 'center',
     minHeight: component.listCard.minHeight,
-    ...shadow.sm,
+    paddingVertical: component.listCard.padding,
+    gap: component.listCard.gap,
   },
-  image: {
+  thumbnail: {
     width: component.listCard.thumbSize,
     height: component.listCard.thumbSize,
     borderRadius: component.listCard.thumbRadius,
-    backgroundColor: colors.bg.soft,
+    backgroundColor: colors.bg.subtle,
+    flexShrink: 0,
   },
   placeholder: {
     alignItems: 'center',
@@ -95,8 +104,7 @@ const styles = StyleSheet.create({
   },
   content: {
     flex: 1,
-    marginLeft: component.listCard.gap,
-    justifyContent: 'center',
+    gap: 3,
   },
   nameRow: {
     flexDirection: 'row',
@@ -111,23 +119,29 @@ const styles = StyleSheet.create({
     marginLeft: spacing[1],
   },
   address: {
-    ...typography.caption,
+    ...typography.body.m,
     color: colors.text.secondary,
-    marginTop: 2,
-    marginBottom: spacing[2],
   },
-  metaRow: {
+  badgeRow: {
     flexDirection: 'row',
     alignItems: 'center',
-    flexWrap: 'wrap',
     gap: spacing[1],
+    marginTop: 2,
   },
-  categoryChip: {
-    marginLeft: spacing[1],
+  badge: {
+    height: component.badge.compactHeight,
+    borderRadius: 999,
+    paddingHorizontal: component.badge.horizontalPadding,
+    alignItems: 'center',
+    justifyContent: 'center',
+    backgroundColor: colors.bg.muted,
+  },
+  badgeText: {
+    ...typography.micro,
+    color: colors.text.secondary,
   },
   visitCount: {
-    ...typography.caption,
+    ...typography.micro,
     color: colors.text.tertiary,
-    marginLeft: spacing[1],
   },
 });

@@ -262,7 +262,7 @@ export default function MapScreen() {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: colors.bg.canvas,
+    backgroundColor: colors.bg.base,
   },
   map: {
     flex: 1,
@@ -288,12 +288,12 @@ const styles = StyleSheet.create({
     width: component.button.floatingIcon,
     height: component.button.floatingIcon,
     borderRadius: radius.xl,
-    backgroundColor: glass.fillStrong,
-    borderWidth: glass.border.width,
-    borderColor: glass.border.color,
+    backgroundColor: colors.bg.base,
+    borderWidth: 1,
+    borderColor: colors.line.default,
     alignItems: 'center',
     justifyContent: 'center',
-    ...shadow.glass,
+    ...shadow.sm,
   },
   filterBtnActive: {
     backgroundColor: colors.accent.primary,
@@ -305,12 +305,12 @@ const styles = StyleSheet.create({
     width: component.button.floatingIcon,
     height: component.button.floatingIcon,
     borderRadius: radius.xl,
-    backgroundColor: glass.fillStrong,
-    borderWidth: glass.border.width,
-    borderColor: glass.border.color,
+    backgroundColor: colors.bg.base,
+    borderWidth: 1,
+    borderColor: colors.line.default,
     alignItems: 'center',
     justifyContent: 'center',
-    ...shadow.glass,
+    ...shadow.sm,
   },
   fab: {
     position: 'absolute',
@@ -330,7 +330,7 @@ const styles = StyleSheet.create({
     justifyContent: 'flex-end',
   },
   addMenu: {
-    backgroundColor: colors.bg.elevated,
+    backgroundColor: colors.bg.base,
     borderTopLeftRadius: radius.sheet,
     borderTopRightRadius: radius.sheet,
     paddingHorizontal: layout.screenPaddingH,
@@ -382,7 +382,7 @@ const styles = StyleSheet.create({
     justifyContent: 'flex-end',
   },
   filterSheet: {
-    backgroundColor: colors.bg.elevated,
+    backgroundColor: colors.bg.base,
     borderTopLeftRadius: radius.sheet,
     borderTopRightRadius: radius.sheet,
   },

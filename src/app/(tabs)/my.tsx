@@ -4,7 +4,7 @@ import { useRouter } from 'expo-router';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { Ionicons } from '@expo/vector-icons';
 import { colors, typography, spacing, radius, layout, component } from '@/theme/tokens';
-import { Avatar, Card, Button } from '@/components/ui';
+import { Avatar, Button } from '@/components/ui';
 import { ConfirmModal } from '@/components/common/ConfirmModal';
 import { useAuthStore } from '@/stores/useAuthStore';
 import { useMapStore } from '@/stores/useMapStore';
@@ -40,7 +40,6 @@ export default function MyScreen() {
   const visitedCount = places.filter((p) => p.status === 'visited').length;
   const wishlistCount = places.filter((p) => p.status === 'wishlist').length;
 
-  // Calculate D-day
   let dDayText = '';
   if (map?.anniversaryDate) {
     const today = new Date();
@@ -85,26 +84,10 @@ export default function MyScreen() {
   };
 
   const menuItems: MenuItemData[] = [
-    {
-      icon: 'paper-plane-outline',
-      label: '초대/연결 관리',
-      onPress: () => router.push('/(main)/invite-center'),
-    },
-    {
-      icon: 'notifications-outline',
-      label: '알림 설정',
-      onPress: () => router.push('/(main)/settings/notifications'),
-    },
-    {
-      icon: 'calendar-outline',
-      label: '기념일',
-      onPress: () => router.push('/(main)/settings/anniversary'),
-    },
-    {
-      icon: 'person-circle-outline',
-      label: '프로필 수정',
-      onPress: () => router.push('/(main)/settings/profile'),
-    },
+    { icon: 'paper-plane-outline', label: '초대/연결 관리', onPress: () => router.push('/(main)/invite-center') },
+    { icon: 'notifications-outline', label: '알림 설정', onPress: () => router.push('/(main)/settings/notifications') },
+    { icon: 'calendar-outline', label: '기념일', onPress: () => router.push('/(main)/settings/anniversary') },
+    { icon: 'person-circle-outline', label: '프로필 수정', onPress: () => router.push('/(main)/settings/profile') },
   ];
 
   return (
@@ -117,134 +100,150 @@ export default function MyScreen() {
         {/* Header */}
         <Text style={styles.headerTitle}>MY</Text>
 
-        {/* Profile Card */}
-        <Card style={styles.profileCard}>
-          <View style={styles.profileRow}>
-            <Avatar
-              name={currentUser?.nickname ?? '?'}
-              color={colors.accent.primary}
-              size={component.avatar.lg}
-            />
-            <View style={styles.profileInfo}>
-              <Text style={styles.nickname}>{currentUser?.nickname ?? '사용자'}</Text>
-              {isConnected && partner ? (
-                <View style={styles.partnerRow}>
-                  <Ionicons name="heart" size={12} color={colors.accent.primary} />
-                  <Text style={styles.partnerText}>{partner.nickname}과 함께</Text>
-                </View>
-              ) : (
-                <Text style={styles.soloText}>솔로 모드</Text>
-              )}
-            </View>
-            <TouchableOpacity
-              onPress={() => router.push('/(main)/settings/profile')}
-              style={styles.editBtn}
-            >
-              <Ionicons name="create-outline" size={18} color={colors.text.tertiary} />
-            </TouchableOpacity>
-          </View>
-        </Card>
-
-        {/* Connection Status Card */}
-        <Card style={styles.statusCard}>
-          {isConnected ? (
-            <>
-              <View style={styles.statsRow}>
-                <View style={styles.statItem}>
-                  <Text style={styles.statValue}>{visitedCount}</Text>
-                  <Text style={styles.statLabel}>갔다 온 곳</Text>
-                </View>
-                <View style={styles.statDivider} />
-                <View style={styles.statItem}>
-                  <Text style={styles.statValue}>{wishlistCount}</Text>
-                  <Text style={styles.statLabel}>위시리스트</Text>
-                </View>
-                {dDayText ? (
-                  <>
-                    <View style={styles.statDivider} />
-                    <View style={styles.statItem}>
-                      <Text style={styles.statValue}>{dDayText}</Text>
-                      <Text style={styles.statLabel}>{map?.anniversaryLabel ?? '기념일'}</Text>
-                    </View>
-                  </>
-                ) : null}
+        {/* Profile Section */}
+        <View style={styles.profileSection}>
+          <Avatar
+            name={currentUser?.nickname ?? '?'}
+            color={colors.accent.primary}
+            size={component.avatar.lg}
+          />
+          <View style={styles.profileInfo}>
+            <Text style={styles.nickname}>{currentUser?.nickname ?? '사용자'}</Text>
+            {isConnected && partner ? (
+              <View style={styles.partnerRow}>
+                <Ionicons name="heart" size={11} color={colors.accent.primary} />
+                <Text style={styles.partnerText}>{partner.nickname}과 함께</Text>
               </View>
-            </>
-          ) : (
-            <View style={styles.soloCard}>
-              <Ionicons name="people-outline" size={32} color={colors.text.tertiary} />
-              <Text style={styles.soloCardTitle}>상대방과 연결해보세요</Text>
-              <Text style={styles.soloCardDesc}>
-                초대 코드를 공유하거나 받아서 함께 지도를 사용할 수 있어요
-              </Text>
-              <Button
-                title="초대/연결 관리"
-                onPress={() => router.push('/(main)/invite-center')}
-                variant="primary"
-                size="md"
-                style={styles.soloCardBtn}
-              />
+            ) : (
+              <Text style={styles.soloText}>솔로 모드</Text>
+            )}
+          </View>
+          <TouchableOpacity
+            onPress={() => router.push('/(main)/settings/profile')}
+            style={styles.editBtn}
+          >
+            <Ionicons name="create-outline" size={18} color={colors.text.tertiary} />
+          </TouchableOpacity>
+        </View>
+
+        <View style={styles.sectionDivider} />
+
+        {/* Stats / Connection */}
+        {isConnected ? (
+          <View style={styles.statsRow}>
+            <View style={styles.statItem}>
+              <Text style={styles.statValue}>{visitedCount}</Text>
+              <Text style={styles.statLabel}>갔다 온 곳</Text>
             </View>
-          )}
-        </Card>
-
-        {/* Menu Items */}
-        <Card style={styles.menuCard}>
-          {menuItems.map((item, index) => (
-            <TouchableOpacity
-              key={item.label}
-              style={[styles.menuItem, index < menuItems.length - 1 && styles.menuItemBorder]}
-              onPress={item.onPress}
-              activeOpacity={0.6}
-            >
-              <Ionicons name={item.icon} size={20} color={colors.text.secondary} />
-              <Text style={styles.menuLabel}>{item.label}</Text>
-              <Ionicons name="chevron-forward" size={16} color={colors.text.tertiary} />
-            </TouchableOpacity>
-          ))}
-        </Card>
-
-        {/* Snapshots Entry */}
-        {snapshots.length > 0 && (
-          <Card style={styles.snapshotCard}>
-            <Text style={styles.snapshotTitle}>스냅샷</Text>
-            {snapshots.map((snap) => (
-              <TouchableOpacity
-                key={snap.snapshotId}
-                style={styles.snapshotItem}
-                onPress={() => router.push(`/snapshot/${snap.snapshotId}`)}
-                activeOpacity={0.6}
-              >
-                <View style={styles.snapshotIconFrame}>
-                  <Ionicons name="camera-outline" size={20} color={colors.text.secondary} />
+            <View style={styles.statVertDivider} />
+            <View style={styles.statItem}>
+              <Text style={styles.statValue}>{wishlistCount}</Text>
+              <Text style={styles.statLabel}>위시리스트</Text>
+            </View>
+            {dDayText ? (
+              <>
+                <View style={styles.statVertDivider} />
+                <View style={styles.statItem}>
+                  <Text style={styles.statValue}>{dDayText}</Text>
+                  <Text style={styles.statLabel}>{map?.anniversaryLabel ?? '기념일'}</Text>
                 </View>
-                <View style={styles.snapshotInfo}>
-                  <Text style={styles.snapshotDate}>{formatDate(snap.createdAt)}</Text>
-                  <Text style={styles.snapshotPlaces}>{snap.places.length}개 장소</Text>
-                </View>
-              </TouchableOpacity>
-            ))}
-          </Card>
+              </>
+            ) : null}
+          </View>
+        ) : (
+          <View style={styles.connectPrompt}>
+            <View style={styles.connectTextBlock}>
+              <Text style={styles.connectTitle}>상대방과 연결해보세요</Text>
+              <Text style={styles.connectDesc}>초대 코드를 공유하거나 받아서 함께 지도를 사용할 수 있어요</Text>
+            </View>
+            <Button
+              title="연결 관리"
+              onPress={() => router.push('/(main)/invite-center')}
+              variant="primary"
+              size="md"
+            />
+          </View>
         )}
 
-        {/* Danger Block */}
-        <Card style={styles.dangerCard}>
+        <View style={styles.sectionDivider} />
+
+        {/* Menu Group */}
+        <View style={styles.menuGroup}>
+          {menuItems.map((item, index) => (
+            <React.Fragment key={item.label}>
+              <TouchableOpacity
+                style={styles.menuRow}
+                onPress={item.onPress}
+                activeOpacity={0.6}
+              >
+                <View style={styles.menuIconFrame}>
+                  <Ionicons name={item.icon} size={18} color={colors.text.secondary} />
+                </View>
+                <Text style={styles.menuLabel}>{item.label}</Text>
+                <Ionicons name="chevron-forward" size={16} color={colors.text.tertiary} />
+              </TouchableOpacity>
+              {index < menuItems.length - 1 && <View style={styles.rowDivider} />}
+            </React.Fragment>
+          ))}
+        </View>
+
+        {/* Snapshots */}
+        {snapshots.length > 0 && (
+          <>
+            <View style={styles.sectionDivider} />
+            <View style={styles.menuGroup}>
+              <Text style={styles.sectionLabel}>스냅샷</Text>
+              {snapshots.map((snap, index) => (
+                <React.Fragment key={snap.snapshotId}>
+                  <TouchableOpacity
+                    style={styles.menuRow}
+                    onPress={() => router.push(`/snapshot/${snap.snapshotId}`)}
+                    activeOpacity={0.6}
+                  >
+                    <View style={styles.menuIconFrame}>
+                      <Ionicons name="camera-outline" size={18} color={colors.text.secondary} />
+                    </View>
+                    <View style={styles.snapshotInfo}>
+                      <Text style={styles.menuLabel}>{formatDate(snap.createdAt)}</Text>
+                      <Text style={styles.snapshotSub}>{snap.places.length}개 장소</Text>
+                    </View>
+                    <Ionicons name="chevron-forward" size={16} color={colors.text.tertiary} />
+                  </TouchableOpacity>
+                  {index < snapshots.length - 1 && <View style={styles.rowDivider} />}
+                </React.Fragment>
+              ))}
+            </View>
+          </>
+        )}
+
+        <View style={styles.sectionDivider} />
+
+        {/* Danger Group */}
+        <View style={styles.menuGroup}>
           <TouchableOpacity
-            style={styles.dangerBtn}
+            style={styles.menuRow}
             onPress={() => setShowLogoutConfirm(true)}
+            activeOpacity={0.6}
           >
-            <Ionicons name="log-out-outline" size={20} color={colors.text.secondary} />
-            <Text style={styles.logoutText}>로그아웃</Text>
+            <View style={styles.menuIconFrame}>
+              <Ionicons name="log-out-outline" size={18} color={colors.text.secondary} />
+            </View>
+            <Text style={styles.menuLabel}>로그아웃</Text>
           </TouchableOpacity>
-          <View style={styles.dangerDivider} />
+          <View style={styles.rowDivider} />
           <TouchableOpacity
-            style={styles.dangerBtn}
+            style={styles.menuRow}
             onPress={handleWithdrawStart}
+            activeOpacity={0.6}
           >
-            <Ionicons name="alert-circle-outline" size={20} color={colors.accent.danger} />
-            <Text style={styles.withdrawText}>회원탈퇴</Text>
+            <View style={styles.menuIconFrame}>
+              <Ionicons name="alert-circle-outline" size={18} color={colors.accent.danger} />
+            </View>
+            <Text style={[styles.menuLabel, { color: colors.accent.danger }]}>회원탈퇴</Text>
           </TouchableOpacity>
-        </Card>
+        </View>
+
+        <View style={{ height: spacing[12] }} />
       </ScrollView>
 
       <ConfirmModal
@@ -255,8 +254,6 @@ export default function MyScreen() {
         onConfirm={handleLogout}
         onCancel={() => setShowLogoutConfirm(false)}
       />
-
-      {/* Two-step withdrawal confirmation (PRD 5-6) */}
       <ConfirmModal
         visible={showWithdrawStep1}
         title="회원탈퇴"
@@ -282,31 +279,30 @@ export default function MyScreen() {
 const styles = StyleSheet.create({
   safe: {
     flex: 1,
-    backgroundColor: colors.bg.canvas,
+    backgroundColor: colors.bg.base,
   },
   scroll: {
     flex: 1,
   },
   scrollContent: {
-    paddingHorizontal: layout.screenPaddingH,
-    paddingBottom: 120,
+    paddingBottom: 32,
   },
   headerTitle: {
-    ...typography.heading.l,
+    ...typography.heading.m,
     color: colors.text.primary,
-    paddingVertical: spacing[3],
+    paddingHorizontal: layout.screenPaddingH,
+    paddingTop: spacing[4],
+    paddingBottom: spacing[3],
   },
-  profileCard: {
-    backgroundColor: colors.bg.elevated,
-    marginBottom: layout.cardGap,
-  },
-  profileRow: {
+  profileSection: {
     flexDirection: 'row',
     alignItems: 'center',
+    paddingHorizontal: layout.screenPaddingH,
+    paddingVertical: spacing[4],
+    gap: spacing[3],
   },
   profileInfo: {
     flex: 1,
-    marginLeft: spacing[3],
   },
   nickname: {
     ...typography.title.l,
@@ -315,147 +311,102 @@ const styles = StyleSheet.create({
   partnerRow: {
     flexDirection: 'row',
     alignItems: 'center',
-    gap: spacing[1],
+    gap: 4,
     marginTop: 2,
   },
   partnerText: {
-    ...typography.body.s,
+    ...typography.body.m,
     color: colors.text.secondary,
   },
   soloText: {
-    ...typography.body.s,
+    ...typography.body.m,
     color: colors.text.tertiary,
     marginTop: 2,
   },
   editBtn: {
     padding: spacing[2],
   },
-  statusCard: {
-    backgroundColor: colors.bg.elevated,
-    marginBottom: layout.cardGap,
+  sectionDivider: {
+    height: 1,
+    backgroundColor: colors.line.default,
   },
   statsRow: {
     flexDirection: 'row',
     alignItems: 'center',
+    paddingVertical: spacing[4],
+    paddingHorizontal: layout.screenPaddingH,
   },
   statItem: {
     flex: 1,
     alignItems: 'center',
-    paddingVertical: spacing[2],
   },
   statValue: {
-    ...typography.heading.m,
+    ...typography.title.l,
     color: colors.accent.primary,
   },
   statLabel: {
     ...typography.caption,
     color: colors.text.secondary,
-    marginTop: 4,
+    marginTop: 2,
   },
-  statDivider: {
+  statVertDivider: {
     width: 1,
-    height: 32,
-    backgroundColor: colors.border.soft,
+    height: 28,
+    backgroundColor: colors.line.default,
   },
-  soloCard: {
-    alignItems: 'center',
+  connectPrompt: {
+    paddingHorizontal: layout.screenPaddingH,
     paddingVertical: spacing[4],
-  },
-  soloCardTitle: {
-    ...typography.title.m,
-    color: colors.text.primary,
-    marginTop: spacing[3],
-    marginBottom: spacing[1],
-  },
-  soloCardDesc: {
-    ...typography.body.s,
-    color: colors.text.secondary,
-    textAlign: 'center',
-    marginBottom: spacing[4],
-  },
-  soloCardBtn: {
-    borderRadius: radius.full,
-  },
-  menuCard: {
-    backgroundColor: colors.bg.elevated,
-    marginBottom: layout.cardGap,
-    paddingVertical: spacing[1],
-  },
-  menuItem: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    minHeight: component.settingsRow.height,
-    paddingVertical: spacing[3],
-    paddingHorizontal: spacing[1],
     gap: spacing[3],
   },
-  menuItemBorder: {
-    borderBottomWidth: 1,
-    borderBottomColor: colors.border.soft,
+  connectTextBlock: {
+    gap: 4,
+  },
+  connectTitle: {
+    ...typography.title.m,
+    color: colors.text.primary,
+  },
+  connectDesc: {
+    ...typography.body.m,
+    color: colors.text.secondary,
+  },
+  menuGroup: {
+    paddingHorizontal: layout.screenPaddingH,
+  },
+  sectionLabel: {
+    ...typography.caption,
+    color: colors.text.tertiary,
+    paddingVertical: spacing[3],
+    textTransform: 'uppercase',
+    letterSpacing: 0.5,
+  },
+  menuRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    height: component.settingsRow.height,
+    gap: spacing[3],
+  },
+  menuIconFrame: {
+    width: component.settingsRow.iconFrame,
+    height: component.settingsRow.iconFrame,
+    alignItems: 'center',
+    justifyContent: 'center',
   },
   menuLabel: {
     ...typography.body.l,
     color: colors.text.primary,
     flex: 1,
   },
-  snapshotCard: {
-    backgroundColor: colors.bg.elevated,
-    marginBottom: layout.cardGap,
-  },
-  snapshotTitle: {
-    ...typography.title.m,
-    color: colors.text.primary,
-    marginBottom: spacing[3],
-  },
-  snapshotItem: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    minHeight: component.archiveRow.minHeight,
-    borderRadius: radius.lg,
-    paddingVertical: spacing[4],
-    paddingHorizontal: spacing[4],
-    gap: spacing[3],
-  },
-  snapshotIconFrame: {
-    width: 32,
-    height: 32,
-    alignItems: 'center',
-    justifyContent: 'center',
-  },
   snapshotInfo: {
     flex: 1,
   },
-  snapshotDate: {
+  snapshotSub: {
     ...typography.body.m,
-    color: colors.text.primary,
-  },
-  snapshotPlaces: {
-    ...typography.body.s,
     color: colors.text.secondary,
-    marginTop: 2,
   },
-  dangerCard: {
-    backgroundColor: colors.status.deleteBg,
-    marginBottom: layout.cardGap,
-  },
-  dangerBtn: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    paddingVertical: spacing[3],
-    paddingHorizontal: spacing[1],
-    gap: spacing[3],
-    minHeight: component.settingsRow.height,
-  },
-  dangerDivider: {
+  rowDivider: {
     height: 1,
-    backgroundColor: colors.border.soft,
-  },
-  logoutText: {
-    ...typography.body.m,
-    color: colors.text.secondary,
-  },
-  withdrawText: {
-    ...typography.body.m,
-    color: colors.accent.danger,
+    backgroundColor: colors.line.default,
+    marginLeft: component.settingsRow.iconFrame + spacing[3],
   },
 });

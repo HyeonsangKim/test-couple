@@ -1,11 +1,10 @@
 import React from 'react';
 import { View, Text, StyleSheet, ViewStyle } from 'react-native';
-import { colors, typography, radius, component } from '@/theme/tokens';
+import { colors, typography, component } from '@/theme/tokens';
 
 type BadgeState = 'neutral' | 'accent' | 'success' | 'warning' | 'danger';
 
 interface BadgeProps {
-  /** Numeric count (renders as number) or string label */
   label?: string;
   count?: number;
   state?: BadgeState;
@@ -14,11 +13,11 @@ interface BadgeProps {
 }
 
 const stateStyles: Record<BadgeState, { bg: string; text: string }> = {
-  neutral: { bg: colors.bg.soft, text: colors.text.secondary },
-  accent: { bg: colors.accent.primarySoft, text: colors.accent.primary },
-  success: { bg: 'rgba(39,174,96,0.12)', text: colors.accent.mint },
-  warning: { bg: 'rgba(217,164,65,0.12)', text: colors.accent.amber },
-  danger: { bg: 'rgba(214,69,69,0.10)', text: colors.accent.danger },
+  neutral: { bg: colors.bg.muted, text: colors.text.secondary },
+  accent: { bg: colors.accent.soft, text: colors.accent.primary },
+  success: { bg: 'rgba(24,178,107,0.10)', text: colors.accent.mint },
+  warning: { bg: 'rgba(245,158,11,0.10)', text: colors.accent.warning },
+  danger: { bg: 'rgba(229,72,77,0.10)', text: colors.accent.danger },
 };
 
 export const Badge: React.FC<BadgeProps> = ({
@@ -28,7 +27,6 @@ export const Badge: React.FC<BadgeProps> = ({
   compact = false,
   style,
 }) => {
-  // If count is provided and <= 0, render nothing (backwards compat)
   if (count !== undefined && count <= 0) return null;
 
   const displayText =
@@ -49,7 +47,7 @@ export const Badge: React.FC<BadgeProps> = ({
           backgroundColor: bg,
           minWidth: height,
           height,
-          borderRadius: radius.full,
+          borderRadius: 999,
           paddingHorizontal: component.badge.horizontalPadding,
         },
         style,
@@ -66,6 +64,6 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
   },
   text: {
-    ...typography.caption,
+    ...typography.micro,
   },
 });

@@ -123,7 +123,7 @@ export default function ProfileSettingsScreen() {
 const styles = StyleSheet.create({
   safe: {
     flex: 1,
-    backgroundColor: colors.bg.canvas,
+    backgroundColor: colors.bg.base,
   },
   header: {
     flexDirection: 'row',
@@ -160,7 +160,7 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     justifyContent: 'center',
     borderWidth: 2,
-    borderColor: colors.bg.canvas,
+    borderColor: colors.bg.base,
   },
   avatarHint: {
     ...typography.body.s,
@@ -178,9 +178,9 @@ const styles = StyleSheet.create({
   input: {
     ...typography.body.l,
     color: colors.text.primary,
-    backgroundColor: colors.bg.soft,
-    borderRadius: radius.lg,
-    height: 56,
+    backgroundColor: colors.bg.subtle,
+    borderRadius: radius.md,
+    height: 48,
     paddingHorizontal: spacing[4],
   },
   charCount: {
@@ -193,8 +193,8 @@ const styles = StyleSheet.create({
     paddingHorizontal: layout.screenPaddingH,
     paddingVertical: spacing[4],
     borderTopWidth: 1,
-    borderTopColor: colors.border.soft,
-    backgroundColor: colors.bg.elevated,
+    borderTopColor: colors.line.default,
+    backgroundColor: colors.bg.base,
   },
   saveBtn: {
     borderRadius: radius['2xl'],

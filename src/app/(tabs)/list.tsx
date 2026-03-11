@@ -3,7 +3,7 @@ import { View, FlatList, StyleSheet, TouchableOpacity, Modal, Text } from 'react
 import { useRouter } from 'expo-router';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { Ionicons } from '@expo/vector-icons';
-import { colors, typography, spacing, radius, shadow, layout, component } from '@/theme/tokens';
+import { colors, typography, spacing, radius, layout, component } from '@/theme/tokens';
 import { SearchBar } from '@/components/filter/SearchBar';
 import { FilterBottomSheet } from '@/components/filter/FilterBottomSheet';
 import { PlaceCard } from '@/components/place/PlaceCard';
@@ -33,10 +33,8 @@ export default function ListScreen() {
     <SafeAreaView style={styles.safe} edges={['top']}>
       {/* Header */}
       <View style={styles.header}>
-        <View>
-          <Text style={styles.headerTitle}>리스트</Text>
-          <Text style={styles.countText}>{filteredPlaces.length}개</Text>
-        </View>
+        <Text style={styles.headerTitle}>리스트</Text>
+        <Text style={styles.countText}>{filteredPlaces.length}개</Text>
       </View>
 
       {/* Search + Filter */}
@@ -55,8 +53,8 @@ export default function ListScreen() {
         >
           <Ionicons
             name="funnel-outline"
-            size={18}
-            color={hasActiveFilter ? colors.text.inverse : colors.text.primary}
+            size={16}
+            color={hasActiveFilter ? colors.text.inverse : colors.text.secondary}
           />
         </TouchableOpacity>
       </View>
@@ -86,17 +84,23 @@ export default function ListScreen() {
         </View>
       )}
 
+      {/* Divider */}
+      <View style={styles.divider} />
+
       {/* List */}
       <FlatList
         data={filteredPlaces}
         keyExtractor={(item) => item.placeId}
         contentContainerStyle={styles.listContent}
-        renderItem={({ item }) => (
-          <PlaceCard
-            place={item}
-            visitCount={getVisitCount(item.placeId)}
-            onPress={() => router.push(`/(main)/place/${item.placeId}`)}
-          />
+        renderItem={({ item, index }) => (
+          <>
+            <PlaceCard
+              place={item}
+              visitCount={getVisitCount(item.placeId)}
+              onPress={() => router.push(`/(main)/place/${item.placeId}`)}
+            />
+            {index < filteredPlaces.length - 1 && <View style={styles.rowDivider} />}
+          </>
         )}
         ListEmptyComponent={
           <EmptyState
@@ -113,7 +117,7 @@ export default function ListScreen() {
         onPress={() => router.push('/(main)/place/add/search')}
         activeOpacity={0.8}
       >
-        <Ionicons name="add" size={28} color={colors.text.inverse} />
+        <Ionicons name="add" size={24} color={colors.text.inverse} />
       </TouchableOpacity>
 
       {/* Filter Modal */}
@@ -135,20 +139,23 @@ export default function ListScreen() {
 const styles = StyleSheet.create({
   safe: {
     flex: 1,
-    backgroundColor: colors.bg.canvas,
+    backgroundColor: colors.bg.base,
   },
   header: {
+    flexDirection: 'row',
+    alignItems: 'baseline',
     paddingHorizontal: layout.screenPaddingH,
-    paddingVertical: spacing[3],
+    paddingTop: spacing[4],
+    paddingBottom: spacing[3],
+    gap: spacing[2],
   },
   headerTitle: {
-    ...typography.heading.l,
+    ...typography.heading.m,
     color: colors.text.primary,
   },
   countText: {
     ...typography.body.m,
     color: colors.text.tertiary,
-    marginTop: 2,
   },
   searchRow: {
     flexDirection: 'row',
@@ -161,16 +168,18 @@ const styles = StyleSheet.create({
     flex: 1,
   },
   filterBtn: {
-    width: component.button.floatingIcon,
-    height: component.button.floatingIcon,
-    borderRadius: 24,
-    backgroundColor: colors.bg.elevated,
+    width: component.searchBar.height,
+    height: component.searchBar.height,
+    borderRadius: component.searchBar.radius,
+    backgroundColor: colors.bg.subtle,
+    borderWidth: 1,
+    borderColor: colors.line.default,
     alignItems: 'center',
     justifyContent: 'center',
-    ...shadow.sm,
   },
   filterBtnActive: {
     backgroundColor: colors.accent.primary,
+    borderColor: colors.accent.primary,
   },
   chipRow: {
     flexDirection: 'row',
@@ -180,24 +189,36 @@ const styles = StyleSheet.create({
     gap: spacing[2],
   },
   resetText: {
-    ...typography.caption,
+    ...typography.body.m,
     color: colors.accent.primary,
+  },
+  divider: {
+    height: 1,
+    backgroundColor: colors.line.default,
   },
   listContent: {
     paddingHorizontal: layout.screenPaddingH,
     paddingBottom: 120,
   },
+  rowDivider: {
+    height: 1,
+    backgroundColor: colors.line.default,
+  },
   fab: {
     position: 'absolute',
-    bottom: 100,
+    bottom: 96,
     right: layout.screenPaddingH,
     width: component.button.fab,
     height: component.button.fab,
-    borderRadius: 28,
+    borderRadius: component.button.fab / 2,
     backgroundColor: colors.accent.primary,
     alignItems: 'center',
     justifyContent: 'center',
-    ...shadow.lg,
+    shadowColor: colors.accent.primary,
+    shadowOffset: { width: 0, height: 4 },
+    shadowOpacity: 0.30,
+    shadowRadius: 12,
+    elevation: 6,
   },
   filterOverlay: {
     flex: 1,
@@ -205,7 +226,7 @@ const styles = StyleSheet.create({
     justifyContent: 'flex-end',
   },
   filterSheet: {
-    backgroundColor: colors.bg.elevated,
+    backgroundColor: colors.bg.sheet,
     borderTopLeftRadius: radius.sheet,
     borderTopRightRadius: radius.sheet,
   },

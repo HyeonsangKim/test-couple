@@ -7,14 +7,13 @@ type ChipSelection = 'neutral' | 'accent';
 interface ChipProps {
   label: string;
   selected?: boolean;
-  /** Which selection style to use when `selected` is true */
   selectionStyle?: ChipSelection;
   onPress?: () => void;
   disabled?: boolean;
   style?: ViewStyle;
-  /** @deprecated Legacy prop -- kept for backwards compatibility. Ignored in the new design. */
+  /** @deprecated kept for backwards compatibility */
   color?: string;
-  /** @deprecated Legacy prop -- kept for backwards compatibility. 'sm' renders a compact chip. */
+  /** @deprecated 'sm' renders a compact chip */
   size?: 'sm' | 'md';
 }
 
@@ -31,19 +30,15 @@ export const Chip: React.FC<ChipProps> = ({
   const isCompact = size === 'sm';
 
   const getBg = (): string => {
-    if (!selected) return colors.bg.elevated;
-    if (color) return `${color}20`; // 12% opacity tint of the status color
-    return selectionStyle === 'accent'
-      ? colors.accent.primarySoft
-      : colors.bg.soft;
+    if (!selected) return colors.bg.subtle;
+    if (color) return `${color}18`;
+    return selectionStyle === 'accent' ? colors.accent.soft : colors.bg.muted;
   };
 
   const getTextColor = (): string => {
     if (!selected) return colors.text.secondary;
     if (color) return color;
-    return selectionStyle === 'accent'
-      ? colors.accent.primary
-      : colors.text.primary;
+    return selectionStyle === 'accent' ? colors.accent.primary : colors.text.primary;
   };
 
   return (
@@ -56,9 +51,11 @@ export const Chip: React.FC<ChipProps> = ({
         {
           backgroundColor: getBg(),
           opacity: disabled ? 0.45 : 1,
-          height: isCompact ? 36 : component.chip.height,
-          borderRadius: isCompact ? 18 : component.chip.radius,
-          paddingHorizontal: isCompact ? 12 : 16,
+          height: isCompact ? 30 : component.chip.height,
+          borderRadius: isCompact ? 15 : component.chip.radius,
+          paddingHorizontal: isCompact ? 10 : 14,
+          borderWidth: 1,
+          borderColor: selected ? 'transparent' : colors.line.default,
         },
         style,
       ]}
@@ -81,13 +78,11 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
   },
   label: {
-    fontSize: typography.title.m.fontSize,
-    lineHeight: typography.title.m.lineHeight,
-    fontWeight: typography.title.m.fontWeight,
+    ...typography.body.m,
+    fontWeight: '500',
   },
   labelCompact: {
-    fontSize: typography.caption.fontSize,
-    lineHeight: typography.caption.lineHeight,
-    fontWeight: typography.caption.fontWeight,
+    ...typography.micro,
+    fontWeight: '500',
   },
 });
