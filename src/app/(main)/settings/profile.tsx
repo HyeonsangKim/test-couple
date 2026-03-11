@@ -1,11 +1,18 @@
-import React, { useState } from 'react';
-import { View, Text, StyleSheet, Alert, TextInput as RNTextInput, TouchableOpacity } from 'react-native';
+import React, { useMemo, useState } from 'react';
+import { Alert, ScrollView, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
 import { useRouter } from 'expo-router';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import * as ImagePicker from 'expo-image-picker';
 import { Ionicons } from '@expo/vector-icons';
-import { colors, typography, spacing, radius, shadow, layout, component } from '@/theme/tokens';
-import { Button, IconButton, Avatar, Card } from '@/components/ui';
+import { colors, layout, radius, spacing, typography, component } from '@/theme/tokens';
+import { Avatar, Button } from '@/components/ui';
+import {
+  BottomCtaBar,
+  SettingsHeader,
+  SettingsSection,
+  SettingsSurface,
+  SettingsTextField,
+} from '@/components/settings';
 import { useAuthStore } from '@/stores/useAuthStore';
 import { validateNickname } from '@/utils/validation';
 
@@ -19,6 +26,11 @@ export default function ProfileSettingsScreen() {
     currentUser?.profileImageUri ?? null,
   );
   const [loading, setLoading] = useState(false);
+
+  const avatarUser = useMemo(
+    () => (currentUser ? { ...currentUser, profileImageUri } : null),
+    [currentUser, profileImageUri],
+  );
 
   const handlePickImage = async () => {
     try {
@@ -59,52 +71,43 @@ export default function ProfileSettingsScreen() {
 
   return (
     <SafeAreaView style={styles.safe}>
-      {/* Header */}
-      <View style={styles.header}>
-        <IconButton
-          icon="chevron-back"
-          onPress={() => router.back()}
-          size={40}
-          backgroundColor={colors.bg.elevated}
-          color={colors.text.primary}
-        />
-        <Text style={styles.headerTitle}>프로필 수정</Text>
-        <View style={{ width: 40 }} />
-      </View>
+      <SettingsHeader title="프로필 수정" onBack={() => router.back()} />
 
-      <View style={styles.content}>
-        {/* Profile Image */}
-        <View style={styles.avatarSection}>
-          <TouchableOpacity style={styles.avatarWrapper} onPress={handlePickImage}>
+      <ScrollView contentContainerStyle={styles.content} style={styles.scroll}>
+        <SettingsSurface style={styles.profileHero}>
+          <TouchableOpacity activeOpacity={0.8} onPress={handlePickImage} style={styles.avatarButton}>
             <Avatar
+              user={avatarUser}
               name={nickname || currentUser?.nickname || '?'}
               color={colors.accent.primary}
               size={component.avatar.xl}
             />
             <View style={styles.avatarBadge}>
-              <Ionicons name="camera" size={14} color={colors.text.inverse} />
+              <Ionicons name="camera-outline" size={16} color={colors.text.primary} />
             </View>
           </TouchableOpacity>
-          <Text style={styles.avatarHint}>탭하여 프로필 사진 변경</Text>
-        </View>
+          <View style={styles.heroTextBlock}>
+            <Text style={styles.heroTitle}>프로필 사진과 닉네임을 정리해보세요</Text>
+            <Text style={styles.heroDescription}>
+              MY 화면에서 가장 먼저 보이는 정보라서 짧고 또렷하게 두는 편이 좋습니다.
+            </Text>
+          </View>
+        </SettingsSurface>
 
-        {/* Nickname */}
-        <Card style={styles.inputCard}>
-          <Text style={styles.inputLabel}>닉네임</Text>
-          <RNTextInput
-            style={styles.input}
+        <SettingsSection style={styles.section} title="기본 정보">
+          <SettingsTextField
+            label="닉네임"
             value={nickname}
             onChangeText={setNickname}
             placeholder="닉네임을 입력해주세요"
-            placeholderTextColor={colors.text.tertiary}
             maxLength={12}
+            helperText="상대방과 함께 볼 이름입니다."
+            metaText={`${nickname.length}/12`}
           />
-          <Text style={styles.charCount}>{nickname.length}/12</Text>
-        </Card>
-      </View>
+        </SettingsSection>
+      </ScrollView>
 
-      {/* Fixed Footer Save Button */}
-      <View style={styles.footer}>
+      <BottomCtaBar>
         <Button
           title="저장"
           onPress={handleSave}
@@ -113,9 +116,9 @@ export default function ProfileSettingsScreen() {
           fullWidth
           loading={loading}
           disabled={!nickname.trim()}
-          style={styles.saveBtn}
+          style={styles.ctaButton}
         />
-      </View>
+      </BottomCtaBar>
     </SafeAreaView>
   );
 }
@@ -125,78 +128,52 @@ const styles = StyleSheet.create({
     flex: 1,
     backgroundColor: colors.bg.base,
   },
-  header: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'space-between',
-    paddingHorizontal: layout.screenPaddingH,
-    paddingVertical: spacing[3],
-  },
-  headerTitle: {
-    ...typography.title.l,
-    color: colors.text.primary,
+  scroll: {
+    flex: 1,
   },
   content: {
-    flex: 1,
     paddingHorizontal: layout.screenPaddingH,
-    paddingTop: spacing[8],
+    paddingTop: spacing[4],
+    paddingBottom: spacing[8],
   },
-  avatarSection: {
+  profileHero: {
     alignItems: 'center',
-    marginBottom: spacing[8],
+    gap: spacing[4],
+    paddingVertical: spacing[6],
   },
-  avatarWrapper: {
+  avatarButton: {
     position: 'relative',
-    marginBottom: spacing[2],
   },
   avatarBadge: {
     position: 'absolute',
-    bottom: 0,
     right: 0,
-    width: 28,
-    height: 28,
-    borderRadius: 14,
-    backgroundColor: colors.accent.primary,
+    bottom: 0,
+    width: 32,
+    height: 32,
+    borderRadius: radius.full,
+    backgroundColor: colors.bg.base,
     alignItems: 'center',
     justifyContent: 'center',
-    borderWidth: 2,
-    borderColor: colors.bg.base,
   },
-  avatarHint: {
-    ...typography.body.s,
-    color: colors.text.tertiary,
+  heroTextBlock: {
+    alignItems: 'center',
+    gap: spacing[2],
   },
-  inputCard: {
-    marginBottom: spacing[6],
-  },
-  inputLabel: {
-    ...typography.caption,
-    color: colors.text.secondary,
-    fontWeight: '600',
-    marginBottom: spacing[2],
-  },
-  input: {
-    ...typography.body.l,
+  heroTitle: {
+    ...typography.title.m,
     color: colors.text.primary,
-    backgroundColor: colors.bg.subtle,
-    borderRadius: radius.md,
-    height: 48,
+    textAlign: 'center',
+  },
+  heroDescription: {
+    ...typography.body.m,
+    color: colors.text.secondary,
+    textAlign: 'center',
     paddingHorizontal: spacing[4],
   },
-  charCount: {
-    ...typography.caption,
-    color: colors.text.tertiary,
-    textAlign: 'right',
-    marginTop: spacing[1],
+  section: {
+    marginTop: spacing[7],
   },
-  footer: {
-    paddingHorizontal: layout.screenPaddingH,
-    paddingVertical: spacing[4],
-    borderTopWidth: 1,
-    borderTopColor: colors.line.default,
-    backgroundColor: colors.bg.base,
-  },
-  saveBtn: {
-    borderRadius: radius['2xl'],
+  ctaButton: {
+    borderRadius: radius.lg,
   },
 });

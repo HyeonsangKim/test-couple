@@ -1,10 +1,17 @@
 import React, { useState } from 'react';
-import { View, Text, StyleSheet, TextInput as RNTextInput, Alert, ScrollView } from 'react-native';
+import { Alert, ScrollView, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
 import { useRouter } from 'expo-router';
 import { SafeAreaView } from 'react-native-safe-area-context';
-import { colors, typography, spacing, radius, layout } from '@/theme/tokens';
-import { Button, IconButton, Card } from '@/components/ui';
+import { colors, layout, radius, spacing, typography } from '@/theme/tokens';
+import { Button } from '@/components/ui';
 import { DatePicker } from '@/components/common/DatePicker';
+import {
+  BottomCtaBar,
+  SettingsHeader,
+  SettingsSection,
+  SettingsSurface,
+  SettingsTextField,
+} from '@/components/settings';
 import { useMapStore } from '@/stores/useMapStore';
 
 export default function AnniversarySettingsScreen() {
@@ -16,18 +23,13 @@ export default function AnniversarySettingsScreen() {
   const [label, setLabel] = useState(map?.anniversaryLabel ?? '');
   const [loading, setLoading] = useState(false);
 
-  // Calculate D-day preview
   let dDayPreview = '';
   if (date) {
     const today = new Date();
     const anniv = new Date(date);
     const diffMs = today.getTime() - anniv.getTime();
     const diffDays = Math.floor(diffMs / (1000 * 60 * 60 * 24));
-    if (diffDays >= 0) {
-      dDayPreview = `D+${diffDays}`;
-    } else {
-      dDayPreview = `D${diffDays}`;
-    }
+    dDayPreview = diffDays >= 0 ? `D+${diffDays}` : `D${diffDays}`;
   }
 
   const handleSave = async () => {
@@ -60,60 +62,45 @@ export default function AnniversarySettingsScreen() {
 
   return (
     <SafeAreaView style={styles.safe}>
-      {/* Header */}
-      <View style={styles.header}>
-        <IconButton
-          icon="chevron-back"
-          onPress={() => router.back()}
-          size={40}
-          backgroundColor={colors.bg.elevated}
-          color={colors.text.primary}
-        />
-        <Text style={styles.headerTitle}>기념일</Text>
-        <View style={{ width: 40 }} />
-      </View>
+      <SettingsHeader title="기념일" onBack={() => router.back()} />
 
-      <ScrollView style={styles.scroll} contentContainerStyle={styles.content}>
-        {/* D-day Preview */}
+      <ScrollView contentContainerStyle={styles.content} style={styles.scroll}>
         {dDayPreview ? (
-          <Card style={styles.previewCard}>
-            <Text style={styles.previewDDay}>{dDayPreview}</Text>
+          <SettingsSurface style={styles.previewSurface}>
             <Text style={styles.previewLabel}>{label || '기념일'}</Text>
-          </Card>
+            <Text style={styles.previewDDay}>{dDayPreview}</Text>
+            <Text style={styles.previewDescription}>MY 화면과 상세 페이지에 함께 표시됩니다.</Text>
+          </SettingsSurface>
         ) : null}
 
-        {/* Date */}
-        <View style={styles.section}>
-          <DatePicker value={date} onChange={setDate} label="기념일 날짜" />
-        </View>
+        <SettingsSection style={styles.section} title="기본 정보">
+          <View style={styles.fieldStack}>
+            <DatePicker value={date} onChange={setDate} label="기념일 날짜" />
+            <SettingsTextField
+              label="기념일 이름"
+              value={label}
+              onChangeText={setLabel}
+              placeholder="예: 처음 만난 날, 100일"
+              maxLength={20}
+              helperText="짧은 이름으로 두면 리스트에서 더 잘 읽혀요."
+              metaText={`${label.length}/20`}
+            />
+          </View>
+        </SettingsSection>
 
-        {/* Label */}
-        <View style={styles.section}>
-          <Text style={styles.inputLabel}>기념일 이름</Text>
-          <RNTextInput
-            style={styles.input}
-            value={label}
-            onChangeText={setLabel}
-            placeholder="예: 처음 만난 날, 100일"
-            placeholderTextColor={colors.text.tertiary}
-            maxLength={20}
-          />
-        </View>
-
-        {map?.anniversaryDate && (
-          <Button
-            title="기념일 삭제"
-            onPress={handleClear}
-            variant="ghost"
-            size="md"
-            textStyle={{ color: colors.accent.danger }}
-            style={styles.clearBtn}
-          />
-        )}
+        {map?.anniversaryDate ? (
+          <SettingsSection style={styles.section} title="관리">
+            <SettingsSurface tone="danger">
+              <TouchableOpacity activeOpacity={0.7} onPress={handleClear} style={styles.clearAction}>
+                <Text style={styles.clearActionText}>기념일 삭제</Text>
+                <Text style={styles.clearActionHelper}>삭제하면 D-day 표시도 함께 사라집니다.</Text>
+              </TouchableOpacity>
+            </SettingsSurface>
+          </SettingsSection>
+        ) : null}
       </ScrollView>
 
-      {/* Fixed Footer Save Button */}
-      <View style={styles.footer}>
+      <BottomCtaBar>
         <Button
           title="저장"
           onPress={handleSave}
@@ -121,9 +108,9 @@ export default function AnniversarySettingsScreen() {
           size="lg"
           fullWidth
           loading={loading}
-          style={styles.saveBtn}
+          style={styles.ctaButton}
         />
-      </View>
+      </BottomCtaBar>
     </SafeAreaView>
   );
 }
@@ -131,18 +118,7 @@ export default function AnniversarySettingsScreen() {
 const styles = StyleSheet.create({
   safe: {
     flex: 1,
-    backgroundColor: colors.bg.canvas,
-  },
-  header: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'space-between',
-    paddingHorizontal: layout.screenPaddingH,
-    paddingVertical: spacing[3],
-  },
-  headerTitle: {
-    ...typography.title.l,
-    color: colors.text.primary,
+    backgroundColor: colors.bg.base,
   },
   scroll: {
     flex: 1,
@@ -150,50 +126,43 @@ const styles = StyleSheet.create({
   content: {
     paddingHorizontal: layout.screenPaddingH,
     paddingTop: spacing[4],
+    paddingBottom: spacing[8],
   },
-  previewCard: {
+  previewSurface: {
     alignItems: 'center',
-    marginBottom: spacing[6],
+    gap: spacing[1],
     paddingVertical: spacing[6],
   },
-  previewDDay: {
-    ...typography.display.l,
-    color: colors.accent.primary,
-    marginBottom: spacing[1],
-  },
   previewLabel: {
-    ...typography.body.l,
+    ...typography.body.m,
     color: colors.text.secondary,
+  },
+  previewDDay: {
+    ...typography.display.m,
+    color: colors.accent.primary,
+  },
+  previewDescription: {
+    ...typography.caption,
+    color: colors.text.tertiary,
   },
   section: {
-    marginBottom: spacing[6],
+    marginTop: spacing[7],
   },
-  inputLabel: {
-    ...typography.caption,
-    color: colors.text.secondary,
-    fontWeight: '600',
-    marginBottom: spacing[2],
+  fieldStack: {
+    gap: spacing[4],
   },
-  input: {
+  clearAction: {
+    gap: spacing[1],
+  },
+  clearActionText: {
     ...typography.body.l,
-    color: colors.text.primary,
-    backgroundColor: colors.bg.soft,
+    color: colors.accent.danger,
+  },
+  clearActionHelper: {
+    ...typography.body.m,
+    color: colors.text.secondary,
+  },
+  ctaButton: {
     borderRadius: radius.lg,
-    height: 56,
-    paddingHorizontal: spacing[4],
-  },
-  clearBtn: {
-    marginTop: spacing[4],
-    alignSelf: 'center',
-  },
-  footer: {
-    paddingHorizontal: layout.screenPaddingH,
-    paddingVertical: spacing[4],
-    borderTopWidth: 1,
-    borderTopColor: colors.border.soft,
-    backgroundColor: colors.bg.elevated,
-  },
-  saveBtn: {
-    borderRadius: radius['2xl'],
   },
 });

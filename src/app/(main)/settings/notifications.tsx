@@ -1,9 +1,9 @@
 import React, { useEffect } from 'react';
-import { View, Text, StyleSheet, Switch, ScrollView } from 'react-native';
+import { ScrollView, StyleSheet, Text, View } from 'react-native';
 import { useRouter } from 'expo-router';
 import { SafeAreaView } from 'react-native-safe-area-context';
-import { colors, typography, spacing, layout, component } from '@/theme/tokens';
-import { IconButton, Card } from '@/components/ui';
+import { colors, layout, spacing, typography } from '@/theme/tokens';
+import { SettingsHeader, SettingsSection, SettingsSwitchRow } from '@/components/settings';
 import { useAuthStore } from '@/stores/useAuthStore';
 import { NOTIFICATION_LABELS } from '@/constants';
 
@@ -33,58 +33,35 @@ export default function NotificationSettingsScreen() {
   } = useAuthStore();
 
   useEffect(() => {
-    loadNotificationSettings();
-  }, []);
+    void loadNotificationSettings();
+  }, [loadNotificationSettings]);
 
-  const handleToggle = (key: NotificationKey) => {
-    if (!notificationSettings) return;
-    const currentValue = notificationSettings[key];
-    updateNotificationSettings({ [key]: !currentValue });
+  const handleToggle = (key: NotificationKey, nextValue: boolean) => {
+    void updateNotificationSettings({ [key]: nextValue });
   };
 
   return (
     <SafeAreaView style={styles.safe}>
-      {/* Header */}
-      <View style={styles.header}>
-        <IconButton
-          icon="chevron-back"
-          onPress={() => router.back()}
-          size={40}
-          backgroundColor={colors.bg.elevated}
-          color={colors.text.primary}
-        />
-        <Text style={styles.headerTitle}>알림 설정</Text>
-        <View style={{ width: 40 }} />
-      </View>
+      <SettingsHeader title="알림 설정" onBack={() => router.back()} />
 
-      <ScrollView style={styles.scroll} contentContainerStyle={styles.content}>
-        <Card style={styles.card}>
-          {NOTIFICATION_KEYS.map((key, index) => (
-            <View
-              key={key}
-              style={[
-                styles.row,
-                index < NOTIFICATION_KEYS.length - 1 && styles.rowBorder,
-              ]}
-            >
-              <Text style={styles.label}>
-                {NOTIFICATION_LABELS[key] ?? key}
-              </Text>
-              <Switch
+      <ScrollView contentContainerStyle={styles.content} style={styles.scroll}>
+        <SettingsSection
+          description="알림은 변경 즉시 저장됩니다. 필요한 항목만 켜두면 더 깔끔하게 사용할 수 있어요."
+        >
+          <View style={styles.rowStack}>
+            {NOTIFICATION_KEYS.map((key) => (
+              <SettingsSwitchRow
+                key={key}
+                label={NOTIFICATION_LABELS[key] ?? key}
                 value={notificationSettings?.[key] ?? true}
-                onValueChange={() => handleToggle(key)}
-                trackColor={{
-                  false: colors.border.strong,
-                  true: colors.accent.primary,
-                }}
-                thumbColor={colors.white}
+                onValueChange={(nextValue) => handleToggle(key, nextValue)}
               />
-            </View>
-          ))}
-        </Card>
+            ))}
+          </View>
+        </SettingsSection>
 
-        <Text style={styles.footerText}>
-          알림을 끄면 해당 항목의 푸시 알림을 받지 않습니다.
+        <Text style={styles.helperText}>
+          알림을 꺼도 앱 안의 기록과 메시지는 그대로 유지됩니다.
         </Text>
       </ScrollView>
     </SafeAreaView>
@@ -94,48 +71,24 @@ export default function NotificationSettingsScreen() {
 const styles = StyleSheet.create({
   safe: {
     flex: 1,
-    backgroundColor: colors.bg.canvas,
+    backgroundColor: colors.bg.base,
   },
-  header: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'space-between',
-    paddingHorizontal: layout.screenPaddingH,
-    paddingVertical: spacing[3],
+  scroll: {
+    flex: 1,
   },
-  headerTitle: {
-    ...typography.title.l,
-    color: colors.text.primary,
-  },
-  scroll: { flex: 1 },
   content: {
     paddingHorizontal: layout.screenPaddingH,
     paddingTop: spacing[4],
+    paddingBottom: spacing[8],
   },
-  card: {
-    paddingVertical: spacing[1],
+  rowStack: {
+    gap: spacing[3],
   },
-  row: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    alignItems: 'center',
-    minHeight: component.toggleRow.height,
-    paddingVertical: spacing[4],
-    paddingHorizontal: spacing[1],
-  },
-  rowBorder: {
-    borderBottomWidth: 1,
-    borderBottomColor: colors.border.soft,
-  },
-  label: {
-    ...typography.body.l,
-    color: colors.text.primary,
-  },
-  footerText: {
-    ...typography.body.s,
+  helperText: {
+    ...typography.body.m,
     color: colors.text.tertiary,
+    marginTop: spacing[5],
     textAlign: 'center',
-    marginTop: spacing[6],
     paddingHorizontal: spacing[4],
   },
 });

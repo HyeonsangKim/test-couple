@@ -98,21 +98,21 @@ const styles = StyleSheet.create({
   label: {
     ...typography.caption,
     color: colors.text.secondary,
-    marginBottom: spacing[1],
+    marginBottom: spacing[2],
   },
   trigger: {
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'space-between',
+    minHeight: component.input.height,
     borderWidth: 1,
-    borderColor: colors.border.soft,
+    borderColor: colors.line.default,
     borderRadius: component.input.radius,
-    paddingVertical: component.input.verticalPadding,
     paddingHorizontal: component.input.horizontalPadding,
-    backgroundColor: colors.bg.elevated,
+    backgroundColor: colors.bg.subtle,
   },
   triggerText: {
-    ...typography.body.m,
+    ...typography.body.l,
     color: colors.text.primary,
   },
   placeholder: {
@@ -126,8 +126,8 @@ const styles = StyleSheet.create({
     padding: spacing[6],
   },
   calendar: {
-    backgroundColor: colors.bg.elevated,
-    borderRadius: radius['2xl'],
+    backgroundColor: colors.bg.sheet,
+    borderRadius: radius.lg,
     padding: spacing[5],
     width: 320,
   },
@@ -138,7 +138,12 @@ const styles = StyleSheet.create({
     marginBottom: spacing[4],
   },
   navBtn: {
-    padding: spacing[2],
+    width: 36,
+    height: 36,
+    borderRadius: radius.md,
+    backgroundColor: colors.bg.subtle,
+    alignItems: 'center',
+    justifyContent: 'center',
   },
   monthYear: {
     ...typography.title.m,
