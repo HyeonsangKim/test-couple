@@ -18,7 +18,13 @@ interface MenuItemData {
   icon: IoniconsName;
   label: string;
   onPress: () => void;
+  subtitle?: string;
   danger?: boolean;
+}
+
+interface StatCardData {
+  value: string;
+  label: string;
 }
 
 export default function MyScreen() {
@@ -36,7 +42,7 @@ export default function MyScreen() {
   const [showWithdrawStep1, setShowWithdrawStep1] = useState(false);
   const [showWithdrawStep2, setShowWithdrawStep2] = useState(false);
 
-  const isConnected = map && map.memberUserIds.length >= 2;
+  const isConnected = Boolean(map && map.memberUserIds.length >= 2);
   const visitedCount = places.filter((p) => p.status === 'visited').length;
   const wishlistCount = places.filter((p) => p.status === 'wishlist').length;
 
@@ -83,11 +89,22 @@ export default function MyScreen() {
     }
   };
 
-  const menuItems: MenuItemData[] = [
+  const managementItems: MenuItemData[] = [
     { icon: 'paper-plane-outline', label: '초대/연결 관리', onPress: () => router.push('/(main)/invite-center') },
     { icon: 'notifications-outline', label: '알림 설정', onPress: () => router.push('/(main)/settings/notifications') },
     { icon: 'calendar-outline', label: '기념일', onPress: () => router.push('/(main)/settings/anniversary') },
     { icon: 'person-circle-outline', label: '프로필 수정', onPress: () => router.push('/(main)/settings/profile') },
+  ];
+
+  const accountItems: MenuItemData[] = [
+    { icon: 'log-out-outline', label: '로그아웃', onPress: () => setShowLogoutConfirm(true) },
+    { icon: 'alert-circle-outline', label: '회원탈퇴', onPress: handleWithdrawStart, danger: true },
+  ];
+
+  const stats: StatCardData[] = [
+    { value: String(visitedCount), label: '갔다 온 곳' },
+    { value: String(wishlistCount), label: '위시리스트' },
+    ...(dDayText ? [{ value: dDayText, label: map?.anniversaryLabel ?? '기념일' }] : []),
   ];
 
   return (
@@ -97,84 +114,71 @@ export default function MyScreen() {
         contentContainerStyle={styles.scrollContent}
         showsVerticalScrollIndicator={false}
       >
-        {/* Header */}
         <Text style={styles.headerTitle}>MY</Text>
 
-        {/* Profile Section */}
-        <View style={styles.profileSection}>
+        <TouchableOpacity
+          activeOpacity={0.85}
+          onPress={() => router.push('/(main)/settings/profile')}
+          style={styles.profileHero}
+        >
           <Avatar
+            user={currentUser}
             name={currentUser?.nickname ?? '?'}
             color={colors.accent.primary}
             size={component.avatar.lg}
           />
           <View style={styles.profileInfo}>
-            <Text style={styles.nickname}>{currentUser?.nickname ?? '사용자'}</Text>
+            <View style={styles.profileTitleRow}>
+              <Text style={styles.nickname}>{currentUser?.nickname ?? '사용자'}</Text>
+              <View style={styles.editChip}>
+                <Text style={styles.editChipText}>프로필 수정</Text>
+              </View>
+            </View>
             {isConnected && partner ? (
               <View style={styles.partnerRow}>
-                <Ionicons name="heart" size={11} color={colors.accent.primary} />
-                <Text style={styles.partnerText}>{partner.nickname}과 함께</Text>
+                <Ionicons name="heart" size={12} color={colors.accent.primary} />
+                <Text style={styles.partnerText}>{partner.nickname}과 함께 지도 공유 중</Text>
               </View>
             ) : (
-              <Text style={styles.soloText}>솔로 모드</Text>
+              <Text style={styles.soloText}>아직 연결되지 않았어요. 초대 코드로 함께 시작해보세요.</Text>
             )}
           </View>
-          <TouchableOpacity
-            onPress={() => router.push('/(main)/settings/profile')}
-            style={styles.editBtn}
-          >
-            <Ionicons name="create-outline" size={18} color={colors.text.tertiary} />
-          </TouchableOpacity>
-        </View>
+        </TouchableOpacity>
 
-        <View style={styles.sectionDivider} />
-
-        {/* Stats / Connection */}
         {isConnected ? (
-          <View style={styles.statsRow}>
-            <View style={styles.statItem}>
-              <Text style={styles.statValue}>{visitedCount}</Text>
-              <Text style={styles.statLabel}>갔다 온 곳</Text>
-            </View>
-            <View style={styles.statVertDivider} />
-            <View style={styles.statItem}>
-              <Text style={styles.statValue}>{wishlistCount}</Text>
-              <Text style={styles.statLabel}>위시리스트</Text>
-            </View>
-            {dDayText ? (
-              <>
-                <View style={styles.statVertDivider} />
-                <View style={styles.statItem}>
-                  <Text style={styles.statValue}>{dDayText}</Text>
-                  <Text style={styles.statLabel}>{map?.anniversaryLabel ?? '기념일'}</Text>
-                </View>
-              </>
-            ) : null}
+          <View style={styles.statsGrid}>
+            {stats.map((item) => (
+              <View key={item.label} style={styles.statCard}>
+                <Text style={styles.statValue}>{item.value}</Text>
+                <Text style={styles.statLabel}>{item.label}</Text>
+              </View>
+            ))}
           </View>
         ) : (
           <View style={styles.connectPrompt}>
             <View style={styles.connectTextBlock}>
               <Text style={styles.connectTitle}>상대방과 연결해보세요</Text>
-              <Text style={styles.connectDesc}>초대 코드를 공유하거나 받아서 함께 지도를 사용할 수 있어요</Text>
+              <Text style={styles.connectDesc}>초대 코드를 공유하거나 받아서 함께 지도를 사용할 수 있어요.</Text>
             </View>
             <Button
               title="연결 관리"
               onPress={() => router.push('/(main)/invite-center')}
               variant="primary"
               size="md"
+              fullWidth
             />
           </View>
         )}
 
-        <View style={styles.sectionDivider} />
-
-        {/* Menu Group */}
-        <View style={styles.menuGroup}>
-          {menuItems.map((item, index) => (
-            <React.Fragment key={item.label}>
+        <View style={styles.section}>
+          <Text style={styles.sectionLabel}>관리</Text>
+          <View style={styles.menuStack}>
+            {managementItems.map((item) => (
               <TouchableOpacity
+                key={item.label}
                 style={styles.menuRow}
                 onPress={item.onPress}
-                activeOpacity={0.6}
+                activeOpacity={0.75}
               >
                 <View style={styles.menuIconFrame}>
                   <Ionicons name={item.icon} size={18} color={colors.text.secondary} />
@@ -182,68 +186,62 @@ export default function MyScreen() {
                 <Text style={styles.menuLabel}>{item.label}</Text>
                 <Ionicons name="chevron-forward" size={16} color={colors.text.tertiary} />
               </TouchableOpacity>
-              {index < menuItems.length - 1 && <View style={styles.rowDivider} />}
-            </React.Fragment>
-          ))}
+            ))}
+          </View>
         </View>
 
-        {/* Snapshots */}
         {snapshots.length > 0 && (
-          <>
-            <View style={styles.sectionDivider} />
-            <View style={styles.menuGroup}>
-              <Text style={styles.sectionLabel}>스냅샷</Text>
-              {snapshots.map((snap, index) => (
-                <React.Fragment key={snap.snapshotId}>
-                  <TouchableOpacity
-                    style={styles.menuRow}
-                    onPress={() => router.push(`/snapshot/${snap.snapshotId}`)}
-                    activeOpacity={0.6}
-                  >
-                    <View style={styles.menuIconFrame}>
-                      <Ionicons name="camera-outline" size={18} color={colors.text.secondary} />
-                    </View>
-                    <View style={styles.snapshotInfo}>
-                      <Text style={styles.menuLabel}>{formatDate(snap.createdAt)}</Text>
-                      <Text style={styles.snapshotSub}>{snap.places.length}개 장소</Text>
-                    </View>
-                    <Ionicons name="chevron-forward" size={16} color={colors.text.tertiary} />
-                  </TouchableOpacity>
-                  {index < snapshots.length - 1 && <View style={styles.rowDivider} />}
-                </React.Fragment>
+          <View style={styles.section}>
+            <Text style={styles.sectionLabel}>스냅샷</Text>
+            <View style={styles.menuStack}>
+              {snapshots.map((snap) => (
+                <TouchableOpacity
+                  key={snap.snapshotId}
+                  style={[styles.menuRow, styles.menuRowComfortable]}
+                  onPress={() => router.push(`/snapshot/${snap.snapshotId}`)}
+                  activeOpacity={0.75}
+                >
+                  <View style={styles.menuIconFrame}>
+                    <Ionicons name="camera-outline" size={18} color={colors.text.secondary} />
+                  </View>
+                  <View style={styles.snapshotInfo}>
+                    <Text style={styles.menuLabel}>{formatDate(snap.createdAt)}</Text>
+                    <Text style={styles.snapshotSub}>{snap.places.length}개 장소</Text>
+                  </View>
+                  <Ionicons name="chevron-forward" size={16} color={colors.text.tertiary} />
+                </TouchableOpacity>
               ))}
             </View>
-          </>
+          </View>
         )}
 
-        <View style={styles.sectionDivider} />
-
-        {/* Danger Group */}
-        <View style={styles.menuGroup}>
-          <TouchableOpacity
-            style={styles.menuRow}
-            onPress={() => setShowLogoutConfirm(true)}
-            activeOpacity={0.6}
-          >
-            <View style={styles.menuIconFrame}>
-              <Ionicons name="log-out-outline" size={18} color={colors.text.secondary} />
-            </View>
-            <Text style={styles.menuLabel}>로그아웃</Text>
-          </TouchableOpacity>
-          <View style={styles.rowDivider} />
-          <TouchableOpacity
-            style={styles.menuRow}
-            onPress={handleWithdrawStart}
-            activeOpacity={0.6}
-          >
-            <View style={styles.menuIconFrame}>
-              <Ionicons name="alert-circle-outline" size={18} color={colors.accent.danger} />
-            </View>
-            <Text style={[styles.menuLabel, { color: colors.accent.danger }]}>회원탈퇴</Text>
-          </TouchableOpacity>
+        <View style={styles.section}>
+          <Text style={styles.sectionLabel}>계정</Text>
+          <View style={styles.menuStack}>
+            {accountItems.map((item) => (
+              <TouchableOpacity
+                key={item.label}
+                style={[styles.menuRow, item.danger && styles.menuRowDanger]}
+                onPress={item.onPress}
+                activeOpacity={0.75}
+              >
+                <View style={styles.menuIconFrame}>
+                  <Ionicons
+                    name={item.icon}
+                    size={18}
+                    color={item.danger ? colors.accent.danger : colors.text.secondary}
+                  />
+                </View>
+                <Text style={[styles.menuLabel, item.danger && styles.menuLabelDanger]}>
+                  {item.label}
+                </Text>
+                <Ionicons name="chevron-forward" size={16} color={colors.text.tertiary} />
+              </TouchableOpacity>
+            ))}
+          </View>
         </View>
 
-        <View style={{ height: spacing[12] }} />
+        <View style={styles.bottomSpacer} />
       </ScrollView>
 
       <ConfirmModal
@@ -285,34 +283,42 @@ const styles = StyleSheet.create({
     flex: 1,
   },
   scrollContent: {
-    paddingBottom: 32,
+    paddingHorizontal: layout.screenPaddingH,
+    paddingBottom: spacing[12],
   },
   headerTitle: {
     ...typography.heading.m,
     color: colors.text.primary,
-    paddingHorizontal: layout.screenPaddingH,
     paddingTop: spacing[4],
-    paddingBottom: spacing[3],
+    marginBottom: spacing[5],
   },
-  profileSection: {
+  profileHero: {
     flexDirection: 'row',
-    alignItems: 'center',
-    paddingHorizontal: layout.screenPaddingH,
-    paddingVertical: spacing[4],
+    alignItems: 'flex-start',
+    padding: spacing[5],
     gap: spacing[3],
+    borderRadius: radius['2xl'],
+    backgroundColor: colors.bg.subtle,
   },
   profileInfo: {
     flex: 1,
+    gap: spacing[2],
+  },
+  profileTitleRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+    gap: spacing[2],
   },
   nickname: {
-    ...typography.title.l,
+    ...typography.heading.m,
     color: colors.text.primary,
+    flex: 1,
   },
   partnerRow: {
     flexDirection: 'row',
     alignItems: 'center',
     gap: 4,
-    marginTop: 2,
   },
   partnerText: {
     ...typography.body.m,
@@ -320,47 +326,51 @@ const styles = StyleSheet.create({
   },
   soloText: {
     ...typography.body.m,
-    color: colors.text.tertiary,
-    marginTop: 2,
+    color: colors.text.secondary,
   },
-  editBtn: {
-    padding: spacing[2],
+  editChip: {
+    height: 30,
+    paddingHorizontal: spacing[3],
+    borderRadius: radius.full,
+    backgroundColor: colors.bg.base,
+    alignItems: 'center',
+    justifyContent: 'center',
   },
-  sectionDivider: {
-    height: 1,
-    backgroundColor: colors.line.default,
+  editChipText: {
+    ...typography.caption,
+    color: colors.text.secondary,
   },
-  statsRow: {
+  statsGrid: {
     flexDirection: 'row',
-    alignItems: 'center',
-    paddingVertical: spacing[4],
-    paddingHorizontal: layout.screenPaddingH,
+    gap: spacing[3],
+    marginTop: spacing[4],
   },
-  statItem: {
+  statCard: {
     flex: 1,
-    alignItems: 'center',
+    minHeight: 92,
+    borderRadius: radius.lg,
+    backgroundColor: colors.bg.subtle,
+    paddingHorizontal: spacing[4],
+    paddingVertical: spacing[4],
+    justifyContent: 'space-between',
   },
   statValue: {
-    ...typography.title.l,
+    ...typography.heading.m,
     color: colors.accent.primary,
   },
   statLabel: {
     ...typography.caption,
     color: colors.text.secondary,
-    marginTop: 2,
-  },
-  statVertDivider: {
-    width: 1,
-    height: 28,
-    backgroundColor: colors.line.default,
   },
   connectPrompt: {
-    paddingHorizontal: layout.screenPaddingH,
-    paddingVertical: spacing[4],
-    gap: spacing[3],
+    marginTop: spacing[4],
+    padding: spacing[5],
+    borderRadius: radius['2xl'],
+    backgroundColor: colors.bg.subtle,
+    gap: spacing[4],
   },
   connectTextBlock: {
-    gap: 4,
+    gap: spacing[2],
   },
   connectTitle: {
     ...typography.title.m,
@@ -370,21 +380,32 @@ const styles = StyleSheet.create({
     ...typography.body.m,
     color: colors.text.secondary,
   },
-  menuGroup: {
-    paddingHorizontal: layout.screenPaddingH,
+  section: {
+    marginTop: spacing[7],
   },
   sectionLabel: {
-    ...typography.caption,
+    ...typography.body.m,
     color: colors.text.tertiary,
-    paddingVertical: spacing[3],
-    textTransform: 'uppercase',
-    letterSpacing: 0.5,
+    marginBottom: spacing[3],
+  },
+  menuStack: {
+    gap: spacing[3],
   },
   menuRow: {
     flexDirection: 'row',
     alignItems: 'center',
-    height: component.settingsRow.height,
+    minHeight: 56,
+    paddingHorizontal: spacing[4],
+    paddingVertical: spacing[4],
     gap: spacing[3],
+    borderRadius: radius.lg,
+    backgroundColor: colors.bg.subtle,
+  },
+  menuRowComfortable: {
+    minHeight: 64,
+  },
+  menuRowDanger: {
+    backgroundColor: colors.bg.dangerSoft,
   },
   menuIconFrame: {
     width: component.settingsRow.iconFrame,
@@ -404,9 +425,10 @@ const styles = StyleSheet.create({
     ...typography.body.m,
     color: colors.text.secondary,
   },
-  rowDivider: {
-    height: 1,
-    backgroundColor: colors.line.default,
-    marginLeft: component.settingsRow.iconFrame + spacing[3],
+  menuLabelDanger: {
+    color: colors.accent.danger,
+  },
+  bottomSpacer: {
+    height: spacing[8],
   },
 });

@@ -84,23 +84,18 @@ export default function ListScreen() {
         </View>
       )}
 
-      {/* Divider */}
-      <View style={styles.divider} />
-
       {/* List */}
       <FlatList
         data={filteredPlaces}
         keyExtractor={(item) => item.placeId}
         contentContainerStyle={styles.listContent}
-        renderItem={({ item, index }) => (
-          <>
-            <PlaceCard
-              place={item}
-              visitCount={getVisitCount(item.placeId)}
-              onPress={() => router.push(`/(main)/place/${item.placeId}`)}
-            />
-            {index < filteredPlaces.length - 1 && <View style={styles.rowDivider} />}
-          </>
+        ItemSeparatorComponent={() => <View style={styles.listGap} />}
+        renderItem={({ item }) => (
+          <PlaceCard
+            place={item}
+            visitCount={getVisitCount(item.placeId)}
+            onPress={() => router.push(`/(main)/place/${item.placeId}`)}
+          />
         )}
         ListEmptyComponent={
           <EmptyState
@@ -161,7 +156,7 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     alignItems: 'center',
     paddingHorizontal: layout.screenPaddingH,
-    marginBottom: spacing[3],
+    marginBottom: spacing[4],
     gap: spacing[2],
   },
   searchBarWrapper: {
@@ -172,37 +167,31 @@ const styles = StyleSheet.create({
     height: component.searchBar.height,
     borderRadius: component.searchBar.radius,
     backgroundColor: colors.bg.subtle,
-    borderWidth: 1,
-    borderColor: colors.line.default,
     alignItems: 'center',
     justifyContent: 'center',
   },
   filterBtnActive: {
     backgroundColor: colors.accent.primary,
-    borderColor: colors.accent.primary,
   },
   chipRow: {
     flexDirection: 'row',
     alignItems: 'center',
+    flexWrap: 'wrap',
     paddingHorizontal: layout.screenPaddingH,
-    marginBottom: spacing[3],
+    marginBottom: spacing[4],
     gap: spacing[2],
   },
   resetText: {
     ...typography.body.m,
     color: colors.accent.primary,
   },
-  divider: {
-    height: 1,
-    backgroundColor: colors.line.default,
-  },
   listContent: {
     paddingHorizontal: layout.screenPaddingH,
+    paddingTop: spacing[1],
     paddingBottom: 120,
   },
-  rowDivider: {
-    height: 1,
-    backgroundColor: colors.line.default,
+  listGap: {
+    height: spacing[3],
   },
   fab: {
     position: 'absolute',

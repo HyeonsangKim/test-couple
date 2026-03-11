@@ -228,6 +228,7 @@ export const MapSearchOverlay = forwardRef<MapSearchOverlayHandle, MapSearchOver
           <View style={styles.panel}>
             <ScrollView
               bounces={false}
+              contentContainerStyle={styles.panelContent}
               keyboardDismissMode="on-drag"
               keyboardShouldPersistTaps="handled"
               onScrollBeginDrag={Keyboard.dismiss}
@@ -236,29 +237,31 @@ export const MapSearchOverlay = forwardRef<MapSearchOverlayHandle, MapSearchOver
               <View style={styles.section}>
                 <Text style={styles.sectionTitle}>저장된 장소</Text>
                 {filteredSavedPlaces.length > 0 ? (
-                  filteredSavedPlaces.map((place, index) => (
-                    <TouchableOpacity
-                      key={place.placeId}
-                      activeOpacity={0.7}
-                      onPress={() => handleSavedPlacePress(place.placeId)}
-                      style={[styles.resultRow, index > 0 && styles.rowDivider]}
-                    >
-                      <View style={styles.iconBox}>
-                        <Ionicons
-                          color={getCategoryColor(place.category)}
-                          name={getCategoryIcon(place.category)}
-                          size={18}
-                        />
-                      </View>
-                      <View style={styles.resultTextBlock}>
-                        <Text numberOfLines={1} style={styles.resultTitle}>{place.name}</Text>
-                        {place.addressText ? (
-                          <Text numberOfLines={1} style={styles.resultSubtitle}>{place.addressText}</Text>
-                        ) : null}
-                      </View>
-                      <Ionicons name="bookmark" size={16} color={colors.text.tertiary} />
-                    </TouchableOpacity>
-                  ))
+                  <View style={styles.resultStack}>
+                    {filteredSavedPlaces.map((place) => (
+                      <TouchableOpacity
+                        key={place.placeId}
+                        activeOpacity={0.7}
+                        onPress={() => handleSavedPlacePress(place.placeId)}
+                        style={styles.resultRow}
+                      >
+                        <View style={styles.iconBox}>
+                          <Ionicons
+                            color={getCategoryColor(place.category)}
+                            name={getCategoryIcon(place.category)}
+                            size={18}
+                          />
+                        </View>
+                        <View style={styles.resultTextBlock}>
+                          <Text numberOfLines={1} style={styles.resultTitle}>{place.name}</Text>
+                          {place.addressText ? (
+                            <Text numberOfLines={1} style={styles.resultSubtitle}>{place.addressText}</Text>
+                          ) : null}
+                        </View>
+                        <Ionicons name="bookmark" size={16} color={colors.text.tertiary} />
+                      </TouchableOpacity>
+                    ))}
+                  </View>
                 ) : (
                   <View style={styles.stateRow}>
                     <Ionicons name="search-outline" size={18} color={colors.text.tertiary} />
@@ -267,7 +270,7 @@ export const MapSearchOverlay = forwardRef<MapSearchOverlayHandle, MapSearchOver
                 )}
               </View>
 
-              <View style={[styles.section, styles.sectionDivider]}>
+              <View style={styles.section}>
                 <Text style={styles.sectionTitle}>외부 장소</Text>
                 {!hasQuery ? (
                   <View style={styles.stateRow}>
@@ -275,11 +278,11 @@ export const MapSearchOverlay = forwardRef<MapSearchOverlayHandle, MapSearchOver
                     <Text style={styles.stateText}>검색어를 입력하면 외부 장소 결과가 표시돼요</Text>
                   </View>
                 ) : isLoading ? (
-                  <View>
-                    {[0, 1, 2].map((item, index) => (
+                  <View style={styles.resultStack}>
+                    {[0, 1, 2].map((item) => (
                       <View
                         key={item}
-                        style={[styles.skeletonRow, index > 0 && styles.rowDivider]}
+                        style={styles.skeletonRow}
                       >
                         <View style={styles.skeletonIcon} />
                         <View style={styles.skeletonTextBlock}>
@@ -300,29 +303,31 @@ export const MapSearchOverlay = forwardRef<MapSearchOverlayHandle, MapSearchOver
                     </TouchableOpacity>
                   </View>
                 ) : deduplicatedExternalResults.length > 0 ? (
-                  deduplicatedExternalResults.map((result, index) => (
-                    <TouchableOpacity
-                      key={result.externalPlaceId}
-                      activeOpacity={0.7}
-                      onPress={() => handleExternalPlacePress(result)}
-                      style={[styles.resultRow, index > 0 && styles.rowDivider]}
-                    >
-                      <View style={styles.iconBox}>
-                        <Ionicons
-                          color={getCategoryColor(result.category)}
-                          name={getCategoryIcon(result.category)}
-                          size={18}
-                        />
-                      </View>
-                      <View style={styles.resultTextBlock}>
-                        <Text numberOfLines={1} style={styles.resultTitle}>{result.name}</Text>
-                        {result.addressText ? (
-                          <Text numberOfLines={1} style={styles.resultSubtitle}>{result.addressText}</Text>
-                        ) : null}
-                      </View>
-                      <Ionicons name="add-circle-outline" size={18} color={colors.accent.primary} />
-                    </TouchableOpacity>
-                  ))
+                  <View style={styles.resultStack}>
+                    {deduplicatedExternalResults.map((result) => (
+                      <TouchableOpacity
+                        key={result.externalPlaceId}
+                        activeOpacity={0.7}
+                        onPress={() => handleExternalPlacePress(result)}
+                        style={styles.resultRow}
+                      >
+                        <View style={styles.iconBox}>
+                          <Ionicons
+                            color={getCategoryColor(result.category)}
+                            name={getCategoryIcon(result.category)}
+                            size={18}
+                          />
+                        </View>
+                        <View style={styles.resultTextBlock}>
+                          <Text numberOfLines={1} style={styles.resultTitle}>{result.name}</Text>
+                          {result.addressText ? (
+                            <Text numberOfLines={1} style={styles.resultSubtitle}>{result.addressText}</Text>
+                          ) : null}
+                        </View>
+                        <Ionicons name="add-circle-outline" size={18} color={colors.accent.primary} />
+                      </TouchableOpacity>
+                    ))}
+                  </View>
                 ) : (
                   <View style={styles.stateRow}>
                     <Ionicons name="search-outline" size={18} color={colors.text.tertiary} />
@@ -368,56 +373,49 @@ const styles = StyleSheet.create({
     width: component.searchBar.height,
     height: component.searchBar.height,
     borderRadius: component.searchBar.radius,
-    backgroundColor: colors.bg.base,
-    borderWidth: 1,
-    borderColor: colors.line.default,
+    backgroundColor: colors.bg.subtle,
   },
   filterButtonActive: {
     backgroundColor: colors.accent.primary,
-    borderColor: colors.accent.primary,
   },
   panel: {
-    marginTop: spacing[2],
+    marginTop: spacing[3],
     marginHorizontal: layout.screenPaddingH,
-    maxHeight: SCREEN_HEIGHT * 0.58,
+    maxHeight: SCREEN_HEIGHT * 0.62,
     backgroundColor: colors.bg.sheet,
     borderRadius: radius.sheet,
-    borderWidth: 1,
-    borderColor: colors.line.default,
     overflow: 'hidden',
     ...shadow.sm,
   },
-  section: {
-    paddingVertical: spacing[2],
+  panelContent: {
+    padding: spacing[4],
+    gap: spacing[6],
   },
-  sectionDivider: {
-    borderTopWidth: 1,
-    borderTopColor: colors.line.default,
+  section: {
+    gap: spacing[3],
   },
   sectionTitle: {
-    ...typography.caption,
+    ...typography.body.m,
     color: colors.text.tertiary,
-    paddingHorizontal: layout.screenPaddingH,
-    paddingTop: spacing[1],
-    paddingBottom: spacing[2],
+  },
+  resultStack: {
+    gap: spacing[3],
   },
   resultRow: {
     flexDirection: 'row',
     alignItems: 'center',
-    minHeight: 68,
-    paddingHorizontal: layout.screenPaddingH,
-    paddingVertical: spacing[3],
-    gap: spacing[3],
-  },
-  rowDivider: {
-    borderTopWidth: 1,
-    borderTopColor: colors.line.default,
+    minHeight: component.surfaceRow.comfortableHeight,
+    paddingHorizontal: component.surfaceRow.padding,
+    paddingVertical: component.surfaceRow.padding,
+    gap: component.surfaceRow.gap,
+    borderRadius: component.surfaceRow.radius,
+    backgroundColor: colors.bg.subtle,
   },
   iconBox: {
-    width: 40,
-    height: 40,
-    borderRadius: radius.sm,
-    backgroundColor: colors.bg.subtle,
+    width: component.surfaceRow.iconBox,
+    height: component.surfaceRow.iconBox,
+    borderRadius: radius.md,
+    backgroundColor: colors.bg.base,
     alignItems: 'center',
     justifyContent: 'center',
     flexShrink: 0,
@@ -439,8 +437,11 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     justifyContent: 'center',
     gap: spacing[2],
-    paddingHorizontal: layout.screenPaddingH,
-    paddingVertical: spacing[5],
+    minHeight: component.surfaceRow.comfortableHeight,
+    paddingHorizontal: component.surfaceRow.padding,
+    paddingVertical: component.surfaceRow.padding,
+    borderRadius: component.surfaceRow.radius,
+    backgroundColor: colors.bg.subtle,
   },
   stateText: {
     ...typography.body.m,
@@ -448,9 +449,7 @@ const styles = StyleSheet.create({
     textAlign: 'center',
   },
   errorBlock: {
-    alignItems: 'center',
-    paddingHorizontal: layout.screenPaddingH,
-    paddingVertical: spacing[5],
+    gap: spacing[3],
   },
   errorText: {
     ...typography.body.m,
@@ -459,20 +458,22 @@ const styles = StyleSheet.create({
   retryText: {
     ...typography.body.m,
     color: colors.accent.primary,
-    marginTop: spacing[2],
+    textAlign: 'center',
   },
   skeletonRow: {
     flexDirection: 'row',
     alignItems: 'center',
-    minHeight: 68,
-    paddingHorizontal: layout.screenPaddingH,
-    paddingVertical: spacing[3],
-    gap: spacing[3],
+    minHeight: component.surfaceRow.comfortableHeight,
+    paddingHorizontal: component.surfaceRow.padding,
+    paddingVertical: component.surfaceRow.padding,
+    gap: component.surfaceRow.gap,
+    borderRadius: component.surfaceRow.radius,
+    backgroundColor: colors.bg.subtle,
   },
   skeletonIcon: {
-    width: 40,
-    height: 40,
-    borderRadius: radius.sm,
+    width: component.surfaceRow.iconBox,
+    height: component.surfaceRow.iconBox,
+    borderRadius: radius.md,
     backgroundColor: colors.bg.muted,
   },
   skeletonTextBlock: {

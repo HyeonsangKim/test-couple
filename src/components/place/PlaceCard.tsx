@@ -86,9 +86,12 @@ export const PlaceCard: React.FC<PlaceCardProps> = ({ place, visitCount, onPress
 const styles = StyleSheet.create({
   row: {
     flexDirection: 'row',
-    alignItems: 'center',
+    alignItems: 'flex-start',
     minHeight: component.listCard.minHeight,
+    paddingHorizontal: component.listCard.padding,
     paddingVertical: component.listCard.padding,
+    borderRadius: component.listCard.radius,
+    backgroundColor: colors.bg.subtle,
     gap: component.listCard.gap,
   },
   thumbnail: {
@@ -104,11 +107,12 @@ const styles = StyleSheet.create({
   },
   content: {
     flex: 1,
-    gap: 3,
+    gap: spacing[1],
+    paddingTop: spacing[1],
   },
   nameRow: {
     flexDirection: 'row',
-    alignItems: 'center',
+    alignItems: 'flex-start',
   },
   name: {
     ...typography.title.m,
@@ -125,8 +129,9 @@ const styles = StyleSheet.create({
   badgeRow: {
     flexDirection: 'row',
     alignItems: 'center',
+    flexWrap: 'wrap',
     gap: spacing[1],
-    marginTop: 2,
+    marginTop: spacing[1],
   },
   badge: {
     height: component.badge.compactHeight,
