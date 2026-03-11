@@ -1,5 +1,13 @@
 import React from 'react';
-import { View, TextInput, StyleSheet, TouchableOpacity, ViewStyle, StyleProp } from 'react-native';
+import {
+  View,
+  TextInput,
+  StyleSheet,
+  TouchableOpacity,
+  ViewStyle,
+  StyleProp,
+  TextInputProps as RNTextInputProps,
+} from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import { colors, typography, component } from '@/theme/tokens';
 
@@ -10,25 +18,38 @@ interface SearchBarProps {
   onClear?: () => void;
   variant?: 'solid' | 'glass';
   style?: StyleProp<ViewStyle>;
+  onFocus?: RNTextInputProps['onFocus'];
+  onBlur?: RNTextInputProps['onBlur'];
+  onSubmitEditing?: RNTextInputProps['onSubmitEditing'];
+  autoFocus?: boolean;
 }
 
-export const SearchBar: React.FC<SearchBarProps> = ({
+export const SearchBar = React.forwardRef<TextInput, SearchBarProps>(({
   value,
   onChangeText,
   placeholder = '장소 검색...',
   onClear,
   variant = 'solid',
   style,
-}) => (
+  onFocus,
+  onBlur,
+  onSubmitEditing,
+  autoFocus = false,
+}, ref) => (
   <View style={[styles.container, style]}>
     <Ionicons name="search" size={component.searchBar.icon} color={colors.text.tertiary} style={styles.icon} />
     <TextInput
+      ref={ref}
       style={styles.input}
       value={value}
       onChangeText={onChangeText}
       placeholder={placeholder}
       placeholderTextColor={colors.text.tertiary}
       returnKeyType="search"
+      onFocus={onFocus}
+      onBlur={onBlur}
+      onSubmitEditing={onSubmitEditing}
+      autoFocus={autoFocus}
     />
     {value.length > 0 && (
       <TouchableOpacity onPress={onClear} style={styles.clearBtn}>
@@ -36,7 +57,9 @@ export const SearchBar: React.FC<SearchBarProps> = ({
       </TouchableOpacity>
     )}
   </View>
-);
+));
+
+SearchBar.displayName = 'SearchBar';
 
 const styles = StyleSheet.create({
   container: {

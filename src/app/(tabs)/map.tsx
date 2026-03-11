@@ -1,94 +1,40 @@
 import React, { useState, useRef, useCallback, useEffect } from 'react';
-import { View, StyleSheet, TouchableOpacity, Modal, Text, Platform } from 'react-native';
-import { useRouter } from 'expo-router';
-import { SafeAreaView } from 'react-native-safe-area-context';
+import { View, StyleSheet, TouchableOpacity, Modal, Text } from 'react-native';
+import { useNavigation, useRouter } from 'expo-router';
 import MapView, { Region } from 'react-native-maps';
 import { Ionicons } from '@expo/vector-icons';
-import { colors, typography, spacing, radius, shadow, layout, component, glass } from '@/theme/tokens';
-import { SearchBar } from '@/components/filter/SearchBar';
+import { colors, typography, spacing, radius, shadow, layout, component } from '@/theme/tokens';
 import { PlaceMarker } from '@/components/map/PlaceMarker';
-import { MapSearchResultsSheet } from '@/components/map/MapSearchResultsSheet';
 import { usePlaceStore } from '@/stores/usePlaceStore';
-import { useHomeStore } from '@/stores/useHomeStore';
 import { useFilteredPlaces } from '@/hooks/useFilteredPlaces';
-import { searchService } from '@/services/searchService';
 import { Place, MapApiResult } from '@/types';
 import { DEFAULT_MAP_REGION } from '@/constants';
 import { FilterBottomSheet } from '@/components/filter/FilterBottomSheet';
+import { MapSearchOverlay, MapSearchOverlayHandle } from '@/components/map/MapSearchOverlay';
 
 export default function MapScreen() {
   const router = useRouter();
+  const navigation = useNavigation();
   const mapRef = useRef<MapView>(null);
+  const searchOverlayRef = useRef<MapSearchOverlayHandle>(null);
   const [filterVisible, setFilterVisible] = useState(false);
   const [addMenuVisible, setAddMenuVisible] = useState(false);
 
   const { filter } = usePlaceStore();
   const filteredPlaces = useFilteredPlaces();
 
-  const {
-    homeSearchQuery,
-    mapApiResults,
-    mapSearchSheetOpen,
-    setHomeSearchQuery,
-    setMapApiResults,
-    setMapSearchSheetOpen,
-  } = useHomeStore();
-
   // Saved places for deduplication and display in the sheet
   const { places } = usePlaceStore();
 
-  // Search external places when query changes
-  useEffect(() => {
-    if (!homeSearchQuery.trim()) {
-      setMapApiResults([]);
-      return;
-    }
-
-    let cancelled = false;
-    const doSearch = async () => {
-      const results = await searchService.searchPlaces(homeSearchQuery);
-      if (!cancelled) {
-        setMapApiResults(results);
-      }
-    };
-
-    doSearch();
-    return () => {
-      cancelled = true;
-    };
-  }, [homeSearchQuery, setMapApiResults]);
-
-  const handleSearchChange = useCallback(
-    (text: string) => {
-      setHomeSearchQuery(text);
-      if (text.trim()) {
-        setMapSearchSheetOpen(true);
-      }
-    },
-    [setHomeSearchQuery, setMapSearchSheetOpen]
-  );
-
-  const handleSearchClear = useCallback(() => {
-    setHomeSearchQuery('');
-    setMapApiResults([]);
-    setMapSearchSheetOpen(false);
-  }, [setHomeSearchQuery, setMapApiResults, setMapSearchSheetOpen]);
-
-  const handleCloseSheet = useCallback(() => {
-    setMapSearchSheetOpen(false);
-  }, [setMapSearchSheetOpen]);
-
   const handleSavedPlacePress = useCallback(
     (placeId: string) => {
-      setMapSearchSheetOpen(false);
       router.push(`/(main)/place/${placeId}`);
     },
-    [router, setMapSearchSheetOpen]
+    [router]
   );
 
   const handleExternalPress = useCallback(
     (result: MapApiResult) => {
-      setMapSearchSheetOpen(false);
       router.push({
         pathname: '/(main)/place/add/search',
         params: {
@@ -101,12 +47,27 @@ export default function MapScreen() {
         },
       });
     },
-    [router, setMapSearchSheetOpen]
+    [router]
   );
 
   const handleMarkerPress = useCallback((place: Place) => {
     router.push(`/(main)/place/${place.placeId}`);
   }, [router]);
+
+  useEffect(() => {
+    const tabNavigation = navigation.getParent();
+
+    if (!tabNavigation) return undefined;
+
+    return tabNavigation.addListener('state', () => {
+      const state = tabNavigation.getState();
+      const activeRoute = state.routes[state.index]?.name;
+
+      if (activeRoute !== 'map') {
+        searchOverlayRef.current?.reset();
+      }
+    });
+  }, [navigation]);
 
   const handleAddBySearch = () => {
     setAddMenuVisible(false);
@@ -121,6 +82,11 @@ export default function MapScreen() {
   const handleAddByPhoto = () => {
     setAddMenuVisible(false);
     router.push('/(main)/place/add/photo');
+  };
+
+  const handleOpenAddMenu = () => {
+    searchOverlayRef.current?.close();
+    setAddMenuVisible(true);
   };
 
   const hasActiveFilter = filter.status !== 'all' || filter.category !== 'all';
@@ -139,31 +105,15 @@ export default function MapScreen() {
         ))}
       </MapView>
 
-      {/* Floating Search Bar */}
-      <SafeAreaView edges={['top']} style={styles.searchOverlay}>
-        <View style={styles.searchRow}>
-          <View style={styles.searchBarWrapper}>
-            <SearchBar
-              value={homeSearchQuery}
-              onChangeText={handleSearchChange}
-              onClear={handleSearchClear}
-              placeholder="장소 검색..."
-              variant="glass"
-            />
-          </View>
-          <TouchableOpacity
-            style={[styles.filterBtn, hasActiveFilter && styles.filterBtnActive]}
-            onPress={() => setFilterVisible(true)}
-            activeOpacity={0.7}
-          >
-            <Ionicons
-              name="funnel-outline"
-              size={18}
-              color={hasActiveFilter ? colors.text.inverse : colors.text.primary}
-            />
-          </TouchableOpacity>
-        </View>
-      </SafeAreaView>
+      <MapSearchOverlay
+        ref={searchOverlayRef}
+        isFilterActive={hasActiveFilter}
+        onExternalPress={handleExternalPress}
+        onOpenFilter={() => setFilterVisible(true)}
+        onSavedPlacePress={handleSavedPlacePress}
+        savedPlaces={places}
+        suspended={addMenuVisible}
+      />
 
       {/* Floating Location Button */}
       <TouchableOpacity
@@ -180,7 +130,7 @@ export default function MapScreen() {
       {/* FAB - Add Place */}
       <TouchableOpacity
         style={styles.fab}
-        onPress={() => setAddMenuVisible(true)}
+        onPress={handleOpenAddMenu}
         activeOpacity={0.8}
       >
         <Ionicons name="add" size={28} color={colors.text.inverse} />
@@ -244,17 +194,6 @@ export default function MapScreen() {
           </TouchableOpacity>
         </TouchableOpacity>
       </Modal>
-
-      {/* Search Results Bottom Sheet */}
-      <MapSearchResultsSheet
-        visible={mapSearchSheetOpen}
-        onClose={handleCloseSheet}
-        savedPlaces={places}
-        externalResults={mapApiResults}
-        searchQuery={homeSearchQuery}
-        onPlacePress={handleSavedPlacePress}
-        onExternalPress={handleExternalPress}
-      />
     </View>
   );
 }
@@ -266,37 +205,6 @@ const styles = StyleSheet.create({
   },
   map: {
     flex: 1,
-  },
-  searchOverlay: {
-    position: 'absolute',
-    top: 0,
-    left: 0,
-    right: 0,
-    zIndex: 10,
-  },
-  searchRow: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    paddingHorizontal: layout.screenPaddingH,
-    paddingTop: spacing[2],
-    gap: spacing[2],
-  },
-  searchBarWrapper: {
-    flex: 1,
-  },
-  filterBtn: {
-    width: component.button.floatingIcon,
-    height: component.button.floatingIcon,
-    borderRadius: radius.xl,
-    backgroundColor: colors.bg.base,
-    borderWidth: 1,
-    borderColor: colors.line.default,
-    alignItems: 'center',
-    justifyContent: 'center',
-    ...shadow.sm,
-  },
-  filterBtnActive: {
-    backgroundColor: colors.accent.primary,
   },
   locationBtn: {
     position: 'absolute',
@@ -310,6 +218,7 @@ const styles = StyleSheet.create({
     borderColor: colors.line.default,
     alignItems: 'center',
     justifyContent: 'center',
+    zIndex: 10,
     ...shadow.sm,
   },
   fab: {
@@ -322,6 +231,7 @@ const styles = StyleSheet.create({
     backgroundColor: colors.accent.primary,
     alignItems: 'center',
     justifyContent: 'center',
+    zIndex: 30,
     ...shadow.lg,
   },
   overlay: {
