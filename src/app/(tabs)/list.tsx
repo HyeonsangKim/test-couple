@@ -1,6 +1,7 @@
-import React, { useState, useCallback } from 'react';
-import { View, FlatList, StyleSheet, TouchableOpacity, Modal, Text } from 'react-native';
+import React, { useState, useCallback, useRef } from 'react';
+import { View, FlatList, StyleSheet, TouchableOpacity, Modal, Text, Animated, Easing } from 'react-native';
 import { useRouter } from 'expo-router';
+import { useFocusEffect } from '@react-navigation/native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { Ionicons } from '@expo/vector-icons';
 import { colors, typography, spacing, radius, layout, component } from '@/theme/tokens';
@@ -16,6 +17,8 @@ import { useFilteredPlaces } from '@/hooks/useFilteredPlaces';
 export default function ListScreen() {
   const router = useRouter();
   const [filterVisible, setFilterVisible] = useState(false);
+  const contentOpacity = useRef(new Animated.Value(0)).current;
+  const contentTranslateY = useRef(new Animated.Value(14)).current;
 
   const { filter, setFilter } = usePlaceStore();
   const { visits } = useVisitStore();
@@ -29,39 +32,69 @@ export default function ListScreen() {
   const floatingButtonMargin = layout.screenPaddingH;
   const fabBottom = floatingButtonMargin;
 
+  useFocusEffect(useCallback(() => {
+    contentOpacity.setValue(0);
+    contentTranslateY.setValue(14);
+
+    Animated.parallel([
+      Animated.timing(contentOpacity, {
+        toValue: 1,
+        duration: 180,
+        easing: Easing.out(Easing.quad),
+        useNativeDriver: true,
+      }),
+      Animated.timing(contentTranslateY, {
+        toValue: 0,
+        duration: 220,
+        easing: Easing.out(Easing.cubic),
+        useNativeDriver: true,
+      }),
+    ]).start();
+  }, [contentOpacity, contentTranslateY]));
+
   return (
     <SafeAreaView style={styles.safe} edges={['top']}>
-      {/* Search + Filter */}
-      <View style={styles.searchRow}>
-        <SearchBar
-          value={filter.searchQuery}
-          onChangeText={(text) => setFilter({ searchQuery: text })}
-          onClear={() => setFilter({ searchQuery: '' })}
-        />
-      </View>
-      <InlineFilterChips onOpenFilter={() => setFilterVisible(true)} style={styles.inlineFilterChips} />
+      <Animated.View
+        style={[
+          styles.content,
+          {
+            opacity: contentOpacity,
+            transform: [{ translateY: contentTranslateY }],
+          },
+        ]}
+      >
+        {/* Search + Filter */}
+        <View style={styles.searchRow}>
+          <SearchBar
+            value={filter.searchQuery}
+            onChangeText={(text) => setFilter({ searchQuery: text })}
+            onClear={() => setFilter({ searchQuery: '' })}
+          />
+        </View>
+        <InlineFilterChips onOpenFilter={() => setFilterVisible(true)} style={styles.inlineFilterChips} />
 
-      {/* List */}
-      <FlatList
-        data={filteredPlaces}
-        keyExtractor={(item) => item.placeId}
-        contentContainerStyle={styles.listContent}
-        ItemSeparatorComponent={() => <View style={styles.listGap} />}
-        renderItem={({ item }) => (
-          <PlaceCard
-            place={item}
-            visitCount={getVisitCount(item.placeId)}
-            onPress={() => router.push(`/(main)/place/${item.placeId}`)}
-          />
-        )}
-        ListEmptyComponent={
-          <EmptyState
-            icon="location-outline"
-            title="저장된 장소가 없어요"
-            description="지도 탭에서 장소를 추가해보세요"
-          />
-        }
-      />
+        {/* List */}
+        <FlatList
+          data={filteredPlaces}
+          keyExtractor={(item) => item.placeId}
+          contentContainerStyle={styles.listContent}
+          ItemSeparatorComponent={() => <View style={styles.listGap} />}
+          renderItem={({ item }) => (
+            <PlaceCard
+              place={item}
+              visitCount={getVisitCount(item.placeId)}
+              onPress={() => router.push(`/(main)/place/${item.placeId}`)}
+            />
+          )}
+          ListEmptyComponent={
+            <EmptyState
+              icon="location-outline"
+              title="저장된 장소가 없어요"
+              description="지도 탭에서 장소를 추가해보세요"
+            />
+          }
+        />
+      </Animated.View>
 
       {/* FAB */}
       <TouchableOpacity
@@ -92,6 +125,9 @@ const styles = StyleSheet.create({
   safe: {
     flex: 1,
     backgroundColor: colors.bg.base,
+  },
+  content: {
+    flex: 1,
   },
   searchRow: {
     paddingHorizontal: layout.screenPaddingH,

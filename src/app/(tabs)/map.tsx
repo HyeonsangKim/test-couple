@@ -1,21 +1,25 @@
 import React, { useState, useRef, useCallback, useEffect } from 'react';
-import { View, StyleSheet, TouchableOpacity, Modal, Text } from 'react-native';
+import { View, StyleSheet, TouchableOpacity, Modal, Text, Alert } from 'react-native';
 import { useNavigation, useRouter } from 'expo-router';
+import * as ImagePicker from 'expo-image-picker';
 import MapView, { Region } from 'react-native-maps';
 import { Ionicons } from '@expo/vector-icons';
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { colors, typography, spacing, radius, shadow, layout, component } from '@/theme/tokens';
 import { PlaceMarker } from '@/components/map/PlaceMarker';
 import { usePlaceStore } from '@/stores/usePlaceStore';
 import { useFilteredPlaces } from '@/hooks/useFilteredPlaces';
 import { useMapCurrentLocation } from '@/hooks/useMapCurrentLocation';
 import { Place, MapApiResult } from '@/types';
-import { DEFAULT_MAP_REGION } from '@/constants';
+import { DEFAULT_MAP_REGION, LIMITS } from '@/constants';
 import { FilterBottomSheet } from '@/components/filter/FilterBottomSheet';
 import { MapSearchOverlay, MapSearchOverlayHandle } from '@/components/map/MapSearchOverlay';
+import { serializePickedAsset } from '@/utils/photoMetadata';
 
 export default function MapScreen() {
   const router = useRouter();
   const navigation = useNavigation();
+  const insets = useSafeAreaInsets();
   const mapRef = useRef<MapView>(null);
   const currentRegionRef = useRef<Region>(DEFAULT_MAP_REGION as Region);
   const searchOverlayRef = useRef<MapSearchOverlayHandle>(null);
@@ -89,7 +93,34 @@ export default function MapScreen() {
 
   const handleAddByPhoto = () => {
     setAddMenuVisible(false);
-    router.push('/(main)/place/add/photo');
+    setTimeout(async () => {
+      try {
+        const result = await ImagePicker.launchImageLibraryAsync({
+          mediaTypes: ['images'],
+          allowsMultipleSelection: true,
+          quality: 0.8,
+          exif: true,
+          selectionLimit: LIMITS.MAX_IMAGES_PER_PLACE,
+        });
+
+        if (result.canceled) {
+          return;
+        }
+
+        const draftImages = result.assets.map(serializePickedAsset);
+        const imageUris = draftImages.map((image) => image.uri);
+
+        router.push({
+          pathname: '/(main)/place/add/photo/create',
+          params: {
+            imageUris: JSON.stringify(imageUris),
+            imageDrafts: JSON.stringify(draftImages),
+          },
+        });
+      } catch {
+        Alert.alert('오류', '사진을 선택할 수 없습니다.');
+      }
+    }, 180);
   };
 
   const handleOpenAddMenu = () => {
@@ -107,6 +138,29 @@ export default function MapScreen() {
   const floatingButtonMargin = layout.screenPaddingH;
   const fabBottom = floatingButtonMargin;
   const locationBottom = fabBottom + component.button.fab + floatingButtonMargin;
+  const addMenuOptions = [
+    {
+      key: 'search',
+      icon: 'search' as const,
+      title: '검색으로 추가',
+      description: '장소 이름이나 검색 결과를 선택해 바로 저장',
+      onPress: handleAddBySearch,
+    },
+    {
+      key: 'pin',
+      icon: 'pin-outline' as const,
+      title: '지도에 핀 찍기',
+      description: '원하는 위치를 직접 지정해서 커스텀 장소 만들기',
+      onPress: handleAddByPin,
+    },
+    {
+      key: 'photo',
+      icon: 'camera-outline' as const,
+      title: '사진으로 추가',
+      description: '사진과 함께 방문 기록을 남기며 장소 추가',
+      onPress: handleAddByPhoto,
+    },
+  ];
 
   return (
     <View style={styles.container}>
@@ -169,40 +223,44 @@ export default function MapScreen() {
           activeOpacity={1}
           onPress={() => setAddMenuVisible(false)}
         >
-          <TouchableOpacity activeOpacity={1} style={styles.addMenu}>
+          <TouchableOpacity
+            activeOpacity={1}
+            style={[styles.addMenu, { paddingBottom: Math.max(insets.bottom, spacing[6]) }]}
+          >
             {/* Handle bar */}
             <View style={styles.handleBar} />
 
-            <Text style={styles.addMenuTitle}>장소 추가</Text>
+            <View style={styles.addMenuHeader}>
+              <Text style={styles.addMenuTitle}>장소 추가</Text>
+            </View>
 
-            <TouchableOpacity style={styles.addMenuItem} onPress={handleAddBySearch}>
-              <View style={styles.addMenuIconCircle}>
-                <Ionicons name="search" size={20} color={colors.accent.primary} />
-              </View>
-              <View style={styles.addMenuTextWrap}>
-                <Text style={styles.addMenuLabel}>검색으로 추가</Text>
-                <Text style={styles.addMenuDesc}>장소를 검색해서 등록</Text>
-              </View>
-            </TouchableOpacity>
+            <Text style={styles.addMenuSectionLabel}>추가 방식</Text>
+            <View style={styles.addMenuList}>
+              {addMenuOptions.map((option) => (
+                <TouchableOpacity
+                  key={option.key}
+                  style={styles.addMenuItem}
+                  onPress={option.onPress}
+                  activeOpacity={0.8}
+                >
+                  <View style={styles.addMenuIconFrame}>
+                    <Ionicons name={option.icon} size={18} color={colors.text.secondary} />
+                  </View>
+                  <View style={styles.addMenuTextBlock}>
+                    <Text style={styles.addMenuLabel}>{option.title}</Text>
+                    <Text style={styles.addMenuDesc}>{option.description}</Text>
+                  </View>
+                  <Ionicons name="chevron-forward" size={16} color={colors.text.tertiary} />
+                </TouchableOpacity>
+              ))}
+            </View>
 
-            <TouchableOpacity style={styles.addMenuItem} onPress={handleAddByPin}>
-              <View style={styles.addMenuIconCircle}>
-                <Ionicons name="pin-outline" size={20} color={colors.accent.primary} />
-              </View>
-              <View style={styles.addMenuTextWrap}>
-                <Text style={styles.addMenuLabel}>지도에 핀 찍기</Text>
-                <Text style={styles.addMenuDesc}>원하는 위치에 직접 표시</Text>
-              </View>
-            </TouchableOpacity>
-
-            <TouchableOpacity style={styles.addMenuItem} onPress={handleAddByPhoto}>
-              <View style={styles.addMenuIconCircle}>
-                <Ionicons name="camera-outline" size={20} color={colors.accent.primary} />
-              </View>
-              <View style={styles.addMenuTextWrap}>
-                <Text style={styles.addMenuLabel}>사진으로 추가</Text>
-                <Text style={styles.addMenuDesc}>사진과 함께 방문기록 남기기</Text>
-              </View>
+            <TouchableOpacity
+              style={styles.addMenuDismiss}
+              onPress={() => setAddMenuVisible(false)}
+              activeOpacity={0.75}
+            >
+              <Text style={styles.addMenuDismissText}>닫기</Text>
             </TouchableOpacity>
           </TouchableOpacity>
         </TouchableOpacity>
@@ -267,51 +325,74 @@ const styles = StyleSheet.create({
     justifyContent: 'flex-end',
   },
   addMenu: {
-    backgroundColor: colors.bg.base,
-    borderTopLeftRadius: radius.sheet,
-    borderTopRightRadius: radius.sheet,
-    paddingHorizontal: layout.screenPaddingH,
-    paddingBottom: spacing[10],
+    backgroundColor: colors.bg.sheet,
+    borderTopLeftRadius: component.sheet.topRadius,
+    borderTopRightRadius: component.sheet.topRadius,
+    paddingHorizontal: component.sheet.innerHorizontalPadding,
+    paddingTop: component.sheet.topPadding,
   },
   handleBar: {
     width: component.sheet.handleWidth,
     height: component.sheet.handleHeight,
-    borderRadius: radius.full,
-    backgroundColor: colors.border.strong,
+    borderRadius: component.sheet.handleHeight / 2,
+    backgroundColor: colors.line.strong,
     alignSelf: 'center',
-    marginTop: component.sheet.topPadding,
     marginBottom: spacing[3],
   },
+  addMenuHeader: {
+    marginBottom: spacing[5],
+  },
   addMenuTitle: {
-    ...typography.heading.m,
+    ...typography.title.l,
     color: colors.text.primary,
-    marginBottom: spacing[4],
+  },
+  addMenuSectionLabel: {
+    ...typography.body.m,
+    color: colors.text.tertiary,
+    marginBottom: spacing[3],
+  },
+  addMenuList: {
+    gap: spacing[3],
   },
   addMenuItem: {
     flexDirection: 'row',
     alignItems: 'center',
-    height: component.actionSheetRow.height,
+    minHeight: component.settingsRow.heightComfortable,
+    backgroundColor: colors.bg.subtle,
+    borderRadius: radius.lg,
+    paddingHorizontal: spacing[4],
+    paddingVertical: spacing[4],
     gap: spacing[3],
   },
-  addMenuIconCircle: {
-    width: 48,
-    height: 48,
-    borderRadius: 24,
-    backgroundColor: colors.bg.soft,
+  addMenuIconFrame: {
+    width: component.settingsRow.iconFrame,
+    height: component.settingsRow.iconFrame,
     alignItems: 'center',
     justifyContent: 'center',
   },
-  addMenuTextWrap: {
+  addMenuTextBlock: {
     flex: 1,
+    gap: spacing[1],
   },
   addMenuLabel: {
-    ...typography.title.m,
+    ...typography.body.l,
     color: colors.text.primary,
   },
   addMenuDesc: {
-    ...typography.body.s,
+    ...typography.body.m,
     color: colors.text.secondary,
-    marginTop: 2,
+  },
+  addMenuDismiss: {
+    marginTop: spacing[5],
+    minHeight: component.settingsRow.height,
+    alignItems: 'center',
+    justifyContent: 'center',
+    borderRadius: radius.lg,
+    backgroundColor: colors.bg.subtle,
+  },
+  addMenuDismissText: {
+    ...typography.body.l,
+    color: colors.text.secondary,
   },
   filterOverlay: {
     flex: 1,

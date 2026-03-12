@@ -26,6 +26,7 @@ export default function TabsLayout() {
     <Tabs
       screenOptions={{
         headerShown: false,
+        animation: 'fade',
         tabBarStyle: {
           height: component.tabBar.contentHeight + insets.bottom,
           backgroundColor: colors.bg.elevated,

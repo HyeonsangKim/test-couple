@@ -15,8 +15,8 @@ export const FilterBottomSheet: React.FC<FilterBottomSheetProps> = ({ onClose })
 
   const statusOptions: { key: PlaceStatus | 'all'; label: string }[] = [
     { key: 'all', label: '전체' },
-    { key: 'wishlist', label: '위시리스트' },
     { key: 'visited', label: '갔다 온 곳' },
+    { key: 'wishlist', label: '위시리스트' },
   ];
 
   const categoryOptions: { key: PlaceCategory | 'all'; label: string }[] = [

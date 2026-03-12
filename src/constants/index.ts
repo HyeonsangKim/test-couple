@@ -9,7 +9,7 @@ export const CATEGORIES: { key: PlaceCategory; label: string; icon: IoniconsName
   { key: 'travel', label: '여행', icon: 'airplane-outline', color: colors.category.travel },
   { key: 'activity', label: '놀거리', icon: 'game-controller-outline', color: colors.category.activity },
   { key: 'special', label: '특별한 장소', icon: 'heart', color: colors.category.special },
-  { key: 'uncategorized', label: '미분류', icon: 'location-outline', color: colors.category.uncategorized },
+  { key: 'uncategorized', label: '기타', icon: 'location-outline', color: colors.category.uncategorized },
 ];
 
 export const LIMITS = {

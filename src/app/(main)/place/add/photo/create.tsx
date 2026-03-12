@@ -1,4 +1,4 @@
-import React, { useState, useRef } from 'react';
+import React, { useEffect, useRef, useState } from 'react';
 import {
   View,
   Text,
@@ -10,6 +10,7 @@ import {
 } from 'react-native';
 import { useRouter, useLocalSearchParams } from 'expo-router';
 import { SafeAreaView } from 'react-native-safe-area-context';
+import * as Location from 'expo-location';
 import MapView, { Marker, Region } from 'react-native-maps';
 import { colors, typography, spacing, radius, layout } from '@/theme/tokens';
 import { Button, IconButton } from '@/components/ui';
@@ -20,33 +21,81 @@ import { useAuthStore } from '@/stores/useAuthStore';
 import { validatePlaceName } from '@/utils/validation';
 import { DEFAULT_MAP_REGION } from '@/constants';
 import { format } from 'date-fns';
+import {
+  buildAddressText,
+  buildSuggestedPlaceName,
+  DraftPhotoAsset,
+  getDraftPhotoNameFallback,
+} from '@/utils/photoMetadata';
+
+const parseJsonArray = <T,>(value?: string) => {
+  if (!value) {
+    return [] as T[];
+  }
+
+  try {
+    const parsed = JSON.parse(value);
+    return Array.isArray(parsed) ? (parsed as T[]) : [];
+  } catch {
+    return [] as T[];
+  }
+};
+
+const parseParamNumber = (value?: string) => {
+  if (!value) {
+    return null;
+  }
+
+  const parsed = Number.parseFloat(value);
+  return Number.isFinite(parsed) ? parsed : null;
+};
 
 export default function PlaceCreateFromPhotoScreen() {
   const router = useRouter();
   const params = useLocalSearchParams<{
     imageUris?: string;
+    imageDrafts?: string;
     initialLatitude?: string;
     initialLongitude?: string;
   }>();
 
-  const draftImageUris: string[] = params.imageUris
-    ? JSON.parse(params.imageUris)
-    : [];
-
-  const initialLat = params.initialLatitude
-    ? parseFloat(params.initialLatitude)
-    : DEFAULT_MAP_REGION.latitude;
-  const initialLng = params.initialLongitude
-    ? parseFloat(params.initialLongitude)
-    : DEFAULT_MAP_REGION.longitude;
+  const draftImageUrisRef = useRef(parseJsonArray<string>(params.imageUris));
+  const draftImagesFromParamsRef = useRef(parseJsonArray<DraftPhotoAsset>(params.imageDrafts));
+  const draftImageUris = draftImageUrisRef.current;
+  const draftImagesFromParams = draftImagesFromParamsRef.current;
+  const draftImages =
+    draftImagesFromParams.length > 0
+      ? draftImagesFromParams
+      : draftImageUris.map((uri) => ({
+          uri,
+          fileName: null,
+          latitude: null,
+          longitude: null,
+        }));
+  const firstDraftImage = draftImages[0] ?? null;
+  const initialLat =
+    parseParamNumber(params.initialLatitude) ??
+    firstDraftImage?.latitude ??
+    DEFAULT_MAP_REGION.latitude;
+  const initialLng =
+    parseParamNumber(params.initialLongitude) ??
+    firstDraftImage?.longitude ??
+    DEFAULT_MAP_REGION.longitude;
+  const initialNameFallback = getDraftPhotoNameFallback(firstDraftImage);
 
   const mapRef = useRef<MapView>(null);
-  const [placeName, setPlaceName] = useState('');
+  const placeNameEditedRef = useRef(false);
+  const geocodeRequestRef = useRef(0);
+  const [placeName, setPlaceName] = useState(initialNameFallback);
+  const [addressText, setAddressText] = useState<string | null>(null);
   const [pinCoordinate, setPinCoordinate] = useState({
     latitude: initialLat,
     longitude: initialLng,
   });
   const [loading, setLoading] = useState(false);
+  const [isMetadataLoading, setIsMetadataLoading] = useState(
+    firstDraftImage?.latitude !== null && firstDraftImage?.longitude !== null,
+  );
 
   const addPlace = usePlaceStore((s) => s.addPlace);
   const updatePlace = usePlaceStore((s) => s.updatePlace);
@@ -55,10 +104,86 @@ export default function PlaceCreateFromPhotoScreen() {
   const map = useMapStore((s) => s.map);
   const currentUser = useAuthStore((s) => s.currentUser);
 
+  const resolveLocationDetails = async (
+    coordinate: { latitude: number; longitude: number },
+    syncPlaceName: boolean,
+  ) => {
+    const requestId = geocodeRequestRef.current + 1;
+    geocodeRequestRef.current = requestId;
+    setIsMetadataLoading(true);
+    setAddressText(null);
+
+    try {
+      const results = await Location.reverseGeocodeAsync(coordinate);
+
+      if (geocodeRequestRef.current !== requestId) {
+        return;
+      }
+
+      const primaryAddress = results[0];
+      const nextAddress = buildAddressText(primaryAddress);
+      const fallbackName = getDraftPhotoNameFallback(firstDraftImage);
+
+      setAddressText(nextAddress || null);
+
+      if (syncPlaceName && !placeNameEditedRef.current) {
+        const nextPlaceName = buildSuggestedPlaceName(primaryAddress, fallbackName);
+        if (nextPlaceName) {
+          setPlaceName(nextPlaceName);
+        }
+      }
+    } catch {
+      if (geocodeRequestRef.current !== requestId) {
+        return;
+      }
+
+      if (syncPlaceName && !placeNameEditedRef.current) {
+        const fallbackName = getDraftPhotoNameFallback(firstDraftImage);
+        if (fallbackName) {
+          setPlaceName(fallbackName);
+        }
+      }
+    } finally {
+      if (geocodeRequestRef.current === requestId) {
+        setIsMetadataLoading(false);
+      }
+    }
+  };
+
+  useEffect(() => {
+    if (!firstDraftImage) {
+      return;
+    }
+
+    const fallbackName = getDraftPhotoNameFallback(firstDraftImage);
+    if (fallbackName && !placeNameEditedRef.current) {
+      setPlaceName((current) => (current.trim() ? current : fallbackName));
+    }
+
+    if (firstDraftImage.latitude === null || firstDraftImage.longitude === null) {
+      setIsMetadataLoading(false);
+      return;
+    }
+
+    setPinCoordinate({
+      latitude: firstDraftImage.latitude,
+      longitude: firstDraftImage.longitude,
+    });
+    void resolveLocationDetails(
+      {
+        latitude: firstDraftImage.latitude,
+        longitude: firstDraftImage.longitude,
+      },
+      true,
+    );
+  }, []);
+
   const handleMapPress = (e: {
     nativeEvent: { coordinate: { latitude: number; longitude: number } };
   }) => {
-    setPinCoordinate(e.nativeEvent.coordinate);
+    const nextCoordinate = e.nativeEvent.coordinate;
+    setPinCoordinate(nextCoordinate);
+    void resolveLocationDetails(nextCoordinate, false);
   };
 
   const handleSave = async () => {
@@ -75,6 +200,7 @@ export default function PlaceCreateFromPhotoScreen() {
         name: placeName.trim(),
         latitude: pinCoordinate.latitude,
         longitude: pinCoordinate.longitude,
+        addressText,
         mapId: map.mapId,
         createdByUserId: currentUser.userId,
         sourceType: 'custom_pin',
@@ -150,12 +276,24 @@ export default function PlaceCreateFromPhotoScreen() {
           <RNTextInput
             style={styles.nameInput}
             value={placeName}
-            onChangeText={setPlaceName}
+            onChangeText={(value) => {
+              placeNameEditedRef.current = true;
+              setPlaceName(value);
+            }}
             placeholder="장소 이름을 입력해주세요"
             placeholderTextColor={colors.text.tertiary}
             maxLength={50}
             showSoftInputOnFocus
           />
+          {(isMetadataLoading || addressText || initialNameFallback) ? (
+            <Text style={styles.metaHint}>
+              {isMetadataLoading
+                ? '첫 사진 메타데이터에서 위치와 이름을 불러오는 중이에요.'
+                : addressText
+                  ? `첫 사진 메타데이터 기준 위치: ${addressText}`
+                  : '첫 사진 메타데이터를 기준으로 초깃값을 채웠어요.'}
+            </Text>
+          ) : null}
         </View>
 
         {/* Map for Location */}
@@ -179,7 +317,11 @@ export default function PlaceCreateFromPhotoScreen() {
               <Marker
                 coordinate={pinCoordinate}
                 draggable
-                onDragEnd={(e) => setPinCoordinate(e.nativeEvent.coordinate)}
+                onDragEnd={(e) => {
+                  const nextCoordinate = e.nativeEvent.coordinate;
+                  setPinCoordinate(nextCoordinate);
+                  void resolveLocationDetails(nextCoordinate, false);
+                }}
               />
             </MapView>
           </View>
@@ -255,6 +397,11 @@ const styles = StyleSheet.create({
     borderRadius: radius.lg,
     height: 56,
     paddingHorizontal: spacing[4],
+  },
+  metaHint: {
+    ...typography.caption,
+    color: colors.text.secondary,
+    marginTop: spacing[2],
   },
   mapContainer: {
     height: 250,
