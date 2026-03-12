@@ -5,7 +5,8 @@ import * as ImagePicker from 'expo-image-picker';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { Ionicons } from '@expo/vector-icons';
 import { colors, typography, spacing, radius, shadow, component } from '@/theme/tokens';
-import { LIMITS, TAB_FLOATING } from '@/constants';
+import { LIMITS } from '@/constants';
+import { tabFloatingMetrics } from '@/theme/layoutMetrics';
 import { serializePickedAsset } from '@/utils/photoMetadata';
 
 interface AddPlaceFabProps {
@@ -17,7 +18,7 @@ interface AddPlaceFabProps {
 
 export const AddPlaceFab: React.FC<AddPlaceFabProps> = ({
   visible,
-  bottom = TAB_FLOATING.fabBottom,
+  bottom = tabFloatingMetrics.fabBottom,
   onVisibleChange,
   onBeforeOpen,
 }) => {
@@ -159,7 +160,7 @@ export const AddPlaceFab: React.FC<AddPlaceFabProps> = ({
 const styles = StyleSheet.create({
   fab: {
     position: 'absolute',
-    right: TAB_FLOATING.horizontal,
+    right: tabFloatingMetrics.horizontal,
     width: component.button.fab,
     height: component.button.fab,
     borderRadius: component.button.fab / 2,

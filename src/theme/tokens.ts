@@ -248,6 +248,11 @@ export const component = {
     floatingIcon: 44,
     fab: 52,
   },
+  floating: {
+    edgeOffset: layout.screenPaddingH,
+    stackGap: layout.screenPaddingH,
+    listTrailingPadding: spacing[8],
+  },
   card: {
     radius: 16,
     padding: 16,

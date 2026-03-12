@@ -1,6 +1,6 @@
 import { Ionicons } from '@expo/vector-icons';
 import { PlaceCategory } from '@/types';
-import { colors, component, layout, spacing } from '@/theme/tokens';
+import { colors } from '@/theme/tokens';
 
 type IoniconsName = React.ComponentProps<typeof Ionicons>['name'];
 
@@ -57,14 +57,3 @@ export const DEFAULT_MAP_REGION = {
   latitudeDelta: 0.05,
   longitudeDelta: 0.05,
 };
-
-const TAB_FLOATING_EDGE_OFFSET = layout.screenPaddingH;
-const TAB_FLOATING_STACK_GAP = layout.screenPaddingH;
-
-// Tab scene content 영역(탭 바 상단) 기준 플로팅 배치 규칙
-export const TAB_FLOATING = {
-  horizontal: TAB_FLOATING_EDGE_OFFSET,
-  fabBottom: TAB_FLOATING_EDGE_OFFSET,
-  locationBottom: TAB_FLOATING_EDGE_OFFSET + component.button.fab + TAB_FLOATING_STACK_GAP,
-  listContentBottomPadding: TAB_FLOATING_EDGE_OFFSET + component.button.fab + spacing[8],
-} as const;

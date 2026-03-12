@@ -10,9 +10,10 @@ import { usePlaceStore } from '@/stores/usePlaceStore';
 import { useFilteredPlaces } from '@/hooks/useFilteredPlaces';
 import { useMapCurrentLocation } from '@/hooks/useMapCurrentLocation';
 import { Place, MapApiResult } from '@/types';
-import { DEFAULT_MAP_REGION, TAB_FLOATING } from '@/constants';
+import { DEFAULT_MAP_REGION } from '@/constants';
 import { FilterBottomSheet } from '@/components/filter/FilterBottomSheet';
 import { MapSearchOverlay, MapSearchOverlayHandle } from '@/components/map/MapSearchOverlay';
+import { tabFloatingMetrics } from '@/theme/layoutMetrics';
 
 export default function MapScreen() {
   const router = useRouter();
@@ -115,7 +116,7 @@ export default function MapScreen() {
       <TouchableOpacity
         style={[
           styles.locationBtn,
-          { bottom: TAB_FLOATING.locationBottom },
+          { bottom: tabFloatingMetrics.locationBottom },
           isLocating && styles.locationBtnDisabled,
         ]}
         onPress={handleLocatePress}
@@ -161,7 +162,7 @@ const styles = StyleSheet.create({
   },
   locationBtn: {
     position: 'absolute',
-    right: TAB_FLOATING.horizontal,
+    right: tabFloatingMetrics.horizontal,
     width: component.button.fab,
     height: component.button.fab,
     borderRadius: component.button.fab / 2,
