@@ -1,25 +1,23 @@
 import React, { useState, useCallback } from 'react';
 import { View, FlatList, StyleSheet, TouchableOpacity, Modal, Text } from 'react-native';
 import { useRouter } from 'expo-router';
-import { SafeAreaView, useSafeAreaInsets } from 'react-native-safe-area-context';
+import { SafeAreaView } from 'react-native-safe-area-context';
 import { Ionicons } from '@expo/vector-icons';
 import { colors, typography, spacing, radius, layout, component } from '@/theme/tokens';
 import { SearchBar } from '@/components/filter/SearchBar';
+import { InlineFilterChips } from '@/components/filter/InlineFilterChips';
 import { FilterBottomSheet } from '@/components/filter/FilterBottomSheet';
 import { PlaceCard } from '@/components/place/PlaceCard';
 import { EmptyState } from '@/components/common/EmptyState';
-import { Chip } from '@/components/ui';
 import { usePlaceStore } from '@/stores/usePlaceStore';
 import { useVisitStore } from '@/stores/useVisitStore';
 import { useFilteredPlaces } from '@/hooks/useFilteredPlaces';
-import { STATUS_LABELS, CATEGORY_LABELS } from '@/constants';
 
 export default function ListScreen() {
   const router = useRouter();
-  const insets = useSafeAreaInsets();
   const [filterVisible, setFilterVisible] = useState(false);
 
-  const { filter, setFilter, resetFilter } = usePlaceStore();
+  const { filter, setFilter } = usePlaceStore();
   const { visits } = useVisitStore();
   const filteredPlaces = useFilteredPlaces();
 
@@ -28,65 +26,20 @@ export default function ListScreen() {
     [visits],
   );
 
-  const hasActiveFilter = filter.status !== 'all' || filter.category !== 'all';
-  const tabBarHeight = component.tabBar.contentHeight + insets.bottom;
   const floatingButtonMargin = layout.screenPaddingH;
-  const fabBottom = tabBarHeight + floatingButtonMargin;
+  const fabBottom = floatingButtonMargin;
 
   return (
     <SafeAreaView style={styles.safe} edges={['top']}>
-      {/* Header */}
-      <View style={styles.header}>
-        <Text style={styles.headerTitle}>리스트</Text>
-        <Text style={styles.countText}>{filteredPlaces.length}개</Text>
-      </View>
-
       {/* Search + Filter */}
       <View style={styles.searchRow}>
-        <View style={styles.searchBarWrapper}>
-          <SearchBar
-            value={filter.searchQuery}
-            onChangeText={(text) => setFilter({ searchQuery: text })}
-            onClear={() => setFilter({ searchQuery: '' })}
-          />
-        </View>
-        <TouchableOpacity
-          style={[styles.filterBtn, hasActiveFilter && styles.filterBtnActive]}
-          onPress={() => setFilterVisible(true)}
-          activeOpacity={0.7}
-        >
-          <Ionicons
-            name="funnel-outline"
-            size={16}
-            color={hasActiveFilter ? colors.text.inverse : colors.text.secondary}
-          />
-        </TouchableOpacity>
+        <SearchBar
+          value={filter.searchQuery}
+          onChangeText={(text) => setFilter({ searchQuery: text })}
+          onClear={() => setFilter({ searchQuery: '' })}
+        />
       </View>
-
-      {/* Filter Chips */}
-      {hasActiveFilter && (
-        <View style={styles.chipRow}>
-          {filter.status !== 'all' && (
-            <Chip
-              label={STATUS_LABELS[filter.status] ?? filter.status}
-              selected
-              size="sm"
-              onPress={() => setFilter({ status: 'all' })}
-            />
-          )}
-          {filter.category !== 'all' && (
-            <Chip
-              label={CATEGORY_LABELS[filter.category] ?? filter.category}
-              selected
-              size="sm"
-              onPress={() => setFilter({ category: 'all' })}
-            />
-          )}
-          <TouchableOpacity onPress={resetFilter}>
-            <Text style={styles.resetText}>초기화</Text>
-          </TouchableOpacity>
-        </View>
-      )}
+      <InlineFilterChips onOpenFilter={() => setFilterVisible(true)} style={styles.inlineFilterChips} />
 
       {/* List */}
       <FlatList
@@ -140,54 +93,13 @@ const styles = StyleSheet.create({
     flex: 1,
     backgroundColor: colors.bg.base,
   },
-  header: {
-    flexDirection: 'row',
-    alignItems: 'baseline',
-    paddingHorizontal: layout.screenPaddingH,
-    paddingTop: spacing[4],
-    paddingBottom: spacing[3],
-    gap: spacing[2],
-  },
-  headerTitle: {
-    ...typography.heading.m,
-    color: colors.text.primary,
-  },
-  countText: {
-    ...typography.body.m,
-    color: colors.text.tertiary,
-  },
   searchRow: {
-    flexDirection: 'row',
-    alignItems: 'center',
     paddingHorizontal: layout.screenPaddingH,
+    paddingTop: spacing[2],
+    marginBottom: spacing[2],
+  },
+  inlineFilterChips: {
     marginBottom: spacing[4],
-    gap: spacing[2],
-  },
-  searchBarWrapper: {
-    flex: 1,
-  },
-  filterBtn: {
-    width: component.searchBar.height,
-    height: component.searchBar.height,
-    borderRadius: component.searchBar.radius,
-    backgroundColor: colors.bg.subtle,
-    alignItems: 'center',
-    justifyContent: 'center',
-  },
-  filterBtnActive: {
-    backgroundColor: colors.accent.primary,
-  },
-  chipRow: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    flexWrap: 'wrap',
-    paddingHorizontal: layout.screenPaddingH,
-    marginBottom: spacing[4],
-    gap: spacing[2],
-  },
-  resetText: {
-    ...typography.body.m,
-    color: colors.accent.primary,
   },
   listContent: {
     paddingHorizontal: layout.screenPaddingH,

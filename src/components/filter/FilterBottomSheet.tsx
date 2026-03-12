@@ -24,6 +24,19 @@ export const FilterBottomSheet: React.FC<FilterBottomSheetProps> = ({ onClose })
     ...CATEGORIES.map((c) => ({ key: c.key, label: c.label })),
   ];
 
+  const toggleCategory = (category: PlaceCategory | 'all') => {
+    if (category === 'all') {
+      setFilter({ category: [] });
+      return;
+    }
+
+    const nextCategories = filter.category.includes(category)
+      ? filter.category.filter((item) => item !== category)
+      : [...filter.category, category];
+
+    setFilter({ category: nextCategories });
+  };
+
   return (
     <View style={styles.container}>
       <View style={styles.handle} />
@@ -35,7 +48,7 @@ export const FilterBottomSheet: React.FC<FilterBottomSheetProps> = ({ onClose })
           </TouchableOpacity>
         </View>
 
-        <Text style={styles.sectionLabel}>상태</Text>
+        <Text style={styles.sectionLabel}>종류</Text>
         <ScrollView horizontal showsHorizontalScrollIndicator={false} style={styles.chipRow}>
           {statusOptions.map((opt) => (
             <Chip
@@ -55,9 +68,9 @@ export const FilterBottomSheet: React.FC<FilterBottomSheetProps> = ({ onClose })
             <Chip
               key={opt.key}
               label={opt.label}
-              selected={filter.category === opt.key}
-              onPress={() => setFilter({ category: opt.key })}
-              color={colors.accent.primarySoft}
+              selected={opt.key === 'all' ? filter.category.length === 0 : filter.category.includes(opt.key)}
+              onPress={() => toggleCategory(opt.key)}
+              color={colors.accent.primary}
               style={styles.chip}
             />
           ))}

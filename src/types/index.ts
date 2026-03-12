@@ -113,7 +113,7 @@ export interface NotificationSettings {
 // ===== App State Types =====
 export interface FilterState {
   status: PlaceStatus | 'all';
-  category: PlaceCategory | 'all';
+  category: PlaceCategory[];
   searchQuery: string;
 }
 

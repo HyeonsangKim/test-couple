@@ -23,6 +23,7 @@ import {
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { Ionicons } from '@expo/vector-icons';
 import { SearchBar } from '@/components/filter/SearchBar';
+import { InlineFilterChips } from '@/components/filter/InlineFilterChips';
 import { CATEGORIES } from '@/constants';
 import { searchService } from '@/services/searchService';
 import { colors, component, layout, radius, shadow, spacing, typography } from '@/theme/tokens';
@@ -37,7 +38,6 @@ export interface MapSearchOverlayHandle {
 
 interface MapSearchOverlayProps {
   savedPlaces: Place[];
-  isFilterActive: boolean;
   onOpenFilter: () => void;
   onSavedPlacePress: (placeId: string) => void;
   onExternalPress: (result: MapApiResult) => void;
@@ -58,7 +58,6 @@ const getCategoryColor = (category: PlaceCategory): string => {
 
 export const MapSearchOverlay = forwardRef<MapSearchOverlayHandle, MapSearchOverlayProps>(({
   savedPlaces,
-  isFilterActive,
   onOpenFilter,
   onSavedPlacePress,
   onExternalPress,
@@ -201,28 +200,16 @@ export const MapSearchOverlay = forwardRef<MapSearchOverlayHandle, MapSearchOver
 
       <SafeAreaView edges={['top']} pointerEvents="box-none" style={styles.safeArea}>
         <View style={styles.searchRow}>
-          <View style={styles.searchBarWrapper}>
-            <SearchBar
-              ref={inputRef}
-              value={query}
-              onChangeText={setQuery}
-              onClear={handleClear}
-              onFocus={handleFocus}
-              placeholder="장소 검색..."
-            />
-          </View>
-          <TouchableOpacity
-            activeOpacity={0.7}
-            onPress={handleFilterPress}
-            style={[styles.filterButton, isFilterActive && styles.filterButtonActive]}
-          >
-            <Ionicons
-              name="funnel-outline"
-              size={18}
-              color={isFilterActive ? colors.text.inverse : colors.text.primary}
-            />
-          </TouchableOpacity>
+          <SearchBar
+            ref={inputRef}
+            value={query}
+            onChangeText={setQuery}
+            onClear={handleClear}
+            onFocus={handleFocus}
+            placeholder="장소 검색..."
+          />
         </View>
+        <InlineFilterChips onOpenFilter={handleFilterPress} style={styles.filterChipsRow} />
 
         {isOpen && (
           <View style={styles.panel}>
@@ -358,25 +345,11 @@ const styles = StyleSheet.create({
     flex: 1,
   },
   searchRow: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: spacing[2],
     paddingHorizontal: layout.screenPaddingH,
     paddingTop: spacing[2],
   },
-  searchBarWrapper: {
-    flex: 1,
-  },
-  filterButton: {
-    alignItems: 'center',
-    justifyContent: 'center',
-    width: component.searchBar.height,
-    height: component.searchBar.height,
-    borderRadius: component.searchBar.radius,
-    backgroundColor: colors.bg.subtle,
-  },
-  filterButtonActive: {
-    backgroundColor: colors.accent.primary,
+  filterChipsRow: {
+    marginTop: spacing[2],
   },
   panel: {
     marginTop: spacing[3],

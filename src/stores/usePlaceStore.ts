@@ -23,7 +23,7 @@ interface PlaceState {
 
 const defaultFilter: FilterState = {
   status: 'all',
-  category: 'all',
+  category: [],
   searchQuery: '',
 };
 

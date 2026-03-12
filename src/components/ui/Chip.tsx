@@ -2,7 +2,7 @@ import React from 'react';
 import { TouchableOpacity, Text, StyleSheet, ViewStyle } from 'react-native';
 import { colors, typography, component } from '@/theme/tokens';
 
-type ChipSelection = 'neutral' | 'accent';
+type ChipSelection = 'neutral' | 'accent' | 'solidAccent';
 
 interface ChipProps {
   label: string;
@@ -32,12 +32,14 @@ export const Chip: React.FC<ChipProps> = ({
   const getBg = (): string => {
     if (!selected) return colors.bg.subtle;
     if (color) return `${color}18`;
+    if (selectionStyle === 'solidAccent') return colors.accent.primary;
     return selectionStyle === 'accent' ? colors.accent.soft : colors.bg.muted;
   };
 
   const getTextColor = (): string => {
     if (!selected) return colors.text.secondary;
     if (color) return color;
+    if (selectionStyle === 'solidAccent') return colors.text.inverse;
     return selectionStyle === 'accent' ? colors.accent.primary : colors.text.primary;
   };
 

@@ -14,8 +14,8 @@ export const useFilteredPlaces = (): Place[] => {
     }
 
     // Category filter
-    if (filter.category !== 'all') {
-      filtered = filtered.filter((p) => p.category === filter.category);
+    if (filter.category.length > 0) {
+      filtered = filtered.filter((p) => filter.category.includes(p.category));
     }
 
     // Search - name only per PRD v2

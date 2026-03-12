@@ -3,7 +3,6 @@ import { View, StyleSheet, TouchableOpacity, Modal, Text } from 'react-native';
 import { useNavigation, useRouter } from 'expo-router';
 import MapView, { Region } from 'react-native-maps';
 import { Ionicons } from '@expo/vector-icons';
-import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { colors, typography, spacing, radius, shadow, layout, component } from '@/theme/tokens';
 import { PlaceMarker } from '@/components/map/PlaceMarker';
 import { usePlaceStore } from '@/stores/usePlaceStore';
@@ -17,7 +16,6 @@ import { MapSearchOverlay, MapSearchOverlayHandle } from '@/components/map/MapSe
 export default function MapScreen() {
   const router = useRouter();
   const navigation = useNavigation();
-  const insets = useSafeAreaInsets();
   const mapRef = useRef<MapView>(null);
   const currentRegionRef = useRef<Region>(DEFAULT_MAP_REGION as Region);
   const searchOverlayRef = useRef<MapSearchOverlayHandle>(null);
@@ -106,10 +104,8 @@ export default function MapScreen() {
     });
   }, [centerToUser]);
 
-  const hasActiveFilter = filter.status !== 'all' || filter.category !== 'all';
-  const tabBarHeight = component.tabBar.contentHeight + insets.bottom;
   const floatingButtonMargin = layout.screenPaddingH;
-  const fabBottom = tabBarHeight + floatingButtonMargin;
+  const fabBottom = floatingButtonMargin;
   const locationBottom = fabBottom + component.button.fab + floatingButtonMargin;
 
   return (
@@ -132,7 +128,6 @@ export default function MapScreen() {
 
       <MapSearchOverlay
         ref={searchOverlayRef}
-        isFilterActive={hasActiveFilter}
         onExternalPress={handleExternalPress}
         onOpenFilter={() => setFilterVisible(true)}
         onSavedPlacePress={handleSavedPlacePress}
