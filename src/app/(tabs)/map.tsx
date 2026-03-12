@@ -3,14 +3,14 @@ import { View, StyleSheet, TouchableOpacity, Modal } from 'react-native';
 import { useNavigation, useRouter } from 'expo-router';
 import MapView, { Region } from 'react-native-maps';
 import { Ionicons } from '@expo/vector-icons';
-import { colors, radius, shadow, layout, component } from '@/theme/tokens';
+import { colors, radius, shadow, component } from '@/theme/tokens';
 import { PlaceMarker } from '@/components/map/PlaceMarker';
 import { AddPlaceFab } from '@/components/place/AddPlaceFab';
 import { usePlaceStore } from '@/stores/usePlaceStore';
 import { useFilteredPlaces } from '@/hooks/useFilteredPlaces';
 import { useMapCurrentLocation } from '@/hooks/useMapCurrentLocation';
 import { Place, MapApiResult } from '@/types';
-import { DEFAULT_MAP_REGION } from '@/constants';
+import { DEFAULT_MAP_REGION, TAB_FLOATING } from '@/constants';
 import { FilterBottomSheet } from '@/components/filter/FilterBottomSheet';
 import { MapSearchOverlay, MapSearchOverlayHandle } from '@/components/map/MapSearchOverlay';
 
@@ -23,7 +23,6 @@ export default function MapScreen() {
   const [filterVisible, setFilterVisible] = useState(false);
   const [addMenuVisible, setAddMenuVisible] = useState(false);
 
-  const { filter } = usePlaceStore();
   const filteredPlaces = useFilteredPlaces();
   const {
     centerToUser,
@@ -85,10 +84,6 @@ export default function MapScreen() {
     });
   }, [centerToUser]);
 
-  const floatingButtonMargin = layout.screenPaddingH;
-  const fabBottom = floatingButtonMargin;
-  const locationBottom = fabBottom + component.button.fab + floatingButtonMargin;
-
   return (
     <View style={styles.container}>
       <MapView
@@ -120,7 +115,7 @@ export default function MapScreen() {
       <TouchableOpacity
         style={[
           styles.locationBtn,
-          { bottom: locationBottom },
+          { bottom: TAB_FLOATING.locationBottom },
           isLocating && styles.locationBtnDisabled,
         ]}
         onPress={handleLocatePress}
@@ -136,7 +131,6 @@ export default function MapScreen() {
 
       <AddPlaceFab
         visible={addMenuVisible}
-        bottom={fabBottom}
         onVisibleChange={setAddMenuVisible}
         onBeforeOpen={() => searchOverlayRef.current?.close()}
       />
@@ -167,7 +161,7 @@ const styles = StyleSheet.create({
   },
   locationBtn: {
     position: 'absolute',
-    right: layout.screenPaddingH,
+    right: TAB_FLOATING.horizontal,
     width: component.button.fab,
     height: component.button.fab,
     borderRadius: component.button.fab / 2,
@@ -181,6 +175,8 @@ const styles = StyleSheet.create({
   },
   locationBtnDisabled: {
     opacity: 0.72,
+    shadowOpacity: 0,
+    elevation: 0,
   },
   filterOverlay: {
     flex: 1,

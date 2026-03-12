@@ -4,20 +4,20 @@ import { useRouter } from 'expo-router';
 import * as ImagePicker from 'expo-image-picker';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { Ionicons } from '@expo/vector-icons';
-import { colors, typography, spacing, radius, shadow, layout, component } from '@/theme/tokens';
-import { LIMITS } from '@/constants';
+import { colors, typography, spacing, radius, shadow, component } from '@/theme/tokens';
+import { LIMITS, TAB_FLOATING } from '@/constants';
 import { serializePickedAsset } from '@/utils/photoMetadata';
 
 interface AddPlaceFabProps {
   visible: boolean;
-  bottom: number;
+  bottom?: number;
   onVisibleChange: (visible: boolean) => void;
   onBeforeOpen?: () => void;
 }
 
 export const AddPlaceFab: React.FC<AddPlaceFabProps> = ({
   visible,
-  bottom,
+  bottom = TAB_FLOATING.fabBottom,
   onVisibleChange,
   onBeforeOpen,
 }) => {
@@ -159,7 +159,7 @@ export const AddPlaceFab: React.FC<AddPlaceFabProps> = ({
 const styles = StyleSheet.create({
   fab: {
     position: 'absolute',
-    right: layout.screenPaddingH,
+    right: TAB_FLOATING.horizontal,
     width: component.button.fab,
     height: component.button.fab,
     borderRadius: component.button.fab / 2,

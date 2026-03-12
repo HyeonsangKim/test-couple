@@ -4,6 +4,7 @@ import { useRouter } from 'expo-router';
 import { useFocusEffect } from '@react-navigation/native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { colors, spacing, radius, layout } from '@/theme/tokens';
+import { TAB_FLOATING } from '@/constants';
 import { SearchBar } from '@/components/filter/SearchBar';
 import { InlineFilterChips } from '@/components/filter/InlineFilterChips';
 import { FilterBottomSheet } from '@/components/filter/FilterBottomSheet';
@@ -32,9 +33,6 @@ export default function ListScreen() {
     }
     return counts;
   }, [visits]);
-
-  const floatingButtonMargin = layout.screenPaddingH;
-  const fabBottom = floatingButtonMargin;
 
   useFocusEffect(useCallback(() => {
     contentOpacity.setValue(0);
@@ -103,7 +101,6 @@ export default function ListScreen() {
 
       <AddPlaceFab
         visible={addMenuVisible}
-        bottom={fabBottom}
         onVisibleChange={setAddMenuVisible}
       />
 
@@ -142,7 +139,7 @@ const styles = StyleSheet.create({
   listContent: {
     paddingHorizontal: layout.screenPaddingH,
     paddingTop: spacing[1],
-    paddingBottom: 120,
+    paddingBottom: TAB_FLOATING.listContentBottomPadding,
   },
   listGap: {
     height: spacing[3],
