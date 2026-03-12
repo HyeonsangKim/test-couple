@@ -28,23 +28,29 @@ export default function RootLayout() {
       }
     };
     bootstrap();
-  }, []);
+  }, [init, loadMap]);
 
   const processExpiredDeleteRequests = usePlaceStore((s) => s.processExpiredDeleteRequests);
 
   useEffect(() => {
-    if (map) {
+    if (!map) return;
+
+    const syncMapData = async () => {
       try {
-        loadPartner(map.memberUserIds);
-        loadPlaces(map.mapId);
-        loadAllVisits();
-        // PRD 5-2: Process expired delete requests on app start
-        processExpiredDeleteRequests(map.mapId);
+        await loadPartner(map.memberUserIds);
+        await Promise.all([
+          loadPlaces(map.mapId),
+          loadAllVisits(),
+          // PRD 5-2: Process expired delete requests on app start
+          processExpiredDeleteRequests(map.mapId),
+        ]);
       } catch {
         // silent
       }
-    }
-  }, [map?.mapId]);
+    };
+
+    void syncMapData();
+  }, [loadAllVisits, loadPartner, loadPlaces, map, processExpiredDeleteRequests]);
 
   return (
     <GestureHandlerRootView style={styles.root}>

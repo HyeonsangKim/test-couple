@@ -9,6 +9,7 @@ type IoniconsName = React.ComponentProps<typeof Ionicons>['name'];
 
 interface PlaceCardProps {
   place: Place;
+  thumbnailUri: string | null;
   visitCount: number;
   onPress: () => void;
 }
@@ -27,7 +28,7 @@ const getStatusIcon = (status: string): { icon: IoniconsName; color: string } =>
 const getStatusBadgeStyle = (status: string): { bg: string; text: string } => {
   switch (status) {
     case 'wishlist':
-      return { bg: 'rgba(245,158,11,0.10)', text: colors.marker.wishlist };
+      return { bg: colors.accent.primarySoft, text: colors.accent.primary };
     case 'visited':
       return { bg: 'rgba(24,178,107,0.10)', text: colors.marker.visited };
     default:
@@ -35,15 +36,15 @@ const getStatusBadgeStyle = (status: string): { bg: string; text: string } => {
   }
 };
 
-export const PlaceCard: React.FC<PlaceCardProps> = ({ place, visitCount, onPress }) => {
+export const PlaceCard: React.FC<PlaceCardProps> = ({ place, thumbnailUri, visitCount, onPress }) => {
   const statusInfo = getStatusIcon(place.status);
   const badgeStyle = getStatusBadgeStyle(place.status);
 
   return (
     <TouchableOpacity style={styles.row} onPress={onPress} activeOpacity={0.6}>
       {/* Thumbnail */}
-      {place.heroImageId ? (
-        <Image source={{ uri: place.heroImageId }} style={styles.thumbnail} />
+      {thumbnailUri ? (
+        <Image source={{ uri: thumbnailUri }} style={styles.thumbnail} />
       ) : (
         <View style={[styles.thumbnail, styles.placeholder]}>
           <Ionicons name={statusInfo.icon} size={20} color={statusInfo.color} />
@@ -86,10 +87,10 @@ export const PlaceCard: React.FC<PlaceCardProps> = ({ place, visitCount, onPress
 const styles = StyleSheet.create({
   row: {
     flexDirection: 'row',
-    alignItems: 'flex-start',
+    alignItems: 'center',
     minHeight: component.listCard.minHeight,
-    paddingHorizontal: component.listCard.padding,
-    paddingVertical: component.listCard.padding,
+    paddingHorizontal: component.listCard.paddingH,
+    paddingVertical: component.listCard.paddingV,
     borderRadius: component.listCard.radius,
     backgroundColor: colors.bg.subtle,
     gap: component.listCard.gap,
@@ -107,12 +108,11 @@ const styles = StyleSheet.create({
   },
   content: {
     flex: 1,
-    gap: spacing[1],
-    paddingTop: spacing[1],
+    gap: 2,
   },
   nameRow: {
     flexDirection: 'row',
-    alignItems: 'flex-start',
+    alignItems: 'center',
   },
   name: {
     ...typography.title.m,
@@ -131,7 +131,7 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     flexWrap: 'wrap',
     gap: spacing[1],
-    marginTop: spacing[1],
+    marginTop: 2,
   },
   badge: {
     height: component.badge.compactHeight,

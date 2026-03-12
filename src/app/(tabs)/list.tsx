@@ -1,33 +1,37 @@
-import React, { useState, useCallback, useRef } from 'react';
-import { View, FlatList, StyleSheet, TouchableOpacity, Modal, Text, Animated, Easing } from 'react-native';
+import React, { useState, useCallback, useMemo, useRef } from 'react';
+import { View, FlatList, StyleSheet, TouchableOpacity, Modal, Animated, Easing } from 'react-native';
 import { useRouter } from 'expo-router';
 import { useFocusEffect } from '@react-navigation/native';
 import { SafeAreaView } from 'react-native-safe-area-context';
-import { Ionicons } from '@expo/vector-icons';
-import { colors, typography, spacing, radius, layout, component } from '@/theme/tokens';
+import { colors, spacing, radius, layout } from '@/theme/tokens';
 import { SearchBar } from '@/components/filter/SearchBar';
 import { InlineFilterChips } from '@/components/filter/InlineFilterChips';
 import { FilterBottomSheet } from '@/components/filter/FilterBottomSheet';
+import { AddPlaceFab } from '@/components/place/AddPlaceFab';
 import { PlaceCard } from '@/components/place/PlaceCard';
 import { EmptyState } from '@/components/common/EmptyState';
 import { usePlaceStore } from '@/stores/usePlaceStore';
 import { useVisitStore } from '@/stores/useVisitStore';
-import { useFilteredPlaces } from '@/hooks/useFilteredPlaces';
+import { useFilteredPlaceListItems } from '@/hooks/useFilteredPlaceListItems';
 
 export default function ListScreen() {
   const router = useRouter();
   const [filterVisible, setFilterVisible] = useState(false);
+  const [addMenuVisible, setAddMenuVisible] = useState(false);
   const contentOpacity = useRef(new Animated.Value(0)).current;
   const contentTranslateY = useRef(new Animated.Value(14)).current;
 
   const { filter, setFilter } = usePlaceStore();
   const { visits } = useVisitStore();
-  const filteredPlaces = useFilteredPlaces();
+  const filteredPlaceListItems = useFilteredPlaceListItems();
 
-  const getVisitCount = useCallback(
-    (placeId: string) => visits.filter((v) => v.placeId === placeId).length,
-    [visits],
-  );
+  const visitCountByPlaceId = useMemo(() => {
+    const counts: Record<string, number> = {};
+    for (const visit of visits) {
+      counts[visit.placeId] = (counts[visit.placeId] ?? 0) + 1;
+    }
+    return counts;
+  }, [visits]);
 
   const floatingButtonMargin = layout.screenPaddingH;
   const fabBottom = floatingButtonMargin;
@@ -75,15 +79,16 @@ export default function ListScreen() {
 
         {/* List */}
         <FlatList
-          data={filteredPlaces}
-          keyExtractor={(item) => item.placeId}
+          data={filteredPlaceListItems}
+          keyExtractor={(item) => item.place.placeId}
           contentContainerStyle={styles.listContent}
           ItemSeparatorComponent={() => <View style={styles.listGap} />}
           renderItem={({ item }) => (
             <PlaceCard
-              place={item}
-              visitCount={getVisitCount(item.placeId)}
-              onPress={() => router.push(`/(main)/place/${item.placeId}`)}
+              place={item.place}
+              thumbnailUri={item.thumbnailUri}
+              visitCount={visitCountByPlaceId[item.place.placeId] ?? 0}
+              onPress={() => router.push(`/(main)/place/${item.place.placeId}`)}
             />
           )}
           ListEmptyComponent={
@@ -96,14 +101,11 @@ export default function ListScreen() {
         />
       </Animated.View>
 
-      {/* FAB */}
-      <TouchableOpacity
-        style={[styles.fab, { bottom: fabBottom }]}
-        onPress={() => router.push('/(main)/place/add/search')}
-        activeOpacity={0.8}
-      >
-        <Ionicons name="add" size={28} color={colors.text.inverse} />
-      </TouchableOpacity>
+      <AddPlaceFab
+        visible={addMenuVisible}
+        bottom={fabBottom}
+        onVisibleChange={setAddMenuVisible}
+      />
 
       {/* Filter Modal */}
       <Modal visible={filterVisible} transparent animationType="slide">
@@ -145,28 +147,13 @@ const styles = StyleSheet.create({
   listGap: {
     height: spacing[3],
   },
-  fab: {
-    position: 'absolute',
-    right: layout.screenPaddingH,
-    width: component.button.fab,
-    height: component.button.fab,
-    borderRadius: component.button.fab / 2,
-    backgroundColor: colors.accent.primary,
-    alignItems: 'center',
-    justifyContent: 'center',
-    shadowColor: colors.accent.primary,
-    shadowOffset: { width: 0, height: 4 },
-    shadowOpacity: 0.30,
-    shadowRadius: 12,
-    elevation: 6,
-  },
   filterOverlay: {
     flex: 1,
     backgroundColor: colors.overlay.dim,
     justifyContent: 'flex-end',
   },
   filterSheet: {
-    backgroundColor: colors.bg.sheet,
+    backgroundColor: colors.bg.base,
     borderTopLeftRadius: radius.sheet,
     borderTopRightRadius: radius.sheet,
   },

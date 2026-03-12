@@ -8,7 +8,10 @@ interface InviteState {
   error: string | null;
   loadInvite: (mapId: string) => Promise<void>;
   createInvite: (mapId: string) => Promise<void>;
-  validateInvite: (code: string) => Promise<{ valid: boolean; mapId?: string; error?: string }>;
+  validateInvite: (
+    code: string,
+  ) => Promise<{ valid: boolean; mapId?: string; inviteCodeId?: string; error?: string }>;
+  consumeInvite: (inviteCodeId: string, userId: string) => Promise<void>;
   revokeInvite: (mapId: string) => Promise<void>;
   clearError: () => void;
 }
@@ -35,6 +38,11 @@ export const useInviteStore = create<InviteState>((set) => ({
     const result = await inviteService.validateInvite(code);
     set({ isLoading: false, error: result.error ?? null });
     return result;
+  },
+
+  consumeInvite: async (inviteCodeId, userId) => {
+    await inviteService.consumeInvite(inviteCodeId, userId);
+    set({ invite: null });
   },
 
   revokeInvite: async (mapId) => {

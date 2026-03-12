@@ -1,32 +1,73 @@
-import React, { useState, useEffect } from 'react';
-import { View, Text, StyleSheet, ScrollView, Image, TouchableOpacity, Alert } from 'react-native';
-import { useRouter, useLocalSearchParams } from 'expo-router';
-import { SafeAreaView } from 'react-native-safe-area-context';
-import * as ImagePicker from 'expo-image-picker';
-import { Ionicons } from '@expo/vector-icons';
-import { colors, typography, spacing, radius, layout } from '@/theme/tokens';
-import { Button, IconButton, Card } from '@/components/ui';
-import { DatePicker } from '@/components/common/DatePicker';
-import { ConfirmModal } from '@/components/common/ConfirmModal';
-import { useVisitStore } from '@/stores/useVisitStore';
-import { usePlaceStore } from '@/stores/usePlaceStore';
-import { useAuthStore } from '@/stores/useAuthStore';
-import { LIMITS } from '@/constants';
-import { format } from 'date-fns';
-import { visitService } from '@/services/visitService';
-import { Visit } from '@/types';
+import React, { useState, useEffect, useRef } from "react";
+import {
+  View,
+  Text,
+  StyleSheet,
+  ScrollView,
+  Image,
+  TouchableOpacity,
+  Alert,
+} from "react-native";
+import { useRouter, useLocalSearchParams } from "expo-router";
+import { SafeAreaView } from "react-native-safe-area-context";
+import * as ImagePicker from "expo-image-picker";
+import { Ionicons } from "@expo/vector-icons";
+import { colors, typography, spacing, radius, layout } from "@/theme/tokens";
+import { Button, IconButton, Card } from "@/components/ui";
+import { DatePicker } from "@/components/common/DatePicker";
+import { ConfirmModal } from "@/components/common/ConfirmModal";
+import { useVisitStore } from "@/stores/useVisitStore";
+import { usePlaceStore } from "@/stores/usePlaceStore";
+import { useAuthStore } from "@/stores/useAuthStore";
+import { LIMITS } from "@/constants";
+import { format } from "date-fns";
+import { visitService } from "@/services/visitService";
+import { Visit } from "@/types";
+
+interface DraftImage {
+  key: string;
+  uri: string;
+  imageId: string | null;
+  isNew: boolean;
+}
+
+const parseStringArray = (value?: string): string[] => {
+  if (!value) return [];
+  try {
+    const parsed = JSON.parse(value);
+    return Array.isArray(parsed)
+      ? parsed.filter((item): item is string => typeof item === "string")
+      : [];
+  } catch {
+    return [];
+  }
+};
 
 export default function VisitFormScreen() {
   const router = useRouter();
-  const params = useLocalSearchParams<{ placeId?: string; visitId?: string; draftImageUris?: string }>();
+  const params = useLocalSearchParams<{
+    placeId?: string;
+    visitId?: string;
+    draftImageUris?: string;
+  }>();
 
   const isEditMode = !!params.visitId;
   const placeId = params.placeId;
   const visitId = params.visitId;
-  const draftImages: string[] = params.draftImageUris ? JSON.parse(params.draftImageUris) : [];
+  const draftImageUrisRef = useRef<string[]>(
+    parseStringArray(params.draftImageUris),
+  );
+  const initialExistingImageIdsRef = useRef<string[]>([]);
 
-  const [date, setDate] = useState(format(new Date(), 'yyyy-MM-dd'));
-  const [imageUris, setImageUris] = useState<string[]>(draftImages);
+  const [date, setDate] = useState(format(new Date(), "yyyy-MM-dd"));
+  const [draftImages, setDraftImages] = useState<DraftImage[]>(
+    draftImageUrisRef.current.map((uri, index) => ({
+      key: `new-${index}-${uri}`,
+      uri,
+      imageId: null,
+      isNew: true,
+    })),
+  );
   const [loading, setLoading] = useState(false);
   const [showDeleteConfirm, setShowDeleteConfirm] = useState(false);
   const [existingVisit, setExistingVisit] = useState<Visit | null>(null);
@@ -46,7 +87,15 @@ export default function VisitFormScreen() {
           setExistingVisit(v);
           setDate(v.visitDate);
           visitService.getImagesByVisit(visitId).then((imgs) => {
-            setImageUris(imgs.map((img) => img.uri));
+            initialExistingImageIdsRef.current = imgs.map((img) => img.imageId);
+            setDraftImages(
+              imgs.map((img) => ({
+                key: `existing-${img.imageId}`,
+                uri: img.uri,
+                imageId: img.imageId,
+                isNew: false,
+              })),
+            );
           });
         }
       });
@@ -56,35 +105,61 @@ export default function VisitFormScreen() {
   const pickImages = async () => {
     try {
       const result = await ImagePicker.launchImageLibraryAsync({
-        mediaTypes: ['images'],
+        mediaTypes: ["images"],
         allowsMultipleSelection: true,
         quality: 0.8,
-        selectionLimit: Math.max(0, LIMITS.MAX_IMAGES_PER_PLACE - imageUris.length),
+        selectionLimit: Math.max(
+          0,
+          LIMITS.MAX_IMAGES_PER_PLACE - draftImages.length,
+        ),
       });
 
       if (!result.canceled) {
-        setImageUris((prev) => [...prev, ...result.assets.map((a) => a.uri)]);
+        setDraftImages((prev) => [
+          ...prev,
+          ...result.assets.map((asset, index) => ({
+            key: `new-${Date.now()}-${index}-${asset.uri}`,
+            uri: asset.uri,
+            imageId: null,
+            isNew: true,
+          })),
+        ]);
       }
     } catch {
-      Alert.alert('오류', '사진을 선택할 수 없습니다.');
+      Alert.alert("오류", "사진을 선택할 수 없습니다.");
     }
   };
 
   const removeImage = (index: number) => {
-    setImageUris((prev) => prev.filter((_, i) => i !== index));
+    setDraftImages((prev) => prev.filter((_, i) => i !== index));
   };
 
   const handleSave = async () => {
     if (!date) {
-      Alert.alert('알림', '방문 날짜를 선택해주세요.');
+      Alert.alert("알림", "방문 날짜를 선택해주세요.");
       return;
     }
     if (!placeId || !currentUser) return;
 
     if (!isEditMode) {
       const existingCount = await visitService.getImageCountForPlace(placeId);
-      if (existingCount + imageUris.length > LIMITS.MAX_IMAGES_PER_PLACE) {
-        Alert.alert('알림', `이 장소에는 최대 ${LIMITS.MAX_IMAGES_PER_PLACE}장의 사진만 저장할 수 있습니다. (현재 ${existingCount}장)`);
+      if (existingCount + draftImages.length > LIMITS.MAX_IMAGES_PER_PLACE) {
+        Alert.alert(
+          "알림",
+          `이 장소에는 최대 ${LIMITS.MAX_IMAGES_PER_PLACE}장의 사진만 저장할 수 있습니다. (현재 ${existingCount}장)`,
+        );
+        return;
+      }
+    } else {
+      const existingCount = await visitService.getImageCountForPlace(placeId);
+      const initialExistingCount = initialExistingImageIdsRef.current.length;
+      const projectedCount =
+        existingCount - initialExistingCount + draftImages.length;
+      if (projectedCount > LIMITS.MAX_IMAGES_PER_PLACE) {
+        Alert.alert(
+          "알림",
+          `이 장소에는 최대 ${LIMITS.MAX_IMAGES_PER_PLACE}장의 사진만 저장할 수 있습니다. (현재 ${existingCount}장)`,
+        );
         return;
       }
     }
@@ -93,6 +168,38 @@ export default function VisitFormScreen() {
     try {
       if (isEditMode && visitId) {
         await updateVisit(visitId, { visitDate: date });
+
+        const keptExistingIds = new Set(
+          draftImages
+            .filter((img) => !img.isNew && img.imageId)
+            .map((img) => img.imageId as string),
+        );
+        const deletedExistingIds = initialExistingImageIdsRef.current.filter(
+          (imageId) => !keptExistingIds.has(imageId),
+        );
+        for (const imageId of deletedExistingIds) {
+          await visitService.deleteImage(imageId);
+        }
+
+        const newImageUris = draftImages
+          .filter((img) => img.isNew)
+          .map((img) => img.uri);
+        if (newImageUris.length > 0) {
+          await addImages(newImageUris.map((uri) => ({ visitId, uri })));
+        }
+
+        if (place?.heroImageId) {
+          const refreshedPlaceImages =
+            await visitService.getImagesByPlace(placeId);
+          const heroStillExists = refreshedPlaceImages.some(
+            (img) => img.imageId === place.heroImageId,
+          );
+          if (!heroStillExists) {
+            await updatePlace(placeId, {
+              heroImageId: refreshedPlaceImages[0]?.imageId ?? null,
+            });
+          }
+        }
       } else {
         const visit = await addVisit({
           placeId,
@@ -100,18 +207,26 @@ export default function VisitFormScreen() {
           createdByUserId: currentUser.userId,
         });
 
-        if (imageUris.length > 0) {
-          await addImages(imageUris.map((uri) => ({ visitId: visit.visitId, uri })));
+        if (draftImages.length > 0) {
+          await addImages(
+            draftImages.map((img) => ({
+              visitId: visit.visitId,
+              uri: img.uri,
+            })),
+          );
         }
 
-        if (place && (place.status === 'wishlist' || place.status === 'orphan')) {
-          await updatePlace(placeId, { status: 'visited' });
+        if (
+          place &&
+          (place.status === "wishlist" || place.status === "orphan")
+        ) {
+          await updatePlace(placeId, { status: "visited" });
         }
       }
 
       router.back();
     } catch {
-      Alert.alert('오류', '저장에 실패했습니다.');
+      Alert.alert("오류", "저장에 실패했습니다.");
     } finally {
       setLoading(false);
     }
@@ -128,13 +243,13 @@ export default function VisitFormScreen() {
       const remainingVisits = visits.filter(
         (v) => v.placeId === existingVisit.placeId && v.visitId !== visitId,
       );
-      if (remainingVisits.length === 0 && place && place.status === 'visited') {
-        await updatePlace(existingVisit.placeId, { status: 'orphan' });
+      if (remainingVisits.length === 0 && place && place.status === "visited") {
+        await updatePlace(existingVisit.placeId, { status: "orphan" });
       }
 
       router.back();
     } catch {
-      Alert.alert('오류', '삭제에 실패했습니다.');
+      Alert.alert("오류", "삭제에 실패했습니다.");
     } finally {
       setLoading(false);
     }
@@ -152,7 +267,7 @@ export default function VisitFormScreen() {
           color={colors.text.primary}
         />
         <Text style={styles.headerTitle}>
-          {isEditMode ? '방문 기록 수정' : '방문 기록 작성'}
+          {isEditMode ? "방문 기록 수정" : "방문 기록 작성"}
         </Text>
         {isEditMode ? (
           <TouchableOpacity onPress={() => setShowDeleteConfirm(true)}>
@@ -168,7 +283,11 @@ export default function VisitFormScreen() {
         {place && (
           <Card style={styles.placeInfo}>
             <View style={styles.placeInfoRow}>
-              <Ionicons name="location" size={18} color={colors.accent.primary} />
+              <Ionicons
+                name="location"
+                size={18}
+                color={colors.accent.primary}
+              />
               <View style={styles.placeInfoContent}>
                 <Text style={styles.placeName}>{place.name}</Text>
                 {place.addressText && (
@@ -188,18 +307,33 @@ export default function VisitFormScreen() {
         {/* Photo Section — card section */}
         <Card style={styles.sectionCard}>
           <Text style={styles.sectionLabel}>
-            사진 ({imageUris.length}/{LIMITS.MAX_IMAGES_PER_PLACE})
+            사진 ({draftImages.length}/{LIMITS.MAX_IMAGES_PER_PLACE})
           </Text>
-          <ScrollView horizontal showsHorizontalScrollIndicator={false} style={styles.imageRow}>
+          <ScrollView
+            horizontal
+            showsHorizontalScrollIndicator={false}
+            style={styles.imageRow}
+          >
             <TouchableOpacity style={styles.addImageBtn} onPress={pickImages}>
-              <Ionicons name="camera-outline" size={24} color={colors.text.tertiary} />
+              <Ionicons
+                name="camera-outline"
+                size={24}
+                color={colors.text.tertiary}
+              />
               <Text style={styles.addImageText}>추가</Text>
             </TouchableOpacity>
-            {imageUris.map((uri, i) => (
-              <View key={i} style={styles.imageThumbContainer}>
-                <Image source={{ uri }} style={styles.imageThumb} />
-                <TouchableOpacity style={styles.removeImageBtn} onPress={() => removeImage(i)}>
-                  <Ionicons name="close" size={12} color={colors.text.inverse} />
+            {draftImages.map((img, i) => (
+              <View key={img.key} style={styles.imageThumbContainer}>
+                <Image source={{ uri: img.uri }} style={styles.imageThumb} />
+                <TouchableOpacity
+                  style={styles.removeImageBtn}
+                  onPress={() => removeImage(i)}
+                >
+                  <Ionicons
+                    name="close"
+                    size={12}
+                    color={colors.text.inverse}
+                  />
                 </TouchableOpacity>
               </View>
             ))}
@@ -237,9 +371,9 @@ export default function VisitFormScreen() {
 const styles = StyleSheet.create({
   safe: { flex: 1, backgroundColor: colors.bg.canvas },
   header: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'space-between',
+    flexDirection: "row",
+    alignItems: "center",
+    justifyContent: "space-between",
     paddingHorizontal: layout.screenPaddingH,
     paddingVertical: spacing[3],
     borderBottomWidth: 1,
@@ -251,19 +385,27 @@ const styles = StyleSheet.create({
     color: colors.accent.danger,
   },
   scroll: { flex: 1 },
-  content: { padding: layout.screenPaddingH, paddingTop: spacing[4], gap: spacing[4] },
+  content: {
+    padding: layout.screenPaddingH,
+    paddingTop: spacing[4],
+    gap: spacing[4],
+  },
   placeInfo: {
     backgroundColor: colors.bg.elevated,
     borderRadius: radius.xl,
   },
   placeInfoRow: {
-    flexDirection: 'row',
-    alignItems: 'center',
+    flexDirection: "row",
+    alignItems: "center",
     gap: spacing[3],
   },
   placeInfoContent: { flex: 1 },
   placeName: { ...typography.title.m, color: colors.text.primary },
-  placeAddress: { ...typography.body.s, color: colors.text.secondary, marginTop: 2 },
+  placeAddress: {
+    ...typography.body.s,
+    color: colors.text.secondary,
+    marginTop: 2,
+  },
   sectionCard: {
     backgroundColor: colors.bg.elevated,
     borderRadius: radius.xl,
@@ -271,22 +413,26 @@ const styles = StyleSheet.create({
   sectionLabel: {
     ...typography.caption,
     color: colors.text.secondary,
-    fontWeight: '600',
+    fontWeight: "600",
     marginBottom: spacing[3],
   },
-  imageRow: { flexDirection: 'row' },
+  imageRow: { flexDirection: "row" },
   addImageBtn: {
     width: 80,
     height: 80,
     borderRadius: radius.md,
     borderWidth: 2,
     borderColor: colors.border.strong,
-    borderStyle: 'dashed',
-    alignItems: 'center',
-    justifyContent: 'center',
+    borderStyle: "dashed",
+    alignItems: "center",
+    justifyContent: "center",
     marginRight: spacing[2],
   },
-  addImageText: { ...typography.caption, color: colors.text.tertiary, marginTop: spacing[1] },
+  addImageText: {
+    ...typography.caption,
+    color: colors.text.tertiary,
+    marginTop: spacing[1],
+  },
   imageThumbContainer: { marginRight: spacing[2] },
   imageThumb: {
     width: 80,
@@ -295,15 +441,15 @@ const styles = StyleSheet.create({
     backgroundColor: colors.bg.soft,
   },
   removeImageBtn: {
-    position: 'absolute',
+    position: "absolute",
     top: -6,
     right: -6,
     width: 22,
     height: 22,
     borderRadius: 11,
     backgroundColor: colors.accent.danger,
-    alignItems: 'center',
-    justifyContent: 'center',
+    alignItems: "center",
+    justifyContent: "center",
   },
   footer: {
     paddingHorizontal: layout.screenPaddingH,
@@ -313,7 +459,7 @@ const styles = StyleSheet.create({
     backgroundColor: colors.bg.elevated,
   },
   saveBtn: {
-    borderRadius: radius['2xl'],
+    borderRadius: radius["2xl"],
     height: 56,
   },
 });

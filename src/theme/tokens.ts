@@ -254,12 +254,13 @@ export const component = {
     gap: 12,
   },
   listCard: {
-    minHeight: 96,
+    minHeight: 92,
     radius: 16,
-    padding: 16,
-    thumbSize: 64,
-    thumbRadius: 16,
-    gap: 16,
+    paddingH: 12,
+    paddingV: 10,
+    thumbSize: 72,
+    thumbRadius: 14,
+    gap: 12,
   },
   surfaceRow: {
     minHeight: 56,

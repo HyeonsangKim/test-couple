@@ -31,7 +31,9 @@ export const inviteService = {
     return newInvite;
   },
 
-  validateInvite: async (code: string, userId?: string): Promise<{ valid: boolean; mapId?: string; error?: string }> => {
+  validateInvite: async (
+    code: string,
+  ): Promise<{ valid: boolean; mapId?: string; inviteCodeId?: string; error?: string }> => {
     await delay(500);
     const invite = inviteCodes.find((ic) => ic.code.toUpperCase() === code.toUpperCase());
     if (!invite) return { valid: false, error: '유효하지 않은 초대 코드입니다.' };
@@ -42,13 +44,24 @@ export const inviteService = {
       );
       return { valid: false, error: '만료된 초대 코드입니다.' };
     }
-    const mapId = invite.mapId;
+    return { valid: true, mapId: invite.mapId, inviteCodeId: invite.inviteCodeId };
+  },
+
+  consumeInvite: async (inviteCodeId: string, userId?: string): Promise<void> => {
+    await delay(120);
+    const invite = inviteCodes.find((ic) => ic.inviteCodeId === inviteCodeId);
+    if (!invite) {
+      throw new Error('Invite not found');
+    }
+    if (invite.status !== 'active' || isExpired(invite.expiresAt)) {
+      throw new Error('Invite is no longer active');
+    }
+
     inviteCodes = inviteCodes.map((ic) =>
       ic.inviteCodeId === invite.inviteCodeId
         ? { ...ic, status: 'used', usedByUserId: userId ?? null, usedAt: new Date().toISOString() }
         : ic
     );
-    return { valid: true, mapId };
   },
 
   revokeInvite: async (mapId: string): Promise<void> => {

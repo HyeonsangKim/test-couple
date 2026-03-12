@@ -42,7 +42,11 @@ export const mapService = {
     await delay(300);
     const targetMap = maps.find((m) => m.mapId === targetMapId);
     if (!targetMap) throw new Error('Target map not found');
-    if (targetMap.memberUserIds.length >= 2) throw new Error('Map already has 2 members');
+
+    const alreadyMember = targetMap.memberUserIds.includes(userId);
+    if (targetMap.memberUserIds.length >= 2 && !alreadyMember) {
+      throw new Error('Map already has 2 members');
+    }
 
     // Delete current active map if different
     const currentActiveMapId = activeMapIdByUserId[userId];
