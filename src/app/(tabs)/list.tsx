@@ -1,7 +1,7 @@
 import React, { useState, useCallback } from 'react';
 import { View, FlatList, StyleSheet, TouchableOpacity, Modal, Text } from 'react-native';
 import { useRouter } from 'expo-router';
-import { SafeAreaView } from 'react-native-safe-area-context';
+import { SafeAreaView, useSafeAreaInsets } from 'react-native-safe-area-context';
 import { Ionicons } from '@expo/vector-icons';
 import { colors, typography, spacing, radius, layout, component } from '@/theme/tokens';
 import { SearchBar } from '@/components/filter/SearchBar';
@@ -16,6 +16,7 @@ import { STATUS_LABELS, CATEGORY_LABELS } from '@/constants';
 
 export default function ListScreen() {
   const router = useRouter();
+  const insets = useSafeAreaInsets();
   const [filterVisible, setFilterVisible] = useState(false);
 
   const { filter, setFilter, resetFilter } = usePlaceStore();
@@ -28,6 +29,9 @@ export default function ListScreen() {
   );
 
   const hasActiveFilter = filter.status !== 'all' || filter.category !== 'all';
+  const tabBarHeight = component.tabBar.contentHeight + insets.bottom;
+  const floatingButtonMargin = layout.screenPaddingH;
+  const fabBottom = tabBarHeight + floatingButtonMargin;
 
   return (
     <SafeAreaView style={styles.safe} edges={['top']}>
@@ -108,11 +112,11 @@ export default function ListScreen() {
 
       {/* FAB */}
       <TouchableOpacity
-        style={styles.fab}
+        style={[styles.fab, { bottom: fabBottom }]}
         onPress={() => router.push('/(main)/place/add/search')}
         activeOpacity={0.8}
       >
-        <Ionicons name="add" size={24} color={colors.text.inverse} />
+        <Ionicons name="add" size={28} color={colors.text.inverse} />
       </TouchableOpacity>
 
       {/* Filter Modal */}
@@ -195,7 +199,6 @@ const styles = StyleSheet.create({
   },
   fab: {
     position: 'absolute',
-    bottom: 96,
     right: layout.screenPaddingH,
     width: component.button.fab,
     height: component.button.fab,

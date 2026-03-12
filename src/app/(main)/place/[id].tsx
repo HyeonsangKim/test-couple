@@ -4,7 +4,7 @@ import {
   KeyboardAvoidingView, Platform, Modal, TextInput as RNTextInput, Dimensions,
 } from 'react-native';
 import { useLocalSearchParams, useRouter } from 'expo-router';
-import { SafeAreaView } from 'react-native-safe-area-context';
+import { SafeAreaView, useSafeAreaInsets } from 'react-native-safe-area-context';
 import { Ionicons } from '@expo/vector-icons';
 import { colors, typography, spacing, radius, layout, component } from '@/theme/tokens';
 import { Button, Chip, IconButton, Card } from '@/components/ui';
@@ -28,6 +28,7 @@ const IMAGE_TILE_SIZE = (SCREEN_WIDTH - IMAGE_PADDING - IMAGE_GAP * 2) / 3;
 export default function PlaceDetailScreen() {
   const { id } = useLocalSearchParams<{ id: string }>();
   const router = useRouter();
+  const insets = useSafeAreaInsets();
 
   const place = usePlaceStore((s) => s.places.find((p) => p.placeId === id) ?? null);
   const updatePlace = usePlaceStore((s) => s.updatePlace);
@@ -43,11 +44,10 @@ export default function PlaceDetailScreen() {
   const [newMessage, setNewMessage] = useState('');
   const [showDeleteConfirm, setShowDeleteConfirm] = useState(false);
   const [showCategoryPicker, setShowCategoryPicker] = useState(false);
-  const [editingMessageId, setEditingMessageId] = useState<string | null>(null);
-  const [editingBody, setEditingBody] = useState('');
-  const updateMessage = useThreadStore((s) => s.updateMessage);
+  const [pendingDeleteMessageId, setPendingDeleteMessageId] = useState<string | null>(null);
 
   const gracePeriod = useDeleteGracePeriod(place?.deleteRequest ?? null);
+  const currentUserId = currentUser?.userId ?? CURRENT_USER_ID;
 
   useEffect(() => {
     if (id) {
@@ -74,31 +74,14 @@ export default function PlaceDetailScreen() {
     }
   };
 
-  const handleDeleteMessage = (msgId: string) => {
-    Alert.alert('메시지 삭제', '이 메시지를 삭제하시겠습니까?', [
-      { text: '취소', style: 'cancel' },
-      { text: '삭제', style: 'destructive', onPress: () => deleteMessage(msgId, CURRENT_USER_ID) },
-    ]);
-  };
+  const handleDeleteMessage = async () => {
+    if (!pendingDeleteMessageId) return;
 
-  const handleEditMessage = (msgId: string, body: string) => {
-    setEditingMessageId(msgId);
-    setEditingBody(body);
-  };
-
-  const handleSaveEdit = async () => {
-    if (!editingMessageId) return;
-    const error = validateThreadMessage(editingBody);
-    if (error) {
-      Alert.alert('알림', error);
-      return;
-    }
     try {
-      await updateMessage(editingMessageId, CURRENT_USER_ID, editingBody.trim());
-      setEditingMessageId(null);
-      setEditingBody('');
+      await deleteMessage(pendingDeleteMessageId, currentUserId);
+      setPendingDeleteMessageId(null);
     } catch {
-      Alert.alert('오류', '수정에 실패했습니다.');
+      Alert.alert('오류', '메시지 삭제에 실패했습니다.');
     }
   };
 
@@ -160,8 +143,27 @@ export default function PlaceDetailScreen() {
 
   return (
     <SafeAreaView style={styles.safe} edges={['top']}>
-      <KeyboardAvoidingView style={{ flex: 1 }} behavior={Platform.OS === 'ios' ? 'padding' : undefined}>
-        <ScrollView style={styles.scroll} contentContainerStyle={styles.scrollContent}>
+      <View style={styles.header}>
+        <IconButton
+          icon="chevron-back"
+          onPress={() => router.back()}
+          size={40}
+          backgroundColor={colors.bg.elevated}
+          color={colors.text.primary}
+        />
+        <Text numberOfLines={1} style={styles.headerTitle}>장소 상세</Text>
+        <View style={styles.headerSpacer} />
+      </View>
+
+      <KeyboardAvoidingView
+        style={styles.keyboardAvoiding}
+        behavior={Platform.OS === 'ios' ? 'padding' : undefined}
+      >
+        <ScrollView
+          style={styles.scroll}
+          contentContainerStyle={styles.scrollContent}
+          keyboardShouldPersistTaps="handled"
+        >
           {/* Hero Image */}
           {heroImage ? (
             <Image source={{ uri: heroImage.uri }} style={styles.heroImage} />
@@ -176,17 +178,6 @@ export default function PlaceDetailScreen() {
               />
             </View>
           )}
-
-          {/* Floating Back Button */}
-          <View style={styles.floatingBack}>
-            <IconButton
-              icon="chevron-back"
-              onPress={() => router.back()}
-              size={component.button.floatingIcon}
-              backgroundColor={colors.glass.fill}
-              color={colors.text.primary}
-            />
-          </View>
 
           {/* Floating Wishlist Action */}
           {place.status === 'orphan' && (
@@ -214,7 +205,7 @@ export default function PlaceDetailScreen() {
                     {' '}· 모든 방문기록과 사진이 삭제됩니다.
                   </Text>
                   <View style={styles.deleteBannerActions}>
-                    {place.deleteRequest?.requestedByUserId === CURRENT_USER_ID ? (
+                    {place.deleteRequest?.requestedByUserId === currentUserId ? (
                       <Button
                         title="요청 취소"
                         onPress={() => cancelDelete(place.placeId)}
@@ -329,55 +320,24 @@ export default function PlaceDetailScreen() {
             ) : (
               messages.map((msg) => {
                 const author = getUserById(msg.authorUserId);
-                const isMine = msg.authorUserId === CURRENT_USER_ID;
-                const isEditing = editingMessageId === msg.messageId;
+                const isMine = msg.authorUserId === currentUserId;
                 return (
                   <View key={msg.messageId} style={[styles.msgRow, isMine && styles.msgRowMine]}>
-                    <View style={[styles.msgBubble, isMine ? styles.msgBubbleMine : styles.msgBubblePartner]}>
+                    <TouchableOpacity
+                      activeOpacity={isMine ? 0.86 : 1}
+                      delayLongPress={300}
+                      disabled={!isMine}
+                      onLongPress={() => setPendingDeleteMessageId(msg.messageId)}
+                      style={[styles.msgBubble, isMine ? styles.msgBubbleMine : styles.msgBubblePartner]}
+                    >
                       {!isMine && (
                         <Text style={styles.msgAuthor}>{author?.nickname ?? '?'}</Text>
                       )}
-                      {isEditing ? (
-                        <View>
-                          <RNTextInput
-                            style={styles.editInput}
-                            value={editingBody}
-                            onChangeText={setEditingBody}
-                            maxLength={LIMITS.MAX_THREAD_MESSAGE_LENGTH}
-                            multiline
-                            autoFocus
-                          />
-                          <View style={styles.editActions}>
-                            <TouchableOpacity onPress={() => { setEditingMessageId(null); setEditingBody(''); }}>
-                              <Text style={styles.editCancel}>취소</Text>
-                            </TouchableOpacity>
-                            <TouchableOpacity onPress={handleSaveEdit}>
-                              <Text style={styles.editSave}>저장</Text>
-                            </TouchableOpacity>
-                          </View>
-                        </View>
-                      ) : (
-                        <>
-                          <Text style={styles.msgBody}>{msg.body}</Text>
-                          <View style={styles.msgMeta}>
-                            <Text style={styles.msgTime}>
-                              {formatRelative(msg.createdAt)}
-                              {msg.updatedAt ? ' (수정됨)' : ''}
-                            </Text>
-                            {isMine && (
-                              <View style={styles.msgActions}>
-                                <TouchableOpacity onPress={() => handleEditMessage(msg.messageId, msg.body)}>
-                                  <Text style={styles.msgEdit}>수정</Text>
-                                </TouchableOpacity>
-                                <TouchableOpacity onPress={() => handleDeleteMessage(msg.messageId)}>
-                                  <Text style={styles.msgDelete}>삭제</Text>
-                                </TouchableOpacity>
-                              </View>
-                            )}
-                          </View>
-                        </>
-                      )}
-                    </View>
+                      <Text style={styles.msgBody}>{msg.body}</Text>
+                      <View style={styles.msgMeta}>
+                        <Text style={styles.msgTime}>{formatRelative(msg.createdAt)}</Text>
+                      </View>
+                    </TouchableOpacity>
                   </View>
                 );
               })
@@ -399,7 +359,7 @@ export default function PlaceDetailScreen() {
         </ScrollView>
 
         {/* Message Composer Bar */}
-        <View style={styles.inputBar}>
+        <View style={[styles.inputBar, { paddingBottom: Math.max(insets.bottom, spacing[4]) }]}>
           <View style={styles.inputWrapper}>
             <RNTextInput
               style={styles.messageInput}
@@ -409,6 +369,8 @@ export default function PlaceDetailScreen() {
               placeholderTextColor={colors.text.tertiary}
               maxLength={LIMITS.MAX_THREAD_MESSAGE_LENGTH}
               multiline
+              showSoftInputOnFocus
+              textAlignVertical="center"
             />
           </View>
           <TouchableOpacity
@@ -433,6 +395,16 @@ export default function PlaceDetailScreen() {
         confirmLabel="삭제 요청"
         onConfirm={handleRequestDelete}
         onCancel={() => setShowDeleteConfirm(false)}
+        danger
+      />
+
+      <ConfirmModal
+        visible={pendingDeleteMessageId !== null}
+        title="메시지 삭제"
+        message="이 메모를 삭제하시겠습니까?"
+        confirmLabel="삭제"
+        onConfirm={handleDeleteMessage}
+        onCancel={() => setPendingDeleteMessageId(null)}
         danger
       />
 
@@ -478,6 +450,29 @@ export default function PlaceDetailScreen() {
 
 const styles = StyleSheet.create({
   safe: { flex: 1, backgroundColor: colors.bg.canvas },
+  header: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+    paddingHorizontal: layout.screenPaddingH,
+    paddingVertical: spacing[3],
+    borderBottomWidth: 1,
+    borderBottomColor: colors.border.soft,
+    backgroundColor: colors.bg.elevated,
+  },
+  headerTitle: {
+    ...typography.title.l,
+    color: colors.text.primary,
+    flex: 1,
+    textAlign: 'center',
+    marginHorizontal: spacing[3],
+  },
+  headerSpacer: {
+    width: 40,
+  },
+  keyboardAvoiding: {
+    flex: 1,
+  },
   emptyContainer: {
     flex: 1,
     alignItems: 'center',
@@ -488,7 +483,7 @@ const styles = StyleSheet.create({
   emptyDesc: { ...typography.body.m, color: colors.text.secondary, textAlign: 'center', marginBottom: spacing[6] },
   emptyBtn: { borderRadius: radius.full },
   scroll: { flex: 1 },
-  scrollContent: { paddingBottom: 100 },
+  scrollContent: { paddingBottom: spacing[6] },
 
   /* Hero */
   heroImage: {
@@ -499,14 +494,6 @@ const styles = StyleSheet.create({
   heroPlaceholder: {
     alignItems: 'center',
     justifyContent: 'center',
-  },
-
-  /* Floating back button above hero */
-  floatingBack: {
-    position: 'absolute',
-    top: component.hero.overlayOffset,
-    left: layout.screenPaddingH,
-    zIndex: 10,
   },
   floatingAction: {
     position: 'absolute',
@@ -649,38 +636,19 @@ const styles = StyleSheet.create({
   msgBody: { ...typography.body.m, color: colors.text.primary },
   msgMeta: {
     flexDirection: 'row',
-    justifyContent: 'space-between',
+    justifyContent: 'flex-start',
     alignItems: 'center',
     marginTop: spacing[1],
   },
   msgTime: { ...typography.caption, color: colors.text.tertiary, fontSize: 11 },
-  msgActions: { flexDirection: 'row', gap: spacing[2] },
-  msgEdit: { ...typography.caption, color: colors.accent.primary, fontWeight: '600', fontSize: 11 },
-  msgDelete: { ...typography.caption, color: colors.accent.danger, fontWeight: '600', fontSize: 11 },
-  editInput: {
-    ...typography.body.m,
-    color: colors.text.primary,
-    backgroundColor: colors.bg.soft,
-    borderRadius: radius.sm,
-    paddingHorizontal: spacing[2],
-    paddingVertical: spacing[1],
-    maxHeight: 80,
-  },
-  editActions: {
-    flexDirection: 'row',
-    justifyContent: 'flex-end',
-    gap: spacing[3],
-    marginTop: spacing[1],
-  },
-  editCancel: { ...typography.caption, color: colors.text.tertiary, fontWeight: '600' },
-  editSave: { ...typography.caption, color: colors.accent.primary, fontWeight: '600' },
 
   /* Message Composer Bar */
   inputBar: {
     flexDirection: 'row',
-    alignItems: 'flex-end',
+    alignItems: 'center',
     paddingHorizontal: layout.screenPaddingH,
-    paddingVertical: spacing[2],
+    paddingTop: spacing[3],
+    paddingBottom: spacing[4],
     backgroundColor: colors.bg.elevated,
     borderTopWidth: 1,
     borderTopColor: colors.border.soft,
@@ -691,17 +659,20 @@ const styles = StyleSheet.create({
     backgroundColor: colors.bg.soft,
     borderRadius: radius.lg,
     paddingHorizontal: spacing[3],
+    minHeight: 60,
+    justifyContent: 'center',
   },
   messageInput: {
     ...typography.body.m,
     color: colors.text.primary,
+    minHeight: 24,
     maxHeight: 80,
-    paddingVertical: spacing[2],
+    paddingVertical: spacing[3],
   },
   sendBtn: {
-    width: 44,
-    height: 44,
-    borderRadius: 22,
+    width: 48,
+    height: 48,
+    borderRadius: 24,
     backgroundColor: colors.bg.soft,
     alignItems: 'center',
     justifyContent: 'center',

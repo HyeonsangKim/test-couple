@@ -55,7 +55,8 @@
         {
           "locationWhenInUsePermission": "현재 위치를 지도에서 표시하고 내 위치로 이동하려면 위치 접근 권한이 필요합니다."
         }
-      ]
+      ],
+      "expo-font"
     ]
   }
 }

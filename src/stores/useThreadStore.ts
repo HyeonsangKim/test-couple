@@ -7,7 +7,6 @@ interface ThreadState {
   isLoading: boolean;
   loadMessages: (placeId: string) => Promise<void>;
   addMessage: (data: { placeId: string; authorUserId: string; body: string }) => Promise<void>;
-  updateMessage: (messageId: string, actorUserId: string, body: string) => Promise<void>;
   deleteMessage: (messageId: string, actorUserId: string) => Promise<void>;
 }
 
@@ -24,13 +23,6 @@ export const useThreadStore = create<ThreadState>((set) => ({
   addMessage: async (data) => {
     const msg = await threadService.addMessage(data);
     set((s) => ({ messages: [...s.messages, msg] }));
-  },
-
-  updateMessage: async (messageId, actorUserId, body) => {
-    const updated = await threadService.updateMessage(messageId, actorUserId, body);
-    set((s) => ({
-      messages: s.messages.map((m) => (m.messageId === messageId ? updated : m)),
-    }));
   },
 
   deleteMessage: async (messageId, actorUserId) => {

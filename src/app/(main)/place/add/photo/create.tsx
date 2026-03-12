@@ -123,7 +123,11 @@ export default function PlaceCreateFromPhotoScreen() {
         <View style={{ width: 40 }} />
       </View>
 
-      <ScrollView style={styles.scroll} contentContainerStyle={styles.content}>
+      <ScrollView
+        style={styles.scroll}
+        contentContainerStyle={styles.content}
+        keyboardShouldPersistTaps="handled"
+      >
         {/* Draft Image Preview */}
         {draftImageUris.length > 0 && (
           <View style={styles.section}>
@@ -150,6 +154,7 @@ export default function PlaceCreateFromPhotoScreen() {
             placeholder="장소 이름을 입력해주세요"
             placeholderTextColor={colors.text.tertiary}
             maxLength={50}
+            showSoftInputOnFocus
           />
         </View>
 

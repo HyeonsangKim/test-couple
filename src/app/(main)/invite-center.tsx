@@ -198,6 +198,7 @@ export default function InviteCenterScreen() {
             placeholderTextColor={colors.text.tertiary}
             autoCapitalize="characters"
             maxLength={8}
+            showSoftInputOnFocus
           />
           <Button
             title="참여하기"

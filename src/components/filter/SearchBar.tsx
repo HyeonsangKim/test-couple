@@ -50,6 +50,7 @@ export const SearchBar = React.forwardRef<TextInput, SearchBarProps>(({
       onBlur={onBlur}
       onSubmitEditing={onSubmitEditing}
       autoFocus={autoFocus}
+      showSoftInputOnFocus
     />
     {value.length > 0 && (
       <TouchableOpacity onPress={onClear} style={styles.clearBtn}>

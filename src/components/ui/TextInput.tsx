@@ -40,6 +40,7 @@ export const TextInput: React.FC<TextInputProps> = ({
           style={[styles.input, style]}
           placeholderTextColor={colors.text.tertiary}
           selectionColor={colors.accent.primary}
+          showSoftInputOnFocus
           onFocus={(e) => {
             setFocused(true);
             props.onFocus?.(e);

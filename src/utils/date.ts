@@ -1,5 +1,14 @@
-import { format, formatDistanceToNow, differenceInHours, differenceInDays, addDays, addHours, parseISO, isAfter } from 'date-fns';
-import { ko } from 'date-fns/locale';
+import {
+  addDays,
+  addHours,
+  differenceInDays,
+  differenceInHours,
+  differenceInMinutes,
+  format,
+  isAfter,
+  isSameDay,
+  parseISO,
+} from 'date-fns';
 
 export const formatDate = (dateStr: string): string =>
   format(parseISO(dateStr), 'yyyy.MM.dd');
@@ -7,8 +16,26 @@ export const formatDate = (dateStr: string): string =>
 export const formatDateTime = (dateStr: string): string =>
   format(parseISO(dateStr), 'yyyy.MM.dd HH:mm');
 
-export const formatRelative = (dateStr: string): string =>
-  formatDistanceToNow(parseISO(dateStr), { addSuffix: true, locale: ko });
+export const formatRelative = (dateStr: string): string => {
+  const targetDate = parseISO(dateStr);
+  const now = new Date();
+
+  if (!isSameDay(targetDate, now)) {
+    return format(targetDate, 'M월 d일');
+  }
+
+  const minutesAgo = differenceInMinutes(now, targetDate);
+
+  if (minutesAgo < 1) {
+    return '방금';
+  }
+
+  if (minutesAgo < 60) {
+    return `${minutesAgo}분 전`;
+  }
+
+  return `${differenceInHours(now, targetDate)}시간 전`;
+};
 
 export const getRemainingHours = (expiresAt: string): number =>
   Math.max(0, differenceInHours(parseISO(expiresAt), new Date()));

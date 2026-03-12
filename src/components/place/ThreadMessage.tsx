@@ -1,5 +1,5 @@
 import React from 'react';
-import { View, Text, StyleSheet, TouchableOpacity } from 'react-native';
+import { View, Text, StyleSheet } from 'react-native';
 import { ThreadMessage as ThreadMessageType } from '@/types';
 import { colors, typography, spacing, radius, component } from '@/theme/tokens';
 import { Avatar } from '@/components/ui';
@@ -9,11 +9,9 @@ import { CURRENT_USER_ID } from '@/mock/data';
 
 interface ThreadMessageProps {
   message: ThreadMessageType;
-  onEdit?: () => void;
-  onDelete?: () => void;
 }
 
-export const ThreadMessageComponent: React.FC<ThreadMessageProps> = ({ message, onEdit, onDelete }) => {
+export const ThreadMessageComponent: React.FC<ThreadMessageProps> = ({ message }) => {
   const getUserById = useAuthStore((s) => s.getUserById);
   const author = getUserById(message.authorUserId);
   const isMine = message.authorUserId === CURRENT_USER_ID;
@@ -28,20 +26,6 @@ export const ThreadMessageComponent: React.FC<ThreadMessageProps> = ({ message, 
         <Text style={styles.content}>{message.body}</Text>
         <View style={styles.meta}>
           <Text style={styles.time}>{formatRelative(message.createdAt)}</Text>
-          {isMine && (
-            <View style={styles.actions}>
-              {onEdit && (
-                <TouchableOpacity onPress={onEdit}>
-                  <Text style={styles.actionText}>수정</Text>
-                </TouchableOpacity>
-              )}
-              {onDelete && (
-                <TouchableOpacity onPress={onDelete}>
-                  <Text style={[styles.actionText, styles.deleteText]}>삭제</Text>
-                </TouchableOpacity>
-              )}
-            </View>
-          )}
         </View>
       </View>
       {isMine && (
@@ -88,7 +72,7 @@ const styles = StyleSheet.create({
   },
   meta: {
     flexDirection: 'row',
-    justifyContent: 'space-between',
+    justifyContent: 'flex-start',
     alignItems: 'center',
     marginTop: spacing[1],
   },
@@ -96,18 +80,5 @@ const styles = StyleSheet.create({
     ...typography.caption,
     color: colors.text.tertiary,
     fontSize: 11,
-  },
-  actions: {
-    flexDirection: 'row',
-    gap: spacing[2],
-    marginLeft: spacing[4],
-  },
-  actionText: {
-    ...typography.caption,
-    color: colors.accent.primary,
-    fontWeight: '600',
-  },
-  deleteText: {
-    color: colors.accent.danger,
   },
 });

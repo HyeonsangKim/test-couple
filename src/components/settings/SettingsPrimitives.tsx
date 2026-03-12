@@ -109,6 +109,7 @@ export function SettingsTextField({
           {...props}
           placeholderTextColor={colors.text.tertiary}
           selectionColor={colors.accent.primary}
+          showSoftInputOnFocus
           style={[styles.fieldInput, style]}
           onFocus={(event) => {
             setFocused(true);

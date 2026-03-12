@@ -3,6 +3,7 @@ import { View, StyleSheet, TouchableOpacity, Modal, Text } from 'react-native';
 import { useNavigation, useRouter } from 'expo-router';
 import MapView, { Region } from 'react-native-maps';
 import { Ionicons } from '@expo/vector-icons';
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { colors, typography, spacing, radius, shadow, layout, component } from '@/theme/tokens';
 import { PlaceMarker } from '@/components/map/PlaceMarker';
 import { usePlaceStore } from '@/stores/usePlaceStore';
@@ -16,6 +17,7 @@ import { MapSearchOverlay, MapSearchOverlayHandle } from '@/components/map/MapSe
 export default function MapScreen() {
   const router = useRouter();
   const navigation = useNavigation();
+  const insets = useSafeAreaInsets();
   const mapRef = useRef<MapView>(null);
   const currentRegionRef = useRef<Region>(DEFAULT_MAP_REGION as Region);
   const searchOverlayRef = useRef<MapSearchOverlayHandle>(null);
@@ -105,6 +107,10 @@ export default function MapScreen() {
   }, [centerToUser]);
 
   const hasActiveFilter = filter.status !== 'all' || filter.category !== 'all';
+  const tabBarHeight = component.tabBar.contentHeight + insets.bottom;
+  const floatingButtonMargin = layout.screenPaddingH;
+  const fabBottom = tabBarHeight + floatingButtonMargin;
+  const locationBottom = fabBottom + component.button.fab + floatingButtonMargin;
 
   return (
     <View style={styles.container}>
@@ -136,21 +142,25 @@ export default function MapScreen() {
 
       {/* Floating Location Button */}
       <TouchableOpacity
-        style={[styles.locationBtn, isLocating && styles.locationBtnDisabled]}
+        style={[
+          styles.locationBtn,
+          { bottom: locationBottom },
+          isLocating && styles.locationBtnDisabled,
+        ]}
         onPress={handleLocatePress}
         activeOpacity={isLocating ? 1 : 0.7}
         disabled={isLocating}
       >
         <Ionicons
           name="locate-outline"
-          size={22}
+          size={24}
           color={isLocating ? colors.text.tertiary : colors.text.primary}
         />
       </TouchableOpacity>
 
       {/* FAB - Add Place */}
       <TouchableOpacity
-        style={styles.fab}
+        style={[styles.fab, { bottom: fabBottom }]}
         onPress={handleOpenAddMenu}
         activeOpacity={0.8}
       >
@@ -230,24 +240,22 @@ const styles = StyleSheet.create({
   locationBtn: {
     position: 'absolute',
     right: layout.screenPaddingH,
-    top: 160,
-    width: component.button.floatingIcon,
-    height: component.button.floatingIcon,
-    borderRadius: radius.xl,
+    width: component.button.fab,
+    height: component.button.fab,
+    borderRadius: component.button.fab / 2,
     backgroundColor: colors.bg.base,
     borderWidth: 1,
     borderColor: colors.line.default,
     alignItems: 'center',
     justifyContent: 'center',
     zIndex: 10,
-    ...shadow.sm,
+    ...shadow.md,
   },
   locationBtnDisabled: {
     opacity: 0.72,
   },
   fab: {
     position: 'absolute',
-    bottom: 100,
     right: layout.screenPaddingH,
     width: component.button.fab,
     height: component.button.fab,

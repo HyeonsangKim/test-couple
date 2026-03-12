@@ -102,6 +102,7 @@ export default function PlaceAddPinScreen() {
           placeholder="장소 이름을 입력해주세요"
           placeholderTextColor={colors.text.tertiary}
           maxLength={50}
+          showSoftInputOnFocus
         />
       </View>
 
