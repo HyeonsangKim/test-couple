@@ -13,7 +13,8 @@ import { SafeAreaView } from "react-native-safe-area-context";
 import * as ImagePicker from "expo-image-picker";
 import { Ionicons } from "@expo/vector-icons";
 import { colors, typography, spacing, radius, layout } from "@/theme/tokens";
-import { Button, IconButton, Card } from "@/components/ui";
+import { Button, Card } from "@/components/ui";
+import { BackHeader } from "@/components/common/BackHeader";
 import { DatePicker } from "@/components/common/DatePicker";
 import { ConfirmModal } from "@/components/common/ConfirmModal";
 import { useVisitStore } from "@/stores/useVisitStore";
@@ -72,7 +73,7 @@ export default function VisitFormScreen() {
   const [showDeleteConfirm, setShowDeleteConfirm] = useState(false);
   const [existingVisit, setExistingVisit] = useState<Visit | null>(null);
 
-  const { addVisit, updateVisit, deleteVisit, addImages } = useVisitStore();
+  const { addVisit, updateVisit, deleteVisit, addImages, deleteImage } = useVisitStore();
   const updatePlace = usePlaceStore((s) => s.updatePlace);
   const places = usePlaceStore((s) => s.places);
   const visits = useVisitStore((s) => s.visits);
@@ -178,7 +179,7 @@ export default function VisitFormScreen() {
           (imageId) => !keptExistingIds.has(imageId),
         );
         for (const imageId of deletedExistingIds) {
-          await visitService.deleteImage(imageId);
+          await deleteImage(imageId);
         }
 
         const newImageUris = draftImages
@@ -257,26 +258,19 @@ export default function VisitFormScreen() {
 
   return (
     <SafeAreaView style={styles.safe}>
-      {/* Header */}
-      <View style={styles.header}>
-        <IconButton
-          icon="close"
-          onPress={() => router.back()}
-          size={40}
-          backgroundColor={colors.bg.elevated}
-          color={colors.text.primary}
-        />
-        <Text style={styles.headerTitle}>
-          {isEditMode ? "방문 기록 수정" : "방문 기록 작성"}
-        </Text>
-        {isEditMode ? (
-          <TouchableOpacity onPress={() => setShowDeleteConfirm(true)}>
-            <Text style={styles.deleteHeaderBtn}>삭제</Text>
-          </TouchableOpacity>
-        ) : (
-          <View style={{ width: 40 }} />
-        )}
-      </View>
+      <BackHeader
+        title={isEditMode ? "방문 기록 수정" : "방문 기록 작성"}
+        onBack={() => router.back()}
+        backIcon="close"
+        rightSlot={
+          isEditMode ? (
+            <TouchableOpacity onPress={() => setShowDeleteConfirm(true)}>
+              <Text style={styles.deleteHeaderBtn}>삭제</Text>
+            </TouchableOpacity>
+          ) : undefined
+        }
+        bordered
+      />
 
       <ScrollView style={styles.scroll} contentContainerStyle={styles.content}>
         {/* Place Info */}
@@ -339,21 +333,20 @@ export default function VisitFormScreen() {
             ))}
           </ScrollView>
         </Card>
-      </ScrollView>
 
-      {/* Footer */}
-      <View style={styles.footer}>
-        <Button
-          title="저장"
-          onPress={handleSave}
-          variant="primary"
-          size="lg"
-          fullWidth
-          loading={loading}
-          disabled={!placeId}
-          style={styles.saveBtn}
-        />
-      </View>
+        <View style={styles.ctaSection}>
+          <Button
+            title="저장"
+            onPress={handleSave}
+            variant="primary"
+            size="lg"
+            fullWidth
+            loading={loading}
+            disabled={!placeId}
+            style={styles.saveBtn}
+          />
+        </View>
+      </ScrollView>
 
       <ConfirmModal
         visible={showDeleteConfirm}
@@ -370,16 +363,6 @@ export default function VisitFormScreen() {
 
 const styles = StyleSheet.create({
   safe: { flex: 1, backgroundColor: colors.bg.canvas },
-  header: {
-    flexDirection: "row",
-    alignItems: "center",
-    justifyContent: "space-between",
-    paddingHorizontal: layout.screenPaddingH,
-    paddingVertical: spacing[3],
-    borderBottomWidth: 1,
-    borderBottomColor: colors.border.soft,
-  },
-  headerTitle: { ...typography.title.l, color: colors.text.primary },
   deleteHeaderBtn: {
     ...typography.title.m,
     color: colors.accent.danger,
@@ -388,6 +371,7 @@ const styles = StyleSheet.create({
   content: {
     padding: layout.screenPaddingH,
     paddingTop: spacing[4],
+    paddingBottom: spacing[8],
     gap: spacing[4],
   },
   placeInfo: {
@@ -451,12 +435,8 @@ const styles = StyleSheet.create({
     alignItems: "center",
     justifyContent: "center",
   },
-  footer: {
-    paddingHorizontal: layout.screenPaddingH,
-    padding: 20,
-    borderTopWidth: 1,
-    borderTopColor: colors.border.soft,
-    backgroundColor: colors.bg.elevated,
+  ctaSection: {
+    marginTop: spacing[2],
   },
   saveBtn: {
     borderRadius: radius["2xl"],

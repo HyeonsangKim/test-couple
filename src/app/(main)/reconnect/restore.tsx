@@ -4,7 +4,9 @@ import { useRouter } from 'expo-router';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { Ionicons } from '@expo/vector-icons';
 import { colors, typography, spacing, radius, shadow, layout } from '@/theme/tokens';
-import { Button, IconButton, Card } from '@/components/ui';
+import { Button, Card } from '@/components/ui';
+import { BackHeader } from '@/components/common/BackHeader';
+import { BottomActionBar } from '@/components/common/BottomActionBar';
 import { useSnapshotStore } from '@/stores/useSnapshotStore';
 import { useAuthStore } from '@/stores/useAuthStore';
 import { formatDate } from '@/utils/date';
@@ -61,17 +63,7 @@ export default function RestoreDecisionScreen() {
   if (!relevantSnapshot) {
     return (
       <SafeAreaView style={styles.safe}>
-        <View style={styles.header}>
-          <IconButton
-            icon="chevron-back"
-            onPress={() => router.back()}
-            size={40}
-            backgroundColor={colors.bg.elevated}
-            color={colors.text.primary}
-          />
-          <Text style={styles.headerTitle}>데이터 복구</Text>
-          <View style={{ width: 40 }} />
-        </View>
+        <BackHeader title="데이터 복구" onBack={() => router.back()} />
         <View style={styles.emptyContainer}>
           <Ionicons name="document-outline" size={48} color={colors.text.tertiary} />
           <Text style={styles.emptyTitle}>복구할 데이터가 없어요</Text>
@@ -90,18 +82,7 @@ export default function RestoreDecisionScreen() {
 
   return (
     <SafeAreaView style={styles.safe}>
-      {/* Header */}
-      <View style={styles.header}>
-        <IconButton
-          icon="chevron-back"
-          onPress={() => router.back()}
-          size={40}
-          backgroundColor={colors.bg.elevated}
-          color={colors.text.primary}
-        />
-        <Text style={styles.headerTitle}>데이터 복구</Text>
-        <View style={{ width: 40 }} />
-      </View>
+      <BackHeader title="데이터 복구" onBack={() => router.back()} />
 
       <ScrollView style={styles.scroll} contentContainerStyle={styles.content}>
         {/* Structured Header */}
@@ -165,24 +146,26 @@ export default function RestoreDecisionScreen() {
       </ScrollView>
 
       {/* Fixed Footer Actions */}
-      <View style={styles.footer}>
-        <Button
-          title="스냅샷에서 복구"
-          onPress={handleRestore}
-          variant="primary"
-          size="lg"
-          fullWidth
-          style={styles.actionBtn}
-        />
-        <Button
-          title="새로 시작하기"
-          onPress={handleNewStart}
-          variant="secondary"
-          size="lg"
-          fullWidth
-          style={styles.actionBtnSecondary}
-        />
-      </View>
+      <BottomActionBar>
+        <View style={styles.actionStack}>
+          <Button
+            title="스냅샷에서 복구"
+            onPress={handleRestore}
+            variant="primary"
+            size="lg"
+            fullWidth
+            style={styles.actionBtn}
+          />
+          <Button
+            title="새로 시작하기"
+            onPress={handleNewStart}
+            variant="secondary"
+            size="lg"
+            fullWidth
+            style={styles.actionBtnSecondary}
+          />
+        </View>
+      </BottomActionBar>
     </SafeAreaView>
   );
 }
@@ -191,17 +174,6 @@ const styles = StyleSheet.create({
   safe: {
     flex: 1,
     backgroundColor: colors.bg.canvas,
-  },
-  header: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'space-between',
-    paddingHorizontal: layout.screenPaddingH,
-    paddingVertical: spacing[3],
-  },
-  headerTitle: {
-    ...typography.title.l,
-    color: colors.text.primary,
   },
   scroll: {
     flex: 1,
@@ -291,12 +263,7 @@ const styles = StyleSheet.create({
     ...typography.body.s,
     color: colors.text.tertiary,
   },
-  footer: {
-    paddingHorizontal: layout.screenPaddingH,
-    paddingVertical: spacing[4],
-    borderTopWidth: 1,
-    borderTopColor: colors.border.soft,
-    backgroundColor: colors.bg.elevated,
+  actionStack: {
     gap: spacing[3],
   },
   actionBtn: {

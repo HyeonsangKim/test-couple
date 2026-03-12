@@ -11,6 +11,7 @@ import {
   ViewStyle,
 } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
+import { BottomActionBar } from '@/components/common/BottomActionBar';
 import { colors, component, layout, radius, spacing, typography } from '@/theme/tokens';
 
 interface SettingsHeaderProps {
@@ -157,7 +158,7 @@ export function SettingsSwitchRow({
 }
 
 export function BottomCtaBar({ children }: { children: React.ReactNode }) {
-  return <View style={styles.footer}>{children}</View>;
+  return <BottomActionBar>{children}</BottomActionBar>;
 }
 
 const styles = StyleSheet.create({
@@ -266,13 +267,5 @@ const styles = StyleSheet.create({
   switchDescription: {
     ...typography.body.m,
     color: colors.text.secondary,
-  },
-  footer: {
-    paddingHorizontal: layout.screenPaddingH,
-    paddingTop: spacing[3],
-    paddingBottom: spacing[4],
-    borderTopWidth: 1,
-    borderTopColor: colors.line.default,
-    backgroundColor: colors.bg.base,
   },
 });

@@ -3,7 +3,8 @@ import { Alert, ScrollView, StyleSheet, Text, View } from 'react-native';
 import { useLocalSearchParams, useRouter } from 'expo-router';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { format } from 'date-fns';
-import { Button, Chip, IconButton, TextInput } from '@/components/ui';
+import { Button, Chip, TextInput } from '@/components/ui';
+import { BackHeader } from '@/components/common/BackHeader';
 import { DatePicker } from '@/components/common/DatePicker';
 import { PlaceImageUploadField } from '@/components/place/PlaceImageUploadField';
 import { createPlaceFromDraft } from '@/services';
@@ -11,7 +12,7 @@ import { useMapStore } from '@/stores/useMapStore';
 import { usePlaceStore } from '@/stores/usePlaceStore';
 import { CATEGORIES, DEFAULT_MAP_REGION } from '@/constants';
 import { PlaceAddStatus, PlaceCategory } from '@/types';
-import { colors, component, layout, radius, spacing, typography } from '@/theme/tokens';
+import { colors, layout, radius, spacing, typography } from '@/theme/tokens';
 
 const parseParamNumber = (value?: string) => {
   if (!value) {
@@ -106,17 +107,7 @@ export default function PlaceAddSearchConfigureScreen() {
 
   return (
     <SafeAreaView style={styles.safe} edges={['top']}>
-      <View style={styles.header}>
-        <IconButton
-          icon="chevron-back"
-          onPress={() => router.back()}
-          size={component.header.iconButton}
-          backgroundColor={colors.bg.elevated}
-          color={colors.text.primary}
-        />
-        <Text style={styles.headerTitle}>검색 결과 설정</Text>
-        <View style={styles.headerSpacer} />
-      </View>
+      <BackHeader title="검색 결과 설정" onBack={() => router.back()} />
 
       <ScrollView
         style={styles.scroll}
@@ -178,20 +169,20 @@ export default function PlaceAddSearchConfigureScreen() {
           <Text style={styles.sectionTitle}>방문일</Text>
           <DatePicker value={visitDate} onChange={setVisitDate} />
         </View>
-      </ScrollView>
 
-      <View style={styles.footer}>
-        <Button
-          title="저장"
-          onPress={handleSave}
-          variant="primary"
-          size="lg"
-          fullWidth
-          loading={loading}
-          disabled={!name.trim()}
-          style={styles.saveBtn}
-        />
-      </View>
+        <View style={styles.ctaSection}>
+          <Button
+            title="저장"
+            onPress={handleSave}
+            variant="primary"
+            size="lg"
+            fullWidth
+            loading={loading}
+            disabled={!name.trim()}
+            style={styles.saveBtn}
+          />
+        </View>
+      </ScrollView>
     </SafeAreaView>
   );
 }
@@ -201,26 +192,12 @@ const styles = StyleSheet.create({
     flex: 1,
     backgroundColor: colors.bg.canvas,
   },
-  header: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'space-between',
-    paddingHorizontal: layout.screenPaddingH,
-    paddingVertical: spacing[3],
-  },
-  headerTitle: {
-    ...typography.title.l,
-    color: colors.text.primary,
-  },
-  headerSpacer: {
-    width: component.header.iconButton,
-  },
   scroll: {
     flex: 1,
   },
   content: {
     paddingHorizontal: layout.screenPaddingH,
-    paddingBottom: spacing[6],
+    paddingBottom: spacing[8],
   },
   section: {
     marginBottom: spacing[5],
@@ -244,11 +221,9 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     gap: spacing[2],
   },
-  footer: {
-    padding: spacing[5],
-    borderTopWidth: 1,
-    borderTopColor: colors.border.soft,
-    backgroundColor: colors.bg.elevated,
+  ctaSection: {
+    marginTop: spacing[2],
+    marginBottom: spacing[4],
   },
   saveBtn: {
     borderRadius: radius['2xl'],

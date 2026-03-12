@@ -12,10 +12,11 @@ import { SafeAreaView } from 'react-native-safe-area-context';
 import * as Location from 'expo-location';
 import MapView, { Marker, Region } from 'react-native-maps';
 import { format } from 'date-fns';
-import { colors, typography, spacing, radius, layout, component } from '@/theme/tokens';
-import { Button, Chip, IconButton } from '@/components/ui';
+import { colors, typography, spacing, radius, layout } from '@/theme/tokens';
+import { Button, Chip } from '@/components/ui';
 import { DatePicker } from '@/components/common/DatePicker';
 import { PlaceImageUploadField } from '@/components/place/PlaceImageUploadField';
+import { BackHeader } from '@/components/common/BackHeader';
 import { createPlaceFromDraft } from '@/services';
 import { PlaceAddStatus, PlaceCategory } from '@/types';
 import { CATEGORIES, DEFAULT_MAP_REGION } from '@/constants';
@@ -234,18 +235,7 @@ export default function PlaceCreateFromPhotoScreen() {
 
   return (
     <SafeAreaView style={styles.safe} edges={['top']}>
-      {/* Header */}
-      <View style={styles.header}>
-        <IconButton
-          icon="chevron-back"
-          onPress={() => router.back()}
-          size={component.header.iconButton}
-          backgroundColor={colors.bg.elevated}
-          color={colors.text.primary}
-        />
-        <Text style={styles.headerTitle}>새 장소 생성</Text>
-        <View style={styles.headerSpacer} />
-      </View>
+      <BackHeader title="새 장소 생성" onBack={() => router.back()} />
 
       <ScrollView
         style={styles.scroll}
@@ -355,21 +345,20 @@ export default function PlaceCreateFromPhotoScreen() {
             </View>
           </View>
         ) : null}
-      </ScrollView>
 
-      {/* Footer */}
-      <View style={styles.footer}>
-        <Button
-          title="저장"
-          onPress={handleSave}
-          variant="primary"
-          size="lg"
-          fullWidth
-          loading={loading}
-          disabled={!placeName.trim() || (requiresImage && draftImages.length === 0)}
-          style={styles.saveBtn}
-        />
-      </View>
+        <View style={styles.ctaSection}>
+          <Button
+            title="저장"
+            onPress={handleSave}
+            variant="primary"
+            size="lg"
+            fullWidth
+            loading={loading}
+            disabled={!placeName.trim() || (requiresImage && draftImages.length === 0)}
+            style={styles.saveBtn}
+          />
+        </View>
+      </ScrollView>
     </SafeAreaView>
   );
 }
@@ -379,24 +368,10 @@ const styles = StyleSheet.create({
     flex: 1,
     backgroundColor: colors.bg.canvas,
   },
-  header: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'space-between',
-    paddingHorizontal: layout.screenPaddingH,
-    paddingVertical: spacing[3],
-  },
-  headerTitle: {
-    ...typography.title.l,
-    color: colors.text.primary,
-  },
-  headerSpacer: {
-    width: component.header.iconButton,
-  },
   scroll: { flex: 1 },
   content: {
     paddingHorizontal: layout.screenPaddingH,
-    paddingBottom: spacing[10],
+    paddingBottom: spacing[8],
   },
   section: {
     marginBottom: layout.sectionGap,
@@ -441,11 +416,9 @@ const styles = StyleSheet.create({
   map: {
     flex: 1,
   },
-  footer: {
-    padding: spacing[5],
-    borderTopWidth: 1,
-    borderTopColor: colors.border.soft,
-    backgroundColor: colors.bg.elevated,
+  ctaSection: {
+    marginTop: spacing[2],
+    marginBottom: spacing[4],
   },
   saveBtn: {
     borderRadius: radius['2xl'],

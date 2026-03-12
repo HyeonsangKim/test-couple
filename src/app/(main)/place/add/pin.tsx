@@ -1,11 +1,12 @@
 import React, { useRef, useState } from 'react';
-import { View, Text, StyleSheet, TouchableOpacity } from 'react-native';
+import { View, StyleSheet, TouchableOpacity } from 'react-native';
 import { useRouter } from 'expo-router';
 import { SafeAreaView, useSafeAreaInsets } from 'react-native-safe-area-context';
 import MapView, { Marker, Region } from 'react-native-maps';
 import { Ionicons } from '@expo/vector-icons';
-import { colors, typography, spacing, layout, shadow, component } from '@/theme/tokens';
-import { Button, IconButton } from '@/components/ui';
+import { colors, spacing, layout, shadow, component } from '@/theme/tokens';
+import { Button } from '@/components/ui';
+import { BackHeader } from '@/components/common/BackHeader';
 import { DEFAULT_MAP_REGION } from '@/constants';
 import { useMapCurrentLocation } from '@/hooks/useMapCurrentLocation';
 
@@ -59,7 +60,7 @@ export default function PlaceAddPinScreen() {
     });
   };
 
-  const bottomInset = Math.max(insets.bottom, spacing[4]);
+  const ctaBottom = insets.bottom + spacing[4];
   const hasSelectedCoordinate = Boolean(selectedCoordinate);
 
   return (
@@ -80,24 +81,14 @@ export default function PlaceAddPinScreen() {
       </MapView>
 
       <SafeAreaView style={styles.topOverlay} edges={['top']}>
-        <View style={styles.header}>
-          <IconButton
-            icon="chevron-back"
-            onPress={() => router.back()}
-            size={component.header.iconButton}
-            backgroundColor={colors.bg.elevated}
-            color={colors.text.primary}
-          />
-          <Text style={styles.headerTitle}>지도에 핀 찍기</Text>
-          <View style={styles.headerSpacer} />
-        </View>
+        <BackHeader title="지도에 핀 찍기" onBack={() => router.back()} bordered />
       </SafeAreaView>
 
       <TouchableOpacity
         style={[
           styles.locationBtn,
           {
-            bottom: bottomInset + component.button.primaryHeight + spacing[4] + spacing[3],
+            bottom: ctaBottom + component.button.primaryHeight + spacing[4] + spacing[3],
           },
           isLocating && styles.locationBtnDisabled,
         ]}
@@ -112,7 +103,7 @@ export default function PlaceAddPinScreen() {
         />
       </TouchableOpacity>
 
-      <View style={[styles.nextCtaWrap, { bottom: bottomInset }]}>
+      <View style={[styles.nextCtaWrap, { bottom: ctaBottom }]}>
         <Button
           title="다음"
           onPress={handleNext}
@@ -141,22 +132,6 @@ const styles = StyleSheet.create({
     left: 0,
     right: 0,
     backgroundColor: colors.bg.base,
-    borderBottomWidth: 1,
-    borderBottomColor: colors.line.default,
-  },
-  header: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'space-between',
-    paddingHorizontal: layout.screenPaddingH,
-    paddingVertical: spacing[3],
-  },
-  headerTitle: {
-    ...typography.title.l,
-    color: colors.text.primary,
-  },
-  headerSpacer: {
-    width: component.header.iconButton,
   },
   locationBtn: {
     position: 'absolute',
