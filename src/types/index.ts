@@ -1,6 +1,7 @@
 // ===== Canonical Enums =====
 export type PlaceSourceType = 'official' | 'custom_pin';
 export type PlaceStatus = 'wishlist' | 'visited' | 'orphan';
+export type PlaceAddStatus = 'wishlist' | 'visited';
 export type PlaceCategory = 'food' | 'travel' | 'activity' | 'special' | 'uncategorized';
 export type InviteCodeStatus = 'active' | 'used' | 'expired' | 'revoked';
 export type DeleteRequestStatus = 'pending' | 'approved' | 'rejected' | 'canceled' | 'expired';
@@ -131,4 +132,19 @@ export interface MapApiResult {
   longitude: number;
   addressText: string | null;
   category: PlaceCategory;
+}
+
+export interface PlaceAddDraft {
+  name: string;
+  coordinate: {
+    latitude: number;
+    longitude: number;
+  };
+  addressText?: string | null;
+  category: PlaceCategory;
+  status: PlaceAddStatus;
+  visitDate: string;
+  imageUris: string[];
+  sourceType: PlaceSourceType;
+  externalPlaceId?: string | null;
 }

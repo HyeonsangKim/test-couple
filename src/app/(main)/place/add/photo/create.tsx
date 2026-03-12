@@ -4,7 +4,6 @@ import {
   Text,
   StyleSheet,
   ScrollView,
-  Image,
   TextInput as RNTextInput,
   Alert,
 } from 'react-native';
@@ -12,15 +11,14 @@ import { useRouter, useLocalSearchParams } from 'expo-router';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import * as Location from 'expo-location';
 import MapView, { Marker, Region } from 'react-native-maps';
-import { colors, typography, spacing, radius, layout } from '@/theme/tokens';
-import { Button, IconButton } from '@/components/ui';
-import { usePlaceStore } from '@/stores/usePlaceStore';
-import { useVisitStore } from '@/stores/useVisitStore';
-import { useMapStore } from '@/stores/useMapStore';
-import { useAuthStore } from '@/stores/useAuthStore';
-import { validatePlaceName } from '@/utils/validation';
-import { DEFAULT_MAP_REGION } from '@/constants';
 import { format } from 'date-fns';
+import { colors, typography, spacing, radius, layout } from '@/theme/tokens';
+import { Button, Chip, IconButton } from '@/components/ui';
+import { DatePicker } from '@/components/common/DatePicker';
+import { PlaceImageUploadField } from '@/components/place/PlaceImageUploadField';
+import { createPlaceFromDraft } from '@/services';
+import { PlaceAddStatus, PlaceCategory } from '@/types';
+import { CATEGORIES, DEFAULT_MAP_REGION } from '@/constants';
 import {
   buildAddressText,
   buildSuggestedPlaceName,
@@ -59,20 +57,20 @@ export default function PlaceCreateFromPhotoScreen() {
     initialLongitude?: string;
   }>();
 
-  const draftImageUrisRef = useRef(parseJsonArray<string>(params.imageUris));
+  const draftImageUrisFromParamsRef = useRef(parseJsonArray<string>(params.imageUris));
   const draftImagesFromParamsRef = useRef(parseJsonArray<DraftPhotoAsset>(params.imageDrafts));
-  const draftImageUris = draftImageUrisRef.current;
-  const draftImagesFromParams = draftImagesFromParamsRef.current;
-  const draftImages =
-    draftImagesFromParams.length > 0
-      ? draftImagesFromParams
-      : draftImageUris.map((uri) => ({
+  const initialDraftImageUris = draftImageUrisFromParamsRef.current;
+  const initialDraftImages = (
+    draftImagesFromParamsRef.current.length > 0
+      ? draftImagesFromParamsRef.current
+      : initialDraftImageUris.map((uri) => ({
           uri,
           fileName: null,
           latitude: null,
           longitude: null,
-        }));
-  const firstDraftImage = draftImages[0] ?? null;
+        }))
+  ).filter((draft) => draft.uri);
+  const firstDraftImage = initialDraftImages[0] ?? null;
   const initialLat =
     parseParamNumber(params.initialLatitude) ??
     firstDraftImage?.latitude ??
@@ -86,23 +84,20 @@ export default function PlaceCreateFromPhotoScreen() {
   const mapRef = useRef<MapView>(null);
   const placeNameEditedRef = useRef(false);
   const geocodeRequestRef = useRef(0);
+  const [draftImages, setDraftImages] = useState<DraftPhotoAsset[]>(initialDraftImages);
   const [placeName, setPlaceName] = useState(initialNameFallback);
   const [addressText, setAddressText] = useState<string | null>(null);
+  const [category, setCategory] = useState<PlaceCategory>('uncategorized');
+  const [status, setStatus] = useState<PlaceAddStatus>('visited');
+  const [visitDate, setVisitDate] = useState(format(new Date(), 'yyyy-MM-dd'));
   const [pinCoordinate, setPinCoordinate] = useState({
     latitude: initialLat,
     longitude: initialLng,
   });
   const [loading, setLoading] = useState(false);
   const [isMetadataLoading, setIsMetadataLoading] = useState(
-    firstDraftImage?.latitude !== null && firstDraftImage?.longitude !== null,
+    Boolean(firstDraftImage && firstDraftImage.latitude !== null && firstDraftImage.longitude !== null),
   );
-
-  const addPlace = usePlaceStore((s) => s.addPlace);
-  const updatePlace = usePlaceStore((s) => s.updatePlace);
-  const addVisit = useVisitStore((s) => s.addVisit);
-  const addImages = useVisitStore((s) => s.addImages);
-  const map = useMapStore((s) => s.map);
-  const currentUser = useAuthStore((s) => s.currentUser);
 
   const resolveLocationDetails = async (
     coordinate: { latitude: number; longitude: number },
@@ -186,49 +181,49 @@ export default function PlaceCreateFromPhotoScreen() {
     void resolveLocationDetails(nextCoordinate, false);
   };
 
+  const handleDraftImageUrisChange = (nextUris: string[]) => {
+    setDraftImages((current) => {
+      const currentByUri = new Map(current.map((image) => [image.uri, image]));
+      return nextUris.map(
+        (uri) =>
+          currentByUri.get(uri) ?? {
+            uri,
+            fileName: null,
+            latitude: null,
+            longitude: null,
+          },
+      );
+    });
+  };
+
   const handleSave = async () => {
-    const nameError = validatePlaceName(placeName);
-    if (nameError) {
-      Alert.alert('알림', nameError);
+    if (draftImages.length === 0) {
+      Alert.alert('알림', '최소 1장의 사진을 선택해주세요.');
       return;
     }
-    if (!map || !currentUser) return;
 
     setLoading(true);
     try {
-      const place = await addPlace({
+      const place = await createPlaceFromDraft({
         name: placeName.trim(),
-        latitude: pinCoordinate.latitude,
-        longitude: pinCoordinate.longitude,
+        coordinate: {
+          latitude: pinCoordinate.latitude,
+          longitude: pinCoordinate.longitude,
+        },
         addressText,
-        mapId: map.mapId,
-        createdByUserId: currentUser.userId,
+        category,
+        status,
+        visitDate,
+        imageUris: draftImages.map((image) => image.uri),
         sourceType: 'custom_pin',
       });
-
-      const visit = await addVisit({
-        placeId: place.placeId,
-        visitDate: format(new Date(), 'yyyy-MM-dd'),
-        createdByUserId: currentUser.userId,
-      });
-
-      let createdImages: { imageId: string }[] = [];
-      if (draftImageUris.length > 0) {
-        createdImages = await addImages(
-          draftImageUris.map((uri) => ({ visitId: visit.visitId, uri })),
-        );
-      }
-
-      if (createdImages.length > 0) {
-        await updatePlace(place.placeId, {
-          heroImageId: createdImages[0].imageId,
-          status: 'visited',
-        });
-      }
-
       router.replace(`/(main)/place/${place.placeId}`);
-    } catch {
-      Alert.alert('오류', '저장에 실패했습니다.');
+    } catch (error) {
+      const message =
+        error instanceof Error && error.message
+          ? error.message
+          : '저장에 실패했습니다.';
+      Alert.alert('오류', message);
     } finally {
       setLoading(false);
     }
@@ -254,21 +249,12 @@ export default function PlaceCreateFromPhotoScreen() {
         contentContainerStyle={styles.content}
         keyboardShouldPersistTaps="handled"
       >
-        {/* Draft Image Preview */}
-        {draftImageUris.length > 0 && (
-          <View style={styles.section}>
-            <Text style={styles.sectionTitle}>선택한 사진</Text>
-            <ScrollView
-              horizontal
-              showsHorizontalScrollIndicator={false}
-              style={styles.imageRow}
-            >
-              {draftImageUris.map((uri, i) => (
-                <Image key={i} source={{ uri }} style={styles.imageThumb} />
-              ))}
-            </ScrollView>
-          </View>
-        )}
+        <View style={styles.section}>
+          <PlaceImageUploadField
+            imageUris={draftImages.map((image) => image.uri)}
+            onChangeImageUris={handleDraftImageUrisChange}
+          />
+        </View>
 
         {/* Place Name Input */}
         <View style={styles.section}>
@@ -294,6 +280,45 @@ export default function PlaceCreateFromPhotoScreen() {
                   : '첫 사진 메타데이터를 기준으로 초깃값을 채웠어요.'}
             </Text>
           ) : null}
+        </View>
+
+        <View style={styles.section}>
+          <Text style={styles.sectionTitle}>카테고리</Text>
+          <View style={styles.chipWrap}>
+            {CATEGORIES.map((item) => (
+              <Chip
+                key={item.key}
+                label={item.label}
+                onPress={() => setCategory(item.key)}
+                selected={category === item.key}
+                selectionStyle="accent"
+                color={item.color}
+              />
+            ))}
+          </View>
+        </View>
+
+        <View style={styles.section}>
+          <Text style={styles.sectionTitle}>상태</Text>
+          <View style={styles.chipRow}>
+            <Chip
+              label="갔다 온 곳"
+              selected={status === 'visited'}
+              onPress={() => setStatus('visited')}
+              selectionStyle="accent"
+            />
+            <Chip
+              label="위시리스트"
+              selected={status === 'wishlist'}
+              onPress={() => setStatus('wishlist')}
+              selectionStyle="accent"
+            />
+          </View>
+        </View>
+
+        <View style={styles.section}>
+          <Text style={styles.sectionTitle}>방문일</Text>
+          <DatePicker value={visitDate} onChange={setVisitDate} />
         </View>
 
         {/* Map for Location */}
@@ -337,7 +362,7 @@ export default function PlaceCreateFromPhotoScreen() {
           size="lg"
           fullWidth
           loading={loading}
-          disabled={!placeName.trim()}
+          disabled={!placeName.trim() || draftImages.length === 0}
           style={styles.saveBtn}
         />
       </View>
@@ -379,17 +404,6 @@ const styles = StyleSheet.create({
     color: colors.text.secondary,
     marginBottom: spacing[3],
   },
-  imageRow: {
-    flexDirection: 'row',
-    marginTop: spacing[2],
-  },
-  imageThumb: {
-    width: 80,
-    height: 80,
-    borderRadius: radius.md,
-    backgroundColor: colors.bg.soft,
-    marginRight: spacing[2],
-  },
   nameInput: {
     ...typography.body.l,
     color: colors.text.primary,
@@ -402,6 +416,15 @@ const styles = StyleSheet.create({
     ...typography.caption,
     color: colors.text.secondary,
     marginTop: spacing[2],
+  },
+  chipWrap: {
+    flexDirection: 'row',
+    flexWrap: 'wrap',
+    gap: spacing[2],
+  },
+  chipRow: {
+    flexDirection: 'row',
+    gap: spacing[2],
   },
   mapContainer: {
     height: 250,

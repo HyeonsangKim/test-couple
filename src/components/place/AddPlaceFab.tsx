@@ -76,7 +76,7 @@ export const AddPlaceFab: React.FC<AddPlaceFabProps> = ({
       key: 'search',
       icon: 'search' as const,
       title: '검색으로 추가',
-      description: '장소 이름이나 검색 결과를 선택해 바로 저장',
+      description: '검색 결과를 선택하고 상태/방문일을 설정해 저장',
       onPress: handleAddBySearch,
     },
     {
@@ -90,7 +90,7 @@ export const AddPlaceFab: React.FC<AddPlaceFabProps> = ({
       key: 'photo',
       icon: 'camera-outline' as const,
       title: '사진으로 추가',
-      description: '사진과 함께 방문 기록을 남기며 장소 추가',
+      description: '사진 선택 후 카테고리/상태를 설정해 저장',
       onPress: handleAddByPhoto,
     },
   ];

@@ -13,6 +13,7 @@ export default function MainLayout() {
       <Stack.Screen name="invite-center" />
       <Stack.Screen name="place/[id]" />
       <Stack.Screen name="place/add/search" />
+      <Stack.Screen name="place/add/search-configure" />
       <Stack.Screen name="place/add/pin" />
       <Stack.Screen name="place/add/photo" />
       <Stack.Screen

@@ -1,14 +1,11 @@
-import React, { useState, useEffect } from 'react';
-import { View, Text, StyleSheet, FlatList, TouchableOpacity, Alert } from 'react-native';
-import { useRouter } from 'expo-router';
+import React, { useEffect, useRef, useState } from 'react';
+import { View, Text, StyleSheet, FlatList, TouchableOpacity } from 'react-native';
+import { useLocalSearchParams, useRouter } from 'expo-router';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { Ionicons } from '@expo/vector-icons';
 import { colors, typography, spacing, radius, layout, component } from '@/theme/tokens';
 import { IconButton } from '@/components/ui';
 import { SearchBar } from '@/components/filter/SearchBar';
-import { usePlaceStore } from '@/stores/usePlaceStore';
-import { useMapStore } from '@/stores/useMapStore';
-import { useAuthStore } from '@/stores/useAuthStore';
 import { MapApiResult } from '@/types';
 
 // Mock search results
@@ -57,13 +54,18 @@ const MOCK_SEARCH_RESULTS: MapApiResult[] = [
 
 export default function PlaceAddSearchScreen() {
   const router = useRouter();
+  const params = useLocalSearchParams<{
+    externalPlaceId?: string;
+    name?: string;
+    latitude?: string;
+    longitude?: string;
+    addressText?: string;
+    category?: string;
+  }>();
+  const redirectedRef = useRef(false);
   const [query, setQuery] = useState('');
   const [results, setResults] = useState<MapApiResult[]>([]);
   const [searched, setSearched] = useState(false);
-
-  const { addPlace, checkDuplicate } = usePlaceStore();
-  const map = useMapStore((s) => s.map);
-  const currentUser = useAuthStore((s) => s.currentUser);
 
   // Live search with debounce
   useEffect(() => {
@@ -82,47 +84,37 @@ export default function PlaceAddSearchScreen() {
     return () => clearTimeout(timeout);
   }, [query]);
 
-  const handleSelectResult = async (result: MapApiResult) => {
-    if (!map || !currentUser) return;
-
-    try {
-      const duplicate = await checkDuplicate(map.mapId, result.externalPlaceId);
-      if (duplicate) {
-        Alert.alert('중복 장소', `"${result.name}"은 이미 등록된 장소입니다.`, [
-          { text: '확인' },
-          {
-            text: '장소 보기',
-            onPress: () => router.push(`/(main)/place/${duplicate.placeId}`),
-          },
-        ]);
-        return;
-      }
-
-      const place = await addPlace({
-        name: result.name,
-        latitude: result.latitude,
-        longitude: result.longitude,
-        addressText: result.addressText,
-        mapId: map.mapId,
-        createdByUserId: currentUser.userId,
-        sourceType: 'official',
-        externalPlaceId: result.externalPlaceId,
-        category: result.category,
-      });
-
-      Alert.alert('추가 완료', `"${result.name}"이 저장되었습니다.`, [
-        { text: '확인', onPress: () => router.back() },
-        {
-          text: '장소 보기',
-          onPress: () => {
-            router.back();
-            router.push(`/(main)/place/${place.placeId}`);
-          },
-        },
-      ]);
-    } catch {
-      Alert.alert('오류', '장소 추가에 실패했습니다.');
+  useEffect(() => {
+    if (!params.externalPlaceId || redirectedRef.current) {
+      return;
     }
+
+    redirectedRef.current = true;
+    router.replace({
+      pathname: '/(main)/place/add/search-configure',
+      params: {
+        externalPlaceId: params.externalPlaceId,
+        name: params.name ?? '',
+        latitude: params.latitude ?? '',
+        longitude: params.longitude ?? '',
+        addressText: params.addressText ?? '',
+        category: params.category ?? 'uncategorized',
+      },
+    });
+  }, [params, router]);
+
+  const handleSelectResult = (result: MapApiResult) => {
+    router.push({
+      pathname: '/(main)/place/add/search-configure',
+      params: {
+        externalPlaceId: result.externalPlaceId,
+        name: result.name,
+        latitude: String(result.latitude),
+        longitude: String(result.longitude),
+        addressText: result.addressText ?? '',
+        category: result.category,
+      },
+    });
   };
 
   return (
@@ -186,7 +178,7 @@ export default function PlaceAddSearchScreen() {
             <View style={styles.emptyState}>
               <Ionicons name="search-outline" size={component.emptyState.icon} color={colors.text.tertiary} />
               <Text style={styles.emptyTitle}>장소를 검색해보세요</Text>
-              <Text style={styles.emptyDesc}>이름으로 장소를 찾아 추가할 수 있어요</Text>
+              <Text style={styles.emptyDesc}>검색 결과를 선택하면 설정 화면으로 이동해요</Text>
             </View>
           )
         }
