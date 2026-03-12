@@ -11,7 +11,7 @@ import { useMapStore } from '@/stores/useMapStore';
 import { usePlaceStore } from '@/stores/usePlaceStore';
 import { CATEGORIES, DEFAULT_MAP_REGION } from '@/constants';
 import { PlaceAddStatus, PlaceCategory } from '@/types';
-import { colors, layout, radius, spacing, typography } from '@/theme/tokens';
+import { colors, component, layout, radius, spacing, typography } from '@/theme/tokens';
 
 const parseParamNumber = (value?: string) => {
   if (!value) {
@@ -110,7 +110,7 @@ export default function PlaceAddSearchConfigureScreen() {
         <IconButton
           icon="chevron-back"
           onPress={() => router.back()}
-          size={40}
+          size={component.header.iconButton}
           backgroundColor={colors.bg.elevated}
           color={colors.text.primary}
         />
@@ -213,7 +213,7 @@ const styles = StyleSheet.create({
     color: colors.text.primary,
   },
   headerSpacer: {
-    width: 40,
+    width: component.header.iconButton,
   },
   scroll: {
     flex: 1,

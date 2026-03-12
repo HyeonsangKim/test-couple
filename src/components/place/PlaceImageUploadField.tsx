@@ -14,9 +14,7 @@ import {
 import * as ImagePicker from 'expo-image-picker';
 import { Ionicons } from '@expo/vector-icons';
 import { LIMITS } from '@/constants';
-import { colors, radius, spacing, typography } from '@/theme/tokens';
-
-const THUMB_SIZE = 96;
+import { colors, component, radius, spacing, typography } from '@/theme/tokens';
 
 interface PlaceImageUploadFieldProps {
   imageUris: string[];
@@ -138,8 +136,8 @@ const styles = StyleSheet.create({
     marginTop: spacing[2],
   },
   uploadTile: {
-    width: THUMB_SIZE,
-    height: THUMB_SIZE,
+    width: component.gallery.uploadThumb,
+    height: component.gallery.uploadThumb,
     borderRadius: radius.md,
     borderWidth: 1,
     borderStyle: 'dashed',
@@ -148,11 +146,10 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     justifyContent: 'center',
     marginRight: spacing[2],
-    opacity: 1,
   },
   imageThumbWrap: {
-    width: THUMB_SIZE,
-    height: THUMB_SIZE,
+    width: component.gallery.uploadThumb,
+    height: component.gallery.uploadThumb,
     borderRadius: radius.md,
     marginRight: spacing[2],
     overflow: 'hidden',
@@ -167,10 +164,10 @@ const styles = StyleSheet.create({
     position: 'absolute',
     top: spacing[1],
     right: spacing[1],
-    width: 22,
-    height: 22,
-    borderRadius: 11,
-    backgroundColor: 'rgba(0,0,0,0.56)',
+    width: component.badge.defaultHeight,
+    height: component.badge.defaultHeight,
+    borderRadius: component.badge.defaultHeight / 2,
+    backgroundColor: colors.overlay.dim,
     alignItems: 'center',
     justifyContent: 'center',
   },

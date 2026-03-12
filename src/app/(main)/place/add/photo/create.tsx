@@ -12,7 +12,7 @@ import { SafeAreaView } from 'react-native-safe-area-context';
 import * as Location from 'expo-location';
 import MapView, { Marker, Region } from 'react-native-maps';
 import { format } from 'date-fns';
-import { colors, typography, spacing, radius, layout } from '@/theme/tokens';
+import { colors, typography, spacing, radius, layout, component } from '@/theme/tokens';
 import { Button, Chip, IconButton } from '@/components/ui';
 import { DatePicker } from '@/components/common/DatePicker';
 import { PlaceImageUploadField } from '@/components/place/PlaceImageUploadField';
@@ -55,7 +55,9 @@ export default function PlaceCreateFromPhotoScreen() {
     imageDrafts?: string;
     initialLatitude?: string;
     initialLongitude?: string;
+    allowEmptyImages?: string;
   }>();
+  const requiresImage = params.allowEmptyImages !== '1';
 
   const draftImageUrisFromParamsRef = useRef(parseJsonArray<string>(params.imageUris));
   const draftImagesFromParamsRef = useRef(parseJsonArray<DraftPhotoAsset>(params.imageDrafts));
@@ -197,7 +199,7 @@ export default function PlaceCreateFromPhotoScreen() {
   };
 
   const handleSave = async () => {
-    if (draftImages.length === 0) {
+    if (requiresImage && draftImages.length === 0) {
       Alert.alert('알림', '최소 1장의 사진을 선택해주세요.');
       return;
     }
@@ -236,12 +238,12 @@ export default function PlaceCreateFromPhotoScreen() {
         <IconButton
           icon="chevron-back"
           onPress={() => router.back()}
-          size={40}
+          size={component.header.iconButton}
           backgroundColor={colors.bg.elevated}
           color={colors.text.primary}
         />
         <Text style={styles.headerTitle}>새 장소 생성</Text>
-        <View style={{ width: 40 }} />
+        <View style={styles.headerSpacer} />
       </View>
 
       <ScrollView
@@ -362,7 +364,7 @@ export default function PlaceCreateFromPhotoScreen() {
           size="lg"
           fullWidth
           loading={loading}
-          disabled={!placeName.trim() || draftImages.length === 0}
+          disabled={!placeName.trim() || (requiresImage && draftImages.length === 0)}
           style={styles.saveBtn}
         />
       </View>
@@ -385,6 +387,9 @@ const styles = StyleSheet.create({
   headerTitle: {
     ...typography.title.l,
     color: colors.text.primary,
+  },
+  headerSpacer: {
+    width: component.header.iconButton,
   },
   scroll: { flex: 1 },
   content: {
@@ -435,7 +440,7 @@ const styles = StyleSheet.create({
     flex: 1,
   },
   footer: {
-    padding: 20,
+    padding: spacing[5],
     borderTopWidth: 1,
     borderTopColor: colors.border.soft,
     backgroundColor: colors.bg.elevated,

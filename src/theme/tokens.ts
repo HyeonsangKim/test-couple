@@ -312,6 +312,7 @@ export const component = {
   },
   gallery: {
     trayThumb: 72,
+    uploadThumb: 96,
     gap: 8,
     radius: 10,
   },

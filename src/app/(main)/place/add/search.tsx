@@ -124,12 +124,12 @@ export default function PlaceAddSearchScreen() {
         <IconButton
           icon="chevron-back"
           onPress={() => router.back()}
-          size={40}
+          size={component.header.iconButton}
           backgroundColor={colors.bg.elevated}
           color={colors.text.primary}
         />
         <Text style={styles.headerTitle}>장소 검색</Text>
-        <View style={{ width: 40 }} />
+        <View style={styles.headerSpacer} />
       </View>
 
       {/* Search — live search, no button */}
@@ -203,6 +203,9 @@ const styles = StyleSheet.create({
     ...typography.title.l,
     color: colors.text.primary,
   },
+  headerSpacer: {
+    width: component.header.iconButton,
+  },
   searchSection: {
     paddingHorizontal: layout.screenPaddingH,
     marginBottom: spacing[4],
@@ -220,7 +223,7 @@ const styles = StyleSheet.create({
     paddingHorizontal: component.resultRow.horizontalPadding,
     marginBottom: spacing[2],
     minHeight: component.resultRow.mediaHeight,
-    gap: 16,
+    gap: spacing[4],
   },
   resultIconCircle: {
     width: component.resultRow.thumb,
