@@ -70,6 +70,7 @@ export const Button: React.FC<ButtonProps> = ({
   fullWidth = false,
 }) => {
   const resolved = resolveVariant(variant);
+  const isDisabled = disabled;
 
   const bgColor: Record<string, string> = {
     'fill-primary': colors.accent.primary,
@@ -87,6 +88,25 @@ export const Button: React.FC<ButtonProps> = ({
     'ghost-danger': colors.accent.danger,
   };
 
+  const disabledBgColor: Record<string, string> = {
+    'fill-primary': colors.accent.primarySoft,
+    'fill-dark': colors.bg.muted,
+    'soft-secondary': colors.bg.muted,
+    'ghost': 'transparent',
+    'ghost-danger': 'transparent',
+  };
+
+  const disabledTxtColor: Record<string, string> = {
+    'fill-primary': colors.accent.primary,
+    'fill-dark': colors.text.tertiary,
+    'soft-secondary': colors.text.tertiary,
+    'ghost': colors.text.tertiary,
+    'ghost-danger': colors.text.tertiary,
+  };
+
+  const backgroundColor = isDisabled ? disabledBgColor[resolved] : bgColor[resolved];
+  const textColor = isDisabled ? disabledTxtColor[resolved] : txtColor[resolved];
+
   const height = size === 'lg'
     ? component.button.primaryHeight
     : size === 'sm'
@@ -103,24 +123,23 @@ export const Button: React.FC<ButtonProps> = ({
       style={[
         styles.base,
         {
-          backgroundColor: bgColor[resolved],
+          backgroundColor,
           height,
           borderRadius: height / 2,
           paddingHorizontal: 24,
-          opacity: disabled ? 0.45 : 1,
         },
         fullWidth && styles.fullWidth,
         style,
       ]}
     >
       {loading ? (
-        <ActivityIndicator color={txtColor[resolved]} size="small" />
+        <ActivityIndicator color={textColor} size="small" />
       ) : (
         <Text
           style={[
             styles.text,
             {
-              color: txtColor[resolved],
+              color: textColor,
               fontSize: typo.fontSize,
               lineHeight: typo.lineHeight,
               fontWeight: typo.fontWeight,

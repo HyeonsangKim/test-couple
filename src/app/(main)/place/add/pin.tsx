@@ -4,7 +4,7 @@ import { useRouter } from 'expo-router';
 import { SafeAreaView, useSafeAreaInsets } from 'react-native-safe-area-context';
 import MapView, { Marker, Region } from 'react-native-maps';
 import { Ionicons } from '@expo/vector-icons';
-import { colors, typography, spacing, radius, layout, shadow, component } from '@/theme/tokens';
+import { colors, typography, spacing, layout, shadow, component } from '@/theme/tokens';
 import { Button, IconButton } from '@/components/ui';
 import { DEFAULT_MAP_REGION } from '@/constants';
 import { useMapCurrentLocation } from '@/hooks/useMapCurrentLocation';
@@ -112,7 +112,7 @@ export default function PlaceAddPinScreen() {
         />
       </TouchableOpacity>
 
-      <View style={[styles.nextCtaWrap, { paddingBottom: bottomInset }]}>
+      <View style={[styles.nextCtaWrap, { bottom: bottomInset }]}>
         <Button
           title="다음"
           onPress={handleNext}
@@ -120,6 +120,7 @@ export default function PlaceAddPinScreen() {
           size="lg"
           fullWidth
           disabled={!hasSelectedCoordinate}
+          style={styles.nextCtaButton}
         />
       </View>
     </View>
@@ -179,10 +180,8 @@ const styles = StyleSheet.create({
     position: 'absolute',
     left: layout.screenPaddingH,
     right: layout.screenPaddingH,
-    bottom: 0,
-    paddingTop: spacing[3],
-    backgroundColor: colors.bg.base,
-    borderTopWidth: 1,
-    borderTopColor: colors.line.default,
+  },
+  nextCtaButton: {
+    ...shadow.lg,
   },
 });

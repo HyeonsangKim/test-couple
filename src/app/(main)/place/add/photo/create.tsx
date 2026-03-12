@@ -57,7 +57,8 @@ export default function PlaceCreateFromPhotoScreen() {
     initialLongitude?: string;
     allowEmptyImages?: string;
   }>();
-  const requiresImage = params.allowEmptyImages !== '1';
+  const isPinFlow = params.allowEmptyImages === '1';
+  const requiresImage = !isPinFlow;
 
   const draftImageUrisFromParamsRef = useRef(parseJsonArray<string>(params.imageUris));
   const draftImagesFromParamsRef = useRef(parseJsonArray<DraftPhotoAsset>(params.imageDrafts));
@@ -323,36 +324,37 @@ export default function PlaceCreateFromPhotoScreen() {
           <DatePicker value={visitDate} onChange={setVisitDate} />
         </View>
 
-        {/* Map for Location */}
-        <View style={styles.section}>
-          <Text style={styles.sectionTitle}>위치 지정</Text>
-          <Text style={styles.sectionDesc}>
-            지도를 탭하거나 핀을 드래그해서 위치를 지정하세요
-          </Text>
-          <View style={styles.mapContainer}>
-            <MapView
-              ref={mapRef}
-              style={styles.map}
-              initialRegion={{
-                ...pinCoordinate,
-                latitudeDelta: DEFAULT_MAP_REGION.latitudeDelta,
-                longitudeDelta: DEFAULT_MAP_REGION.longitudeDelta,
-              } as Region}
-              onPress={handleMapPress}
-              showsUserLocation
-            >
-              <Marker
-                coordinate={pinCoordinate}
-                draggable
-                onDragEnd={(e) => {
-                  const nextCoordinate = e.nativeEvent.coordinate;
-                  setPinCoordinate(nextCoordinate);
-                  void resolveLocationDetails(nextCoordinate, false);
-                }}
-              />
-            </MapView>
+        {!isPinFlow ? (
+          <View style={styles.section}>
+            <Text style={styles.sectionTitle}>위치 지정</Text>
+            <Text style={styles.sectionDesc}>
+              지도를 탭하거나 핀을 드래그해서 위치를 지정하세요
+            </Text>
+            <View style={styles.mapContainer}>
+              <MapView
+                ref={mapRef}
+                style={styles.map}
+                initialRegion={{
+                  ...pinCoordinate,
+                  latitudeDelta: DEFAULT_MAP_REGION.latitudeDelta,
+                  longitudeDelta: DEFAULT_MAP_REGION.longitudeDelta,
+                } as Region}
+                onPress={handleMapPress}
+                showsUserLocation
+              >
+                <Marker
+                  coordinate={pinCoordinate}
+                  draggable
+                  onDragEnd={(e) => {
+                    const nextCoordinate = e.nativeEvent.coordinate;
+                    setPinCoordinate(nextCoordinate);
+                    void resolveLocationDetails(nextCoordinate, false);
+                  }}
+                />
+              </MapView>
+            </View>
           </View>
-        </View>
+        ) : null}
       </ScrollView>
 
       {/* Footer */}
