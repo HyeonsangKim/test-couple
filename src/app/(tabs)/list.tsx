@@ -1,15 +1,16 @@
 import React, { useState, useCallback, useMemo, useRef } from 'react';
-import { View, FlatList, StyleSheet, TouchableOpacity, Modal, Animated, Easing } from 'react-native';
+import { View, FlatList, StyleSheet, Animated, Easing } from 'react-native';
 import { useRouter } from 'expo-router';
 import { useFocusEffect } from '@react-navigation/native';
 import { SafeAreaView } from 'react-native-safe-area-context';
-import { colors, spacing, radius, layout } from '@/theme/tokens';
+import { colors, spacing, layout } from '@/theme/tokens';
 import { SearchBar } from '@/components/filter/SearchBar';
 import { InlineFilterChips } from '@/components/filter/InlineFilterChips';
 import { FilterBottomSheet } from '@/components/filter/FilterBottomSheet';
 import { AddPlaceFab } from '@/components/place/AddPlaceFab';
 import { PlaceCard } from '@/components/place/PlaceCard';
 import { EmptyState } from '@/components/common/EmptyState';
+import { SheetModalShell } from '@/components/common/SheetModalShell';
 import { usePlaceStore } from '@/stores/usePlaceStore';
 import { useVisitStore } from '@/stores/useVisitStore';
 import { useFilteredPlaceListItems } from '@/hooks/useFilteredPlaceListItems';
@@ -105,17 +106,9 @@ export default function ListScreen() {
       />
 
       {/* Filter Modal */}
-      <Modal visible={filterVisible} transparent animationType="slide">
-        <TouchableOpacity
-          style={styles.filterOverlay}
-          activeOpacity={1}
-          onPress={() => setFilterVisible(false)}
-        >
-          <TouchableOpacity activeOpacity={1} style={styles.filterSheet}>
-            <FilterBottomSheet onClose={() => setFilterVisible(false)} />
-          </TouchableOpacity>
-        </TouchableOpacity>
-      </Modal>
+      <SheetModalShell visible={filterVisible} onClose={() => setFilterVisible(false)}>
+        <FilterBottomSheet onClose={() => setFilterVisible(false)} />
+      </SheetModalShell>
     </SafeAreaView>
   );
 }
@@ -143,15 +136,5 @@ const styles = StyleSheet.create({
   },
   listGap: {
     height: spacing[3],
-  },
-  filterOverlay: {
-    flex: 1,
-    backgroundColor: colors.overlay.dim,
-    justifyContent: 'flex-end',
-  },
-  filterSheet: {
-    backgroundColor: colors.bg.base,
-    borderTopLeftRadius: radius.sheet,
-    borderTopRightRadius: radius.sheet,
   },
 });

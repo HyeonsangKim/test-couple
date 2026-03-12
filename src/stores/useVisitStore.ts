@@ -158,13 +158,24 @@ export const useVisitStore = create<VisitState>((set, get) => {
           ).filter((v) => v.visitId !== visitId);
         }
 
+        const nextImagesByPlace: Record<string, VisitImage[]> = {};
+        for (const [placeId, placeImages] of Object.entries(
+          s.placeImagesByPlaceId,
+        )) {
+          nextImagesByPlace[placeId] = placeImages.filter(
+            (img) => img.visitId !== visitId,
+          );
+        }
+
         return {
           visits: nextVisits,
           placeVisitsByPlaceId: nextByPlace,
+          placeImagesByPlaceId: nextImagesByPlace,
           placeVisits:
             s.activePlaceId && nextByPlace[s.activePlaceId]
               ? nextByPlace[s.activePlaceId]
               : s.placeVisits,
+          placeImages: s.placeImages.filter((img) => img.visitId !== visitId),
         };
       });
     },

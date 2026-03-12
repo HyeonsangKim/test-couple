@@ -3,19 +3,22 @@ import { View, Text, Image, StyleSheet, ScrollView, TouchableOpacity } from 'rea
 import { Visit, VisitImage } from '@/types';
 import { colors, typography, spacing, radius, component } from '@/theme/tokens';
 import { formatDate } from '@/utils/date';
-import { useAuthStore } from '@/stores/useAuthStore';
 
 interface VisitRecordCardProps {
   visit: Visit;
   images?: VisitImage[];
   visitNumber: number;
+  authorName?: string;
   onPress?: () => void;
 }
 
-export const VisitRecordCard: React.FC<VisitRecordCardProps> = ({ visit, images = [], visitNumber, onPress }) => {
-  const getUserById = useAuthStore((s) => s.getUserById);
-  const author = getUserById(visit.createdByUserId);
-
+export const VisitRecordCard: React.FC<VisitRecordCardProps> = ({
+  visit,
+  images = [],
+  visitNumber,
+  authorName,
+  onPress,
+}) => {
   return (
     <TouchableOpacity style={styles.card} onPress={onPress} activeOpacity={0.7} disabled={!onPress}>
       <View style={styles.header}>
@@ -27,7 +30,7 @@ export const VisitRecordCard: React.FC<VisitRecordCardProps> = ({ visit, images 
             </View>
           )}
         </View>
-        <Text style={styles.author}>{author?.nickname ?? '알 수 없음'}</Text>
+        <Text style={styles.author}>{authorName ?? '알 수 없음'}</Text>
       </View>
       {images.length > 0 && (
         <ScrollView horizontal showsHorizontalScrollIndicator={false} style={styles.imageRow}>

@@ -1,9 +1,9 @@
 import React, { useState, useRef, useCallback, useEffect } from 'react';
-import { View, StyleSheet, TouchableOpacity, Modal } from 'react-native';
+import { View, StyleSheet, TouchableOpacity } from 'react-native';
 import { useNavigation, useRouter } from 'expo-router';
 import MapView, { Region } from 'react-native-maps';
 import { Ionicons } from '@expo/vector-icons';
-import { colors, radius, shadow, component } from '@/theme/tokens';
+import { colors, shadow, component } from '@/theme/tokens';
 import { PlaceMarker } from '@/components/map/PlaceMarker';
 import { AddPlaceFab } from '@/components/place/AddPlaceFab';
 import { usePlaceStore } from '@/stores/usePlaceStore';
@@ -14,6 +14,7 @@ import { DEFAULT_MAP_REGION } from '@/constants';
 import { FilterBottomSheet } from '@/components/filter/FilterBottomSheet';
 import { MapSearchOverlay, MapSearchOverlayHandle } from '@/components/map/MapSearchOverlay';
 import { tabFloatingMetrics } from '@/theme/layoutMetrics';
+import { SheetModalShell } from '@/components/common/SheetModalShell';
 
 export default function MapScreen() {
   const router = useRouter();
@@ -137,17 +138,9 @@ export default function MapScreen() {
       />
 
       {/* Filter Modal */}
-      <Modal visible={filterVisible} transparent animationType="slide">
-        <TouchableOpacity
-          style={styles.filterOverlay}
-          activeOpacity={1}
-          onPress={() => setFilterVisible(false)}
-        >
-          <TouchableOpacity activeOpacity={1} style={styles.filterSheet}>
-            <FilterBottomSheet onClose={() => setFilterVisible(false)} />
-          </TouchableOpacity>
-        </TouchableOpacity>
-      </Modal>
+      <SheetModalShell visible={filterVisible} onClose={() => setFilterVisible(false)}>
+        <FilterBottomSheet onClose={() => setFilterVisible(false)} />
+      </SheetModalShell>
     </View>
   );
 }
@@ -178,15 +171,5 @@ const styles = StyleSheet.create({
     opacity: 0.72,
     shadowOpacity: 0,
     elevation: 0,
-  },
-  filterOverlay: {
-    flex: 1,
-    backgroundColor: colors.overlay.dim,
-    justifyContent: 'flex-end',
-  },
-  filterSheet: {
-    backgroundColor: colors.bg.base,
-    borderTopLeftRadius: radius.sheet,
-    borderTopRightRadius: radius.sheet,
   },
 });

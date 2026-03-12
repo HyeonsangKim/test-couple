@@ -106,12 +106,11 @@ export default function DisconnectScreen() {
         <Button
           title="연결 해제"
           onPress={() => setShowConfirm(true)}
-          variant="primary"
+          variant="fill-danger"
           size="lg"
           fullWidth
           loading={loading}
           style={styles.ctaButton}
-          textStyle={styles.ctaButtonText}
         />
       </BottomCtaBar>
 
@@ -193,9 +192,5 @@ const styles = StyleSheet.create({
   },
   ctaButton: {
     borderRadius: radius.lg,
-    backgroundColor: colors.accent.danger,
-  },
-  ctaButtonText: {
-    color: colors.text.inverse,
   },
 });

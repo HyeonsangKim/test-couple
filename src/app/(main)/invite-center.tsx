@@ -10,13 +10,15 @@ import { useRouter } from "expo-router";
 import { SafeAreaView } from "react-native-safe-area-context";
 import { Ionicons } from "@expo/vector-icons";
 import { colors, typography, spacing, radius, layout } from "@/theme/tokens";
-import { Button, Card, IconButton } from "@/components/ui";
+import { Button, Card } from "@/components/ui";
 import { useInviteStore } from "@/stores/useInviteStore";
 import { useMapStore } from "@/stores/useMapStore";
 import { useAuthStore } from "@/stores/useAuthStore";
 import { ConfirmModal } from "@/components/common/ConfirmModal";
+import { BackHeader } from "@/components/common/BackHeader";
+import { InviteCodeDisplay } from "@/components/invite/InviteCodeDisplay";
 import { validateInviteCode } from "@/utils/validation";
-import { getRemainingHours, isExpired } from "@/utils/date";
+import { isExpired } from "@/utils/date";
 import * as Clipboard from "expo-clipboard";
 import { Alert } from "react-native";
 
@@ -24,7 +26,6 @@ export default function InviteCenterScreen() {
   const router = useRouter();
   const [code, setCode] = useState("");
   const [codeError, setCodeError] = useState<string | null>(null);
-  const [remainingHours, setRemainingHours] = useState(0);
   const [showRejoinConfirm, setShowRejoinConfirm] = useState(false);
   const [pendingJoin, setPendingJoin] = useState<{
     mapId: string;
@@ -55,16 +56,6 @@ export default function InviteCenterScreen() {
       loadInvite(map.mapId);
     }
   }, [map?.mapId]);
-
-  useEffect(() => {
-    if (invite && invite.status === "active") {
-      const update = () =>
-        setRemainingHours(getRemainingHours(invite.expiresAt));
-      update();
-      const interval = setInterval(update, 60000);
-      return () => clearInterval(interval);
-    }
-  }, [invite?.expiresAt]);
 
   const handleGenerate = async () => {
     if (!map) return;
@@ -155,18 +146,7 @@ export default function InviteCenterScreen() {
 
   return (
     <SafeAreaView style={styles.safe}>
-      {/* Header */}
-      <View style={styles.header}>
-        <IconButton
-          icon="chevron-back"
-          onPress={() => router.back()}
-          size={40}
-          backgroundColor={colors.bg.elevated}
-          color={colors.text.primary}
-        />
-        <Text style={styles.headerTitle}>초대/연결 관리</Text>
-        <View style={{ width: 40 }} />
-      </View>
+      <BackHeader title="초대/연결 관리" onBack={() => router.back()} />
 
       <View style={styles.content}>
         {/* Connection Status */}
@@ -196,30 +176,12 @@ export default function InviteCenterScreen() {
         <Card style={styles.codeCard}>
           <Text style={styles.sectionTitle}>내 초대 코드</Text>
           {invite && invite.status === "active" && !expired ? (
-            <>
-              <View style={styles.codeBox}>
-                <Text style={styles.codeText}>{invite.code}</Text>
-              </View>
-              <Text style={styles.timerText}>
-                {remainingHours > 0 ? `${remainingHours}시간 남음` : "곧 만료"}
-              </Text>
-              <View style={styles.codeActions}>
-                <Button
-                  title="복사"
-                  onPress={handleCopyCode}
-                  variant="secondary"
-                  size="md"
-                  style={styles.codeActionBtn}
-                />
-                <Button
-                  title="무효화"
-                  onPress={handleRevoke}
-                  variant="ghost"
-                  size="md"
-                  textStyle={{ color: colors.accent.danger }}
-                />
-              </View>
-            </>
+            <InviteCodeDisplay
+              invite={invite}
+              showLabel={false}
+              onCopy={handleCopyCode}
+              onRevoke={handleRevoke}
+            />
           ) : (
             <>
               <Text style={styles.codeDesc}>
@@ -293,17 +255,6 @@ const styles = StyleSheet.create({
     flex: 1,
     backgroundColor: colors.bg.canvas,
   },
-  header: {
-    flexDirection: "row",
-    alignItems: "center",
-    justifyContent: "space-between",
-    paddingHorizontal: layout.screenPaddingH,
-    paddingVertical: spacing[3],
-  },
-  headerTitle: {
-    ...typography.title.l,
-    color: colors.text.primary,
-  },
   content: {
     flex: 1,
     paddingHorizontal: layout.screenPaddingH,
@@ -330,34 +281,6 @@ const styles = StyleSheet.create({
     ...typography.title.l,
     color: colors.text.primary,
     marginBottom: spacing[3],
-  },
-  codeBox: {
-    backgroundColor: colors.bg.soft,
-    borderRadius: radius.lg,
-    paddingVertical: spacing[4],
-    paddingHorizontal: spacing[6],
-    alignItems: "center",
-    marginBottom: spacing[2],
-  },
-  codeText: {
-    fontSize: 28,
-    fontWeight: "800",
-    color: colors.accent.primary,
-    letterSpacing: 6,
-  },
-  timerText: {
-    ...typography.caption,
-    color: colors.accent.amber,
-    textAlign: "center",
-    marginBottom: spacing[3],
-  },
-  codeActions: {
-    flexDirection: "row",
-    justifyContent: "center",
-    gap: spacing[3],
-  },
-  codeActionBtn: {
-    borderRadius: radius.full,
   },
   codeDesc: {
     ...typography.body.m,

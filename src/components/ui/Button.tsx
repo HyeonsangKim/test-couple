@@ -11,7 +11,7 @@ import { colors, typography, radius, component } from '@/theme/tokens';
 
 /**
  * New canonical variants:
- *   fill-primary | fill-dark | soft-secondary | ghost | ghost-danger
+ *   fill-primary | fill-danger | fill-dark | soft-secondary | ghost | ghost-danger
  *
  * Legacy names are mapped for backwards compatibility:
  *   primary   → fill-primary
@@ -21,6 +21,7 @@ import { colors, typography, radius, component } from '@/theme/tokens';
  */
 type Variant =
   | 'fill-primary'
+  | 'fill-danger'
   | 'fill-dark'
   | 'soft-secondary'
   | 'ghost'
@@ -74,6 +75,7 @@ export const Button: React.FC<ButtonProps> = ({
 
   const bgColor: Record<string, string> = {
     'fill-primary': colors.accent.primary,
+    'fill-danger': colors.accent.danger,
     'fill-dark': colors.bg.strong,
     'soft-secondary': colors.bg.soft,
     'ghost': 'transparent',
@@ -82,6 +84,7 @@ export const Button: React.FC<ButtonProps> = ({
 
   const txtColor: Record<string, string> = {
     'fill-primary': colors.text.inverse,
+    'fill-danger': colors.text.inverse,
     'fill-dark': colors.text.inverse,
     'soft-secondary': colors.text.primary,
     'ghost': colors.text.primary,
@@ -90,6 +93,7 @@ export const Button: React.FC<ButtonProps> = ({
 
   const disabledBgColor: Record<string, string> = {
     'fill-primary': colors.accent.primarySoft,
+    'fill-danger': colors.bg.muted,
     'fill-dark': colors.bg.muted,
     'soft-secondary': colors.bg.muted,
     'ghost': 'transparent',
@@ -98,6 +102,7 @@ export const Button: React.FC<ButtonProps> = ({
 
   const disabledTxtColor: Record<string, string> = {
     'fill-primary': colors.accent.primary,
+    'fill-danger': colors.text.tertiary,
     'fill-dark': colors.text.tertiary,
     'soft-secondary': colors.text.tertiary,
     'ghost': colors.text.tertiary,

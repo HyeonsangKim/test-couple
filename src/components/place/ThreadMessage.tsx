@@ -1,36 +1,37 @@
 import React from 'react';
-import { View, Text, StyleSheet } from 'react-native';
+import { View, Text, StyleSheet, TouchableOpacity } from 'react-native';
 import { ThreadMessage as ThreadMessageType } from '@/types';
-import { colors, typography, spacing, radius, component } from '@/theme/tokens';
-import { Avatar } from '@/components/ui';
-import { useAuthStore } from '@/stores/useAuthStore';
+import { colors, typography, spacing, radius } from '@/theme/tokens';
 import { formatRelative } from '@/utils/date';
-import { CURRENT_USER_ID } from '@/mock/data';
 
 interface ThreadMessageProps {
   message: ThreadMessageType;
+  authorName?: string;
+  isMine: boolean;
+  onLongPressMine?: () => void;
 }
 
-export const ThreadMessageComponent: React.FC<ThreadMessageProps> = ({ message }) => {
-  const getUserById = useAuthStore((s) => s.getUserById);
-  const author = getUserById(message.authorUserId);
-  const isMine = message.authorUserId === CURRENT_USER_ID;
-
+export const ThreadMessageComponent: React.FC<ThreadMessageProps> = ({
+  message,
+  authorName,
+  isMine,
+  onLongPressMine,
+}) => {
   return (
     <View style={[styles.container, isMine && styles.containerMine]}>
-      {!isMine && (
-        <Avatar user={author} name={author?.nickname ?? '?'} color={colors.text.tertiary} size={component.avatar.sm} />
-      )}
-      <View style={[styles.bubble, isMine ? styles.bubbleMine : styles.bubblePartner]}>
-        {!isMine && <Text style={styles.authorName}>{author?.nickname}</Text>}
+      <TouchableOpacity
+        activeOpacity={isMine ? 0.86 : 1}
+        delayLongPress={300}
+        disabled={!isMine}
+        onLongPress={isMine ? onLongPressMine : undefined}
+        style={[styles.bubble, isMine ? styles.bubbleMine : styles.bubblePartner]}
+      >
+        {!isMine && <Text style={styles.authorName}>{authorName ?? '?'}</Text>}
         <Text style={styles.content}>{message.body}</Text>
         <View style={styles.meta}>
           <Text style={styles.time}>{formatRelative(message.createdAt)}</Text>
         </View>
-      </View>
-      {isMine && (
-        <Avatar user={author} name={author?.nickname ?? '?'} color={colors.accent.primary} size={component.avatar.sm} />
-      )}
+      </TouchableOpacity>
     </View>
   );
 };
@@ -38,31 +39,29 @@ export const ThreadMessageComponent: React.FC<ThreadMessageProps> = ({ message }
 const styles = StyleSheet.create({
   container: {
     flexDirection: 'row',
-    alignItems: 'flex-end',
-    marginBottom: spacing[4],
-    paddingHorizontal: spacing[4],
-    gap: spacing[2],
+    marginBottom: spacing[3],
   },
   containerMine: {
-    flexDirection: 'row',
     justifyContent: 'flex-end',
   },
   bubble: {
-    maxWidth: '70%',
-    borderRadius: radius.lg,
-    padding: spacing[4],
+    maxWidth: '75%',
+    borderRadius: radius.md,
+    padding: spacing[3],
   },
   bubbleMine: {
-    backgroundColor: colors.bg.soft,
+    backgroundColor: colors.accent.primarySoft,
     borderBottomRightRadius: 4,
   },
   bubblePartner: {
     backgroundColor: colors.bg.elevated,
     borderBottomLeftRadius: 4,
+    borderWidth: 1,
+    borderColor: colors.border.soft,
   },
   authorName: {
     ...typography.caption,
-    color: colors.accent.primary,
+    color: colors.text.secondary,
     fontWeight: '600',
     marginBottom: spacing[1],
   },

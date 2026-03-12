@@ -1,10 +1,11 @@
 import React from 'react';
-import { Alert, Modal, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
+import { Alert, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
 import { useRouter } from 'expo-router';
 import * as ImagePicker from 'expo-image-picker';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { Ionicons } from '@expo/vector-icons';
 import { colors, typography, spacing, radius, shadow, component } from '@/theme/tokens';
+import { SheetModalShell } from '@/components/common/SheetModalShell';
 import { LIMITS } from '@/constants';
 import { tabFloatingMetrics } from '@/theme/layoutMetrics';
 import { serializePickedAsset } from '@/utils/photoMetadata';
@@ -106,53 +107,46 @@ export const AddPlaceFab: React.FC<AddPlaceFabProps> = ({
         <Ionicons name="add" size={28} color={colors.text.inverse} />
       </TouchableOpacity>
 
-      <Modal visible={visible} transparent animationType="slide">
-        <TouchableOpacity
-          style={styles.overlay}
-          activeOpacity={1}
-          onPress={() => onVisibleChange(false)}
-        >
-          <TouchableOpacity
-            activeOpacity={1}
-            style={[styles.addMenu, { paddingBottom: Math.max(insets.bottom, spacing[6]) }]}
-          >
-            <View style={styles.handleBar} />
+      <SheetModalShell
+        visible={visible}
+        onClose={() => onVisibleChange(false)}
+        sheetStyle={[styles.addMenu, { paddingBottom: Math.max(insets.bottom, spacing[6]) }]}
+      >
+        <View style={styles.handleBar} />
 
-            <View style={styles.addMenuHeader}>
-              <Text style={styles.addMenuTitle}>장소 추가</Text>
-            </View>
+        <View style={styles.addMenuHeader}>
+          <Text style={styles.addMenuTitle}>장소 추가</Text>
+        </View>
 
-            <Text style={styles.addMenuSectionLabel}>추가 방식</Text>
-            <View style={styles.addMenuList}>
-              {addMenuOptions.map((option) => (
-                <TouchableOpacity
-                  key={option.key}
-                  style={styles.addMenuItem}
-                  onPress={option.onPress}
-                  activeOpacity={0.8}
-                >
-                  <View style={styles.addMenuIconFrame}>
-                    <Ionicons name={option.icon} size={18} color={colors.text.secondary} />
-                  </View>
-                  <View style={styles.addMenuTextBlock}>
-                    <Text style={styles.addMenuLabel}>{option.title}</Text>
-                    <Text style={styles.addMenuDesc}>{option.description}</Text>
-                  </View>
-                  <Ionicons name="chevron-forward" size={16} color={colors.text.tertiary} />
-                </TouchableOpacity>
-              ))}
-            </View>
-
+        <Text style={styles.addMenuSectionLabel}>추가 방식</Text>
+        <View style={styles.addMenuList}>
+          {addMenuOptions.map((option) => (
             <TouchableOpacity
-              style={styles.addMenuDismiss}
-              onPress={() => onVisibleChange(false)}
-              activeOpacity={0.75}
+              key={option.key}
+              style={styles.addMenuItem}
+              onPress={option.onPress}
+              activeOpacity={0.8}
             >
-              <Text style={styles.addMenuDismissText}>닫기</Text>
+              <View style={styles.addMenuIconFrame}>
+                <Ionicons name={option.icon} size={18} color={colors.text.secondary} />
+              </View>
+              <View style={styles.addMenuTextBlock}>
+                <Text style={styles.addMenuLabel}>{option.title}</Text>
+                <Text style={styles.addMenuDesc}>{option.description}</Text>
+              </View>
+              <Ionicons name="chevron-forward" size={16} color={colors.text.tertiary} />
             </TouchableOpacity>
-          </TouchableOpacity>
+          ))}
+        </View>
+
+        <TouchableOpacity
+          style={styles.addMenuDismiss}
+          onPress={() => onVisibleChange(false)}
+          activeOpacity={0.75}
+        >
+          <Text style={styles.addMenuDismissText}>닫기</Text>
         </TouchableOpacity>
-      </Modal>
+      </SheetModalShell>
     </>
   );
 };
@@ -169,11 +163,6 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
     zIndex: 30,
     ...shadow.lg,
-  },
-  overlay: {
-    flex: 1,
-    backgroundColor: colors.overlay.dim,
-    justifyContent: 'flex-end',
   },
   addMenu: {
     backgroundColor: colors.bg.sheet,

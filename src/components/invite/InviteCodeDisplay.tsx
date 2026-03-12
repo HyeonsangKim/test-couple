@@ -1,16 +1,23 @@
 import React, { useState, useEffect } from 'react';
 import { View, Text, StyleSheet } from 'react-native';
-import { colors, typography, spacing, radius, shadow, component } from '@/theme/tokens';
+import { colors, typography, spacing, radius } from '@/theme/tokens';
 import { InviteCode } from '@/types';
 import { getRemainingHours, isExpired } from '@/utils/date';
 import { Button } from '@/components/ui';
 
 interface InviteCodeDisplayProps {
   invite: InviteCode;
-  onRevoke: () => void;
+  onRevoke?: () => void;
+  onCopy?: () => void;
+  showLabel?: boolean;
 }
 
-export const InviteCodeDisplay: React.FC<InviteCodeDisplayProps> = ({ invite, onRevoke }) => {
+export const InviteCodeDisplay: React.FC<InviteCodeDisplayProps> = ({
+  invite,
+  onRevoke,
+  onCopy,
+  showLabel = true,
+}) => {
   const [remainingHours, setRemainingHours] = useState(getRemainingHours(invite.expiresAt));
   const expired = isExpired(invite.expiresAt) || invite.status !== 'active';
 
@@ -23,16 +30,35 @@ export const InviteCodeDisplay: React.FC<InviteCodeDisplayProps> = ({ invite, on
 
   return (
     <View style={styles.container}>
-      <Text style={styles.label}>초대 코드</Text>
+      {showLabel ? <Text style={styles.label}>초대 코드</Text> : null}
       <View style={styles.codeBox}>
         <Text style={styles.code}>{invite.code}</Text>
       </View>
       <Text style={[styles.timer, expired && styles.timerExpired]}>
         {expired ? '만료됨' : `${remainingHours}시간 남음`}
       </Text>
-      {!expired && (
-        <Button title="코드 무효화" onPress={onRevoke} variant="ghost" size="sm" style={styles.revokeBtn} />
-      )}
+      {!expired && (onCopy || onRevoke) ? (
+        <View style={styles.actions}>
+          {onCopy ? (
+            <Button
+              title="복사"
+              onPress={onCopy}
+              variant="soft-secondary"
+              size="md"
+              style={styles.actionBtn}
+            />
+          ) : null}
+          {onRevoke ? (
+            <Button
+              title="무효화"
+              onPress={onRevoke}
+              variant="ghost-danger"
+              size="md"
+              style={styles.actionBtn}
+            />
+          ) : null}
+        </View>
+      ) : null}
     </View>
   );
 };
@@ -40,10 +66,7 @@ export const InviteCodeDisplay: React.FC<InviteCodeDisplayProps> = ({ invite, on
 const styles = StyleSheet.create({
   container: {
     alignItems: 'center',
-    padding: component.card.padding,
-    backgroundColor: colors.bg.elevated,
-    borderRadius: component.card.radius,
-    ...shadow.md,
+    padding: spacing[1],
   },
   label: {
     ...typography.caption,
@@ -74,7 +97,13 @@ const styles = StyleSheet.create({
   timerExpired: {
     color: colors.accent.danger,
   },
-  revokeBtn: {
-    marginTop: spacing[2],
+  actions: {
+    width: '100%',
+    flexDirection: 'row',
+    justifyContent: 'center',
+    gap: spacing[3],
+  },
+  actionBtn: {
+    borderRadius: radius.full,
   },
 });

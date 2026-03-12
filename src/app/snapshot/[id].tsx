@@ -4,7 +4,8 @@ import { useLocalSearchParams, useRouter } from 'expo-router';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { Ionicons } from '@expo/vector-icons';
 import { colors, typography, spacing, radius, layout, component } from '@/theme/tokens';
-import { IconButton, Chip } from '@/components/ui';
+import { Chip } from '@/components/ui';
+import { BackHeader } from '@/components/common/BackHeader';
 import { useSnapshotStore } from '@/stores/useSnapshotStore';
 import { STATUS_LABELS, CATEGORY_LABELS } from '@/constants';
 import { formatDate } from '@/utils/date';
@@ -31,18 +32,7 @@ export default function SnapshotDetailScreen() {
 
   return (
     <SafeAreaView style={styles.safe}>
-      {/* Header */}
-      <View style={styles.header}>
-        <IconButton
-          icon="close"
-          onPress={() => router.back()}
-          size={40}
-          backgroundColor={colors.bg.elevated}
-          color={colors.text.primary}
-        />
-        <Text style={styles.headerTitle}>스냅샷</Text>
-        <View style={{ width: 40 }} />
-      </View>
+      <BackHeader title="스냅샷" onBack={() => router.back()} backIcon="close" />
 
       {/* Read-only Banner */}
       <View style={styles.banner}>
@@ -110,14 +100,6 @@ export default function SnapshotDetailScreen() {
 
 const styles = StyleSheet.create({
   safe: { flex: 1, backgroundColor: colors.bg.canvas },
-  header: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'space-between',
-    paddingHorizontal: layout.screenPaddingH,
-    paddingVertical: spacing[3],
-  },
-  headerTitle: { ...typography.title.l, color: colors.text.primary },
   banner: {
     backgroundColor: colors.bg.soft,
     paddingVertical: spacing[5],

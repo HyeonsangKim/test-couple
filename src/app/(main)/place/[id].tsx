@@ -1,29 +1,27 @@
 import React, { useEffect, useState } from 'react';
 import {
   View, Text, Image, StyleSheet, ScrollView, TouchableOpacity, Alert,
-  KeyboardAvoidingView, Platform, Modal, TextInput as RNTextInput, Dimensions,
+  KeyboardAvoidingView, Platform, Modal, TextInput as RNTextInput,
 } from 'react-native';
 import { useLocalSearchParams, useRouter } from 'expo-router';
 import { SafeAreaView, useSafeAreaInsets } from 'react-native-safe-area-context';
 import { Ionicons } from '@expo/vector-icons';
 import { colors, typography, spacing, radius, layout, component } from '@/theme/tokens';
-import { Button, Chip, IconButton, Card } from '@/components/ui';
+import { Button, Chip } from '@/components/ui';
 import { ConfirmModal } from '@/components/common/ConfirmModal';
+import { BackHeader } from '@/components/common/BackHeader';
 import { usePlaceStore } from '@/stores/usePlaceStore';
 import { useVisitStore } from '@/stores/useVisitStore';
 import { useThreadStore } from '@/stores/useThreadStore';
 import { useAuthStore } from '@/stores/useAuthStore';
 import { useDeleteGracePeriod } from '@/hooks/useDeleteGracePeriod';
+import { VisitRecordCard } from '@/components/place/VisitRecordCard';
+import { ImageGallery } from '@/components/place/ImageGallery';
+import { ThreadMessageComponent } from '@/components/place/ThreadMessage';
 import { PlaceCategory } from '@/types';
 import { CATEGORIES, STATUS_LABELS, CATEGORY_LABELS, LIMITS } from '@/constants';
-import { formatDate, formatRelative } from '@/utils/date';
 import { validateThreadMessage } from '@/utils/validation';
 import { CURRENT_USER_ID } from '@/mock/data';
-
-const SCREEN_WIDTH = Dimensions.get('window').width;
-const IMAGE_GAP = 8;
-const IMAGE_PADDING = layout.screenPaddingH * 2;
-const IMAGE_TILE_SIZE = (SCREEN_WIDTH - IMAGE_PADDING - IMAGE_GAP * 2) / 3;
 
 export default function PlaceDetailScreen() {
   const { id } = useLocalSearchParams<{ id: string }>();
@@ -143,17 +141,7 @@ export default function PlaceDetailScreen() {
 
   return (
     <SafeAreaView style={styles.safe} edges={['top']}>
-      <View style={styles.header}>
-        <IconButton
-          icon="chevron-back"
-          onPress={() => router.back()}
-          size={40}
-          backgroundColor={colors.bg.elevated}
-          color={colors.text.primary}
-        />
-        <Text numberOfLines={1} style={styles.headerTitle}>장소 상세</Text>
-        <View style={styles.headerSpacer} />
-      </View>
+      <BackHeader title="장소 상세" onBack={() => router.back()} bordered />
 
       <KeyboardAvoidingView
         style={styles.keyboardAvoiding}
@@ -269,43 +257,27 @@ export default function PlaceDetailScreen() {
               placeVisits.map((visit, index) => {
                 const author = getUserById(visit.createdByUserId);
                 return (
-                  <TouchableOpacity
+                  <VisitRecordCard
                     key={visit.visitId}
-                    style={styles.visitCard}
-                    activeOpacity={0.7}
+                    visit={visit}
+                    authorName={author?.nickname ?? '알 수 없음'}
+                    visitNumber={placeVisits.length - index}
                     onPress={() =>
                       router.push({
                         pathname: '/(main)/visit/form',
                         params: { visitId: visit.visitId, placeId: id },
                       })
                     }
-                  >
-                    <View style={styles.visitHeader}>
-                      <View style={styles.visitDateRow}>
-                        <Text style={styles.visitDate}>{formatDate(visit.visitDate)}</Text>
-                        {placeVisits.length > 1 && (
-                          <View style={styles.visitBadge}>
-                            <Text style={styles.visitBadgeText}>{placeVisits.length - index}번째</Text>
-                          </View>
-                        )}
-                      </View>
-                      <Text style={styles.visitAuthor}>{author?.nickname ?? '알 수 없음'}</Text>
-                    </View>
-                  </TouchableOpacity>
+                  />
                 );
               })
             )}
           </View>
 
           {/* Image Gallery */}
-          {allImageUris.length > 0 && (
+          {placeImages.length > 0 && (
             <View style={styles.section}>
-              <Text style={styles.sectionTitle}>사진 모아보기 ({allImageUris.length})</Text>
-              <View style={styles.imageGrid}>
-                {allImageUris.map((uri, index) => (
-                  <Image key={`img_${index}`} source={{ uri }} style={styles.gridImage} />
-                ))}
-              </View>
+              <ImageGallery images={placeImages} />
             </View>
           )}
 
@@ -322,23 +294,13 @@ export default function PlaceDetailScreen() {
                 const author = getUserById(msg.authorUserId);
                 const isMine = msg.authorUserId === currentUserId;
                 return (
-                  <View key={msg.messageId} style={[styles.msgRow, isMine && styles.msgRowMine]}>
-                    <TouchableOpacity
-                      activeOpacity={isMine ? 0.86 : 1}
-                      delayLongPress={300}
-                      disabled={!isMine}
-                      onLongPress={() => setPendingDeleteMessageId(msg.messageId)}
-                      style={[styles.msgBubble, isMine ? styles.msgBubbleMine : styles.msgBubblePartner]}
-                    >
-                      {!isMine && (
-                        <Text style={styles.msgAuthor}>{author?.nickname ?? '?'}</Text>
-                      )}
-                      <Text style={styles.msgBody}>{msg.body}</Text>
-                      <View style={styles.msgMeta}>
-                        <Text style={styles.msgTime}>{formatRelative(msg.createdAt)}</Text>
-                      </View>
-                    </TouchableOpacity>
-                  </View>
+                  <ThreadMessageComponent
+                    key={msg.messageId}
+                    message={msg}
+                    authorName={author?.nickname ?? '?'}
+                    isMine={isMine}
+                    onLongPressMine={() => setPendingDeleteMessageId(msg.messageId)}
+                  />
                 );
               })
             )}
@@ -450,26 +412,6 @@ export default function PlaceDetailScreen() {
 
 const styles = StyleSheet.create({
   safe: { flex: 1, backgroundColor: colors.bg.canvas },
-  header: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'space-between',
-    paddingHorizontal: layout.screenPaddingH,
-    paddingVertical: spacing[3],
-    borderBottomWidth: 1,
-    borderBottomColor: colors.border.soft,
-    backgroundColor: colors.bg.elevated,
-  },
-  headerTitle: {
-    ...typography.title.l,
-    color: colors.text.primary,
-    flex: 1,
-    textAlign: 'center',
-    marginHorizontal: spacing[3],
-  },
-  headerSpacer: {
-    width: 40,
-  },
   keyboardAvoiding: {
     flex: 1,
   },
@@ -562,85 +504,6 @@ const styles = StyleSheet.create({
     textAlign: 'center',
     marginTop: spacing[3],
   },
-
-  /* Visit cards */
-  visitCard: {
-    backgroundColor: colors.bg.elevated,
-    borderRadius: radius.lg,
-    padding: spacing[4],
-    marginBottom: spacing[2],
-  },
-  visitHeader: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    alignItems: 'center',
-  },
-  visitDateRow: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: spacing[2],
-  },
-  visitDate: { ...typography.title.m, color: colors.text.primary },
-  visitBadge: {
-    backgroundColor: colors.accent.primarySoft,
-    borderRadius: radius.full,
-    paddingHorizontal: spacing[2],
-    paddingVertical: 2,
-  },
-  visitBadgeText: { ...typography.caption, color: colors.accent.primary, fontWeight: '700' },
-  visitAuthor: { ...typography.body.s, color: colors.text.secondary },
-
-  /* Image grid — 3 columns */
-  imageGrid: {
-    flexDirection: 'row',
-    flexWrap: 'wrap',
-    gap: IMAGE_GAP,
-    marginTop: spacing[3],
-  },
-  gridImage: {
-    width: IMAGE_TILE_SIZE,
-    height: IMAGE_TILE_SIZE,
-    borderRadius: radius.md,
-    backgroundColor: colors.bg.soft,
-  },
-
-  /* Thread messages */
-  msgRow: {
-    flexDirection: 'row',
-    marginBottom: spacing[3],
-  },
-  msgRowMine: {
-    justifyContent: 'flex-end',
-  },
-  msgBubble: {
-    maxWidth: '75%',
-    borderRadius: radius.md,
-    padding: spacing[3],
-  },
-  msgBubbleMine: {
-    backgroundColor: colors.accent.primarySoft,
-    borderBottomRightRadius: 4,
-  },
-  msgBubblePartner: {
-    backgroundColor: colors.bg.elevated,
-    borderBottomLeftRadius: 4,
-    borderWidth: 1,
-    borderColor: colors.border.soft,
-  },
-  msgAuthor: {
-    ...typography.caption,
-    color: colors.text.secondary,
-    fontWeight: '600',
-    marginBottom: spacing[1],
-  },
-  msgBody: { ...typography.body.m, color: colors.text.primary },
-  msgMeta: {
-    flexDirection: 'row',
-    justifyContent: 'flex-start',
-    alignItems: 'center',
-    marginTop: spacing[1],
-  },
-  msgTime: { ...typography.caption, color: colors.text.tertiary, fontSize: 11 },
 
   /* Message Composer Bar */
   inputBar: {

@@ -127,9 +127,10 @@ const styles = StyleSheet.create({
   },
   calendar: {
     backgroundColor: colors.bg.sheet,
-    borderRadius: radius.lg,
-    padding: spacing[5],
-    width: 320,
+    borderRadius: component.modal.radius,
+    padding: component.modal.padding,
+    width: '100%',
+    maxWidth: component.modal.maxWidth,
   },
   header: {
     flexDirection: 'row',
