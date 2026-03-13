@@ -3,15 +3,17 @@ import { Alert, ScrollView, StyleSheet, Text, View } from 'react-native';
 import { useLocalSearchParams, useRouter } from 'expo-router';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { format } from 'date-fns';
-import { Button, Chip, IconButton, TextInput } from '@/components/ui';
+import { Button, Chip, TextInput } from '@/components/ui';
 import { DatePicker } from '@/components/common/DatePicker';
 import { PlaceImageUploadField } from '@/components/place/PlaceImageUploadField';
+import { AppHeader } from '@/components/common/AppHeader';
+import { BottomCtaBar } from '@/components/settings';
 import { createPlaceFromDraft } from '@/services';
 import { useMapStore } from '@/stores/useMapStore';
 import { usePlaceStore } from '@/stores/usePlaceStore';
 import { CATEGORIES, DEFAULT_MAP_REGION } from '@/constants';
 import { PlaceAddStatus, PlaceCategory } from '@/types';
-import { colors, component, layout, radius, spacing, typography } from '@/theme/tokens';
+import { colors, layout, radius, spacing, typography } from '@/theme/tokens';
 
 const parseParamNumber = (value?: string) => {
   if (!value) {
@@ -106,17 +108,7 @@ export default function PlaceAddSearchConfigureScreen() {
 
   return (
     <SafeAreaView style={styles.safe} edges={['top']}>
-      <View style={styles.header}>
-        <IconButton
-          icon="chevron-back"
-          onPress={() => router.back()}
-          size={component.header.iconButton}
-          backgroundColor={colors.bg.elevated}
-          color={colors.text.primary}
-        />
-        <Text style={styles.headerTitle}>검색 결과 설정</Text>
-        <View style={styles.headerSpacer} />
-      </View>
+      <AppHeader title="검색 결과 설정" onBack={() => router.back()} />
 
       <ScrollView
         style={styles.scroll}
@@ -180,7 +172,7 @@ export default function PlaceAddSearchConfigureScreen() {
         </View>
       </ScrollView>
 
-      <View style={styles.footer}>
+      <BottomCtaBar>
         <Button
           title="저장"
           onPress={handleSave}
@@ -189,9 +181,8 @@ export default function PlaceAddSearchConfigureScreen() {
           fullWidth
           loading={loading}
           disabled={!name.trim()}
-          style={styles.saveBtn}
         />
-      </View>
+      </BottomCtaBar>
     </SafeAreaView>
   );
 }
@@ -200,20 +191,6 @@ const styles = StyleSheet.create({
   safe: {
     flex: 1,
     backgroundColor: colors.bg.canvas,
-  },
-  header: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'space-between',
-    paddingHorizontal: layout.screenPaddingH,
-    paddingVertical: spacing[3],
-  },
-  headerTitle: {
-    ...typography.title.l,
-    color: colors.text.primary,
-  },
-  headerSpacer: {
-    width: component.header.iconButton,
   },
   scroll: {
     flex: 1,
@@ -243,14 +220,5 @@ const styles = StyleSheet.create({
   chipRow: {
     flexDirection: 'row',
     gap: spacing[2],
-  },
-  footer: {
-    padding: spacing[5],
-    borderTopWidth: 1,
-    borderTopColor: colors.border.soft,
-    backgroundColor: colors.bg.elevated,
-  },
-  saveBtn: {
-    borderRadius: radius['2xl'],
   },
 });

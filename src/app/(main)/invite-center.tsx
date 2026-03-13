@@ -10,7 +10,8 @@ import { useRouter } from "expo-router";
 import { SafeAreaView } from "react-native-safe-area-context";
 import { Ionicons } from "@expo/vector-icons";
 import { colors, typography, spacing, radius, layout } from "@/theme/tokens";
-import { Button, Card, IconButton } from "@/components/ui";
+import { Button, Card } from "@/components/ui";
+import { AppHeader } from "@/components/common/AppHeader";
 import { useInviteStore } from "@/stores/useInviteStore";
 import { useMapStore } from "@/stores/useMapStore";
 import { useAuthStore } from "@/stores/useAuthStore";
@@ -155,18 +156,7 @@ export default function InviteCenterScreen() {
 
   return (
     <SafeAreaView style={styles.safe}>
-      {/* Header */}
-      <View style={styles.header}>
-        <IconButton
-          icon="chevron-back"
-          onPress={() => router.back()}
-          size={40}
-          backgroundColor={colors.bg.elevated}
-          color={colors.text.primary}
-        />
-        <Text style={styles.headerTitle}>초대/연결 관리</Text>
-        <View style={{ width: 40 }} />
-      </View>
+      <AppHeader title="초대/연결 관리" onBack={() => router.back()} />
 
       <View style={styles.content}>
         {/* Connection Status */}
@@ -292,17 +282,6 @@ const styles = StyleSheet.create({
   safe: {
     flex: 1,
     backgroundColor: colors.bg.canvas,
-  },
-  header: {
-    flexDirection: "row",
-    alignItems: "center",
-    justifyContent: "space-between",
-    paddingHorizontal: layout.screenPaddingH,
-    paddingVertical: spacing[3],
-  },
-  headerTitle: {
-    ...typography.title.l,
-    color: colors.text.primary,
   },
   content: {
     flex: 1,

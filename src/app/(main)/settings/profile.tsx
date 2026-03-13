@@ -116,7 +116,6 @@ export default function ProfileSettingsScreen() {
           fullWidth
           loading={loading}
           disabled={!nickname.trim()}
-          style={styles.ctaButton}
         />
       </BottomCtaBar>
     </SafeAreaView>
@@ -172,8 +171,5 @@ const styles = StyleSheet.create({
   },
   section: {
     marginTop: spacing[7],
-  },
-  ctaButton: {
-    borderRadius: radius.lg,
   },
 });

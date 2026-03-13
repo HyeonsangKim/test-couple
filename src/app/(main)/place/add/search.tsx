@@ -4,7 +4,7 @@ import { useLocalSearchParams, useRouter } from 'expo-router';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { Ionicons } from '@expo/vector-icons';
 import { colors, typography, spacing, radius, layout, component } from '@/theme/tokens';
-import { IconButton } from '@/components/ui';
+import { AppHeader } from '@/components/common/AppHeader';
 import { SearchBar } from '@/components/filter/SearchBar';
 import { MapApiResult } from '@/types';
 
@@ -119,18 +119,7 @@ export default function PlaceAddSearchScreen() {
 
   return (
     <SafeAreaView style={styles.safe}>
-      {/* Header */}
-      <View style={styles.header}>
-        <IconButton
-          icon="chevron-back"
-          onPress={() => router.back()}
-          size={component.header.iconButton}
-          backgroundColor={colors.bg.elevated}
-          color={colors.text.primary}
-        />
-        <Text style={styles.headerTitle}>장소 검색</Text>
-        <View style={styles.headerSpacer} />
-      </View>
+      <AppHeader title="장소 검색" onBack={() => router.back()} />
 
       {/* Search — live search, no button */}
       <View style={styles.searchSection}>
@@ -191,20 +180,6 @@ const styles = StyleSheet.create({
   safe: {
     flex: 1,
     backgroundColor: colors.bg.canvas,
-  },
-  header: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'space-between',
-    paddingHorizontal: layout.screenPaddingH,
-    paddingVertical: spacing[3],
-  },
-  headerTitle: {
-    ...typography.title.l,
-    color: colors.text.primary,
-  },
-  headerSpacer: {
-    width: component.header.iconButton,
   },
   searchSection: {
     paddingHorizontal: layout.screenPaddingH,

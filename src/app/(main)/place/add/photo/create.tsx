@@ -12,10 +12,12 @@ import { SafeAreaView } from 'react-native-safe-area-context';
 import * as Location from 'expo-location';
 import MapView, { Marker, Region } from 'react-native-maps';
 import { format } from 'date-fns';
-import { colors, typography, spacing, radius, layout, component } from '@/theme/tokens';
-import { Button, Chip, IconButton } from '@/components/ui';
+import { colors, typography, spacing, radius, layout } from '@/theme/tokens';
+import { Button, Chip } from '@/components/ui';
 import { DatePicker } from '@/components/common/DatePicker';
 import { PlaceImageUploadField } from '@/components/place/PlaceImageUploadField';
+import { AppHeader } from '@/components/common/AppHeader';
+import { BottomCtaBar } from '@/components/settings';
 import { createPlaceFromDraft } from '@/services';
 import { PlaceAddStatus, PlaceCategory } from '@/types';
 import { CATEGORIES, DEFAULT_MAP_REGION } from '@/constants';
@@ -234,18 +236,7 @@ export default function PlaceCreateFromPhotoScreen() {
 
   return (
     <SafeAreaView style={styles.safe} edges={['top']}>
-      {/* Header */}
-      <View style={styles.header}>
-        <IconButton
-          icon="chevron-back"
-          onPress={() => router.back()}
-          size={component.header.iconButton}
-          backgroundColor={colors.bg.elevated}
-          color={colors.text.primary}
-        />
-        <Text style={styles.headerTitle}>새 장소 생성</Text>
-        <View style={styles.headerSpacer} />
-      </View>
+      <AppHeader title="새 장소 생성" onBack={() => router.back()} />
 
       <ScrollView
         style={styles.scroll}
@@ -357,8 +348,7 @@ export default function PlaceCreateFromPhotoScreen() {
         ) : null}
       </ScrollView>
 
-      {/* Footer */}
-      <View style={styles.footer}>
+      <BottomCtaBar>
         <Button
           title="저장"
           onPress={handleSave}
@@ -367,9 +357,8 @@ export default function PlaceCreateFromPhotoScreen() {
           fullWidth
           loading={loading}
           disabled={!placeName.trim() || (requiresImage && draftImages.length === 0)}
-          style={styles.saveBtn}
         />
-      </View>
+      </BottomCtaBar>
     </SafeAreaView>
   );
 }
@@ -378,20 +367,6 @@ const styles = StyleSheet.create({
   safe: {
     flex: 1,
     backgroundColor: colors.bg.canvas,
-  },
-  header: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'space-between',
-    paddingHorizontal: layout.screenPaddingH,
-    paddingVertical: spacing[3],
-  },
-  headerTitle: {
-    ...typography.title.l,
-    color: colors.text.primary,
-  },
-  headerSpacer: {
-    width: component.header.iconButton,
   },
   scroll: { flex: 1 },
   content: {
@@ -440,14 +415,5 @@ const styles = StyleSheet.create({
   },
   map: {
     flex: 1,
-  },
-  footer: {
-    padding: spacing[5],
-    borderTopWidth: 1,
-    borderTopColor: colors.border.soft,
-    backgroundColor: colors.bg.elevated,
-  },
-  saveBtn: {
-    borderRadius: radius['2xl'],
   },
 });

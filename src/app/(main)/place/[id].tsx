@@ -7,7 +7,8 @@ import { useLocalSearchParams, useRouter } from 'expo-router';
 import { SafeAreaView, useSafeAreaInsets } from 'react-native-safe-area-context';
 import { Ionicons } from '@expo/vector-icons';
 import { colors, typography, spacing, radius, layout, component } from '@/theme/tokens';
-import { Button, Chip, IconButton, Card } from '@/components/ui';
+import { Button, Chip, Card } from '@/components/ui';
+import { AppHeader } from '@/components/common/AppHeader';
 import { ConfirmModal } from '@/components/common/ConfirmModal';
 import { usePlaceStore } from '@/stores/usePlaceStore';
 import { useVisitStore } from '@/stores/useVisitStore';
@@ -143,17 +144,7 @@ export default function PlaceDetailScreen() {
 
   return (
     <SafeAreaView style={styles.safe} edges={['top']}>
-      <View style={styles.header}>
-        <IconButton
-          icon="chevron-back"
-          onPress={() => router.back()}
-          size={40}
-          backgroundColor={colors.bg.elevated}
-          color={colors.text.primary}
-        />
-        <Text numberOfLines={1} style={styles.headerTitle}>장소 상세</Text>
-        <View style={styles.headerSpacer} />
-      </View>
+      <AppHeader title="장소 상세" onBack={() => router.back()} />
 
       <KeyboardAvoidingView
         style={styles.keyboardAvoiding}
@@ -450,26 +441,6 @@ export default function PlaceDetailScreen() {
 
 const styles = StyleSheet.create({
   safe: { flex: 1, backgroundColor: colors.bg.canvas },
-  header: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'space-between',
-    paddingHorizontal: layout.screenPaddingH,
-    paddingVertical: spacing[3],
-    borderBottomWidth: 1,
-    borderBottomColor: colors.border.soft,
-    backgroundColor: colors.bg.elevated,
-  },
-  headerTitle: {
-    ...typography.title.l,
-    color: colors.text.primary,
-    flex: 1,
-    textAlign: 'center',
-    marginHorizontal: spacing[3],
-  },
-  headerSpacer: {
-    width: 40,
-  },
   keyboardAvoiding: {
     flex: 1,
   },

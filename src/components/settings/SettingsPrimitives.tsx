@@ -6,12 +6,11 @@ import {
   Text,
   TextInput as RNTextInput,
   TextInputProps as RNTextInputProps,
-  TouchableOpacity,
   View,
   ViewStyle,
 } from 'react-native';
-import { Ionicons } from '@expo/vector-icons';
 import { colors, component, layout, radius, spacing, typography } from '@/theme/tokens';
+import { AppHeader } from '@/components/common/AppHeader';
 
 interface SettingsHeaderProps {
   title: string;
@@ -46,17 +45,7 @@ interface SettingsSwitchRowProps {
 }
 
 export function SettingsHeader({ title, onBack, rightSlot }: SettingsHeaderProps) {
-  return (
-    <View style={styles.header}>
-      <TouchableOpacity activeOpacity={0.7} onPress={onBack} style={styles.headerButton}>
-        <Ionicons name="chevron-back" size={20} color={colors.text.primary} />
-      </TouchableOpacity>
-      <Text numberOfLines={1} style={styles.headerTitle}>{title}</Text>
-      <View style={styles.headerSide}>
-        {rightSlot ?? null}
-      </View>
-    </View>
-  );
+  return <AppHeader title={title} onBack={onBack} rightSlot={rightSlot} />;
 }
 
 export function SettingsSection({
@@ -156,36 +145,17 @@ export function SettingsSwitchRow({
   );
 }
 
-export function BottomCtaBar({ children }: { children: React.ReactNode }) {
-  return <View style={styles.footer}>{children}</View>;
+export function BottomCtaBar({
+  children,
+  style,
+}: {
+  children: React.ReactNode;
+  style?: StyleProp<ViewStyle>;
+}) {
+  return <View style={[styles.footer, style]}>{children}</View>;
 }
 
 const styles = StyleSheet.create({
-  header: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    paddingHorizontal: layout.screenPaddingH,
-    paddingVertical: spacing[3],
-    gap: spacing[3],
-  },
-  headerButton: {
-    width: 44,
-    height: 44,
-    borderRadius: radius.md,
-    backgroundColor: colors.bg.subtle,
-    alignItems: 'center',
-    justifyContent: 'center',
-  },
-  headerTitle: {
-    ...typography.title.l,
-    color: colors.text.primary,
-    flex: 1,
-    textAlign: 'center',
-  },
-  headerSide: {
-    width: 44,
-    alignItems: 'flex-end',
-  },
   sectionTitle: {
     ...typography.body.m,
     color: colors.text.tertiary,
@@ -269,10 +239,8 @@ const styles = StyleSheet.create({
   },
   footer: {
     paddingHorizontal: layout.screenPaddingH,
-    paddingTop: spacing[3],
+    paddingTop: spacing[2],
     paddingBottom: spacing[4],
-    borderTopWidth: 1,
-    borderTopColor: colors.line.default,
-    backgroundColor: colors.bg.base,
+    backgroundColor: 'transparent',
   },
 });

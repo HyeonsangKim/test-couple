@@ -108,7 +108,6 @@ export default function AnniversarySettingsScreen() {
           size="lg"
           fullWidth
           loading={loading}
-          style={styles.ctaButton}
         />
       </BottomCtaBar>
     </SafeAreaView>
@@ -161,8 +160,5 @@ const styles = StyleSheet.create({
   clearActionHelper: {
     ...typography.body.m,
     color: colors.text.secondary,
-  },
-  ctaButton: {
-    borderRadius: radius.lg,
   },
 });

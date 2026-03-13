@@ -16,6 +16,8 @@ import { colors, typography, spacing, radius, layout } from "@/theme/tokens";
 import { Button, IconButton, Card } from "@/components/ui";
 import { DatePicker } from "@/components/common/DatePicker";
 import { ConfirmModal } from "@/components/common/ConfirmModal";
+import { AppHeader } from "@/components/common/AppHeader";
+import { BottomCtaBar } from "@/components/settings";
 import { useVisitStore } from "@/stores/useVisitStore";
 import { usePlaceStore } from "@/stores/usePlaceStore";
 import { useAuthStore } from "@/stores/useAuthStore";
@@ -257,26 +259,19 @@ export default function VisitFormScreen() {
 
   return (
     <SafeAreaView style={styles.safe}>
-      {/* Header */}
-      <View style={styles.header}>
-        <IconButton
-          icon="close"
-          onPress={() => router.back()}
-          size={40}
-          backgroundColor={colors.bg.elevated}
-          color={colors.text.primary}
-        />
-        <Text style={styles.headerTitle}>
-          {isEditMode ? "방문 기록 수정" : "방문 기록 작성"}
-        </Text>
-        {isEditMode ? (
-          <TouchableOpacity onPress={() => setShowDeleteConfirm(true)}>
-            <Text style={styles.deleteHeaderBtn}>삭제</Text>
-          </TouchableOpacity>
-        ) : (
-          <View style={{ width: 40 }} />
-        )}
-      </View>
+      <AppHeader
+        title={isEditMode ? "방문 기록 수정" : "방문 기록 작성"}
+        onBack={() => router.back()}
+        rightSlot={isEditMode ? (
+          <IconButton
+            icon="trash-outline"
+            onPress={() => setShowDeleteConfirm(true)}
+            size={40}
+            backgroundColor={colors.bg.elevated}
+            color={colors.accent.danger}
+          />
+        ) : undefined}
+      />
 
       <ScrollView style={styles.scroll} contentContainerStyle={styles.content}>
         {/* Place Info */}
@@ -341,8 +336,7 @@ export default function VisitFormScreen() {
         </Card>
       </ScrollView>
 
-      {/* Footer */}
-      <View style={styles.footer}>
+      <BottomCtaBar>
         <Button
           title="저장"
           onPress={handleSave}
@@ -351,9 +345,8 @@ export default function VisitFormScreen() {
           fullWidth
           loading={loading}
           disabled={!placeId}
-          style={styles.saveBtn}
         />
-      </View>
+      </BottomCtaBar>
 
       <ConfirmModal
         visible={showDeleteConfirm}
@@ -370,20 +363,6 @@ export default function VisitFormScreen() {
 
 const styles = StyleSheet.create({
   safe: { flex: 1, backgroundColor: colors.bg.canvas },
-  header: {
-    flexDirection: "row",
-    alignItems: "center",
-    justifyContent: "space-between",
-    paddingHorizontal: layout.screenPaddingH,
-    paddingVertical: spacing[3],
-    borderBottomWidth: 1,
-    borderBottomColor: colors.border.soft,
-  },
-  headerTitle: { ...typography.title.l, color: colors.text.primary },
-  deleteHeaderBtn: {
-    ...typography.title.m,
-    color: colors.accent.danger,
-  },
   scroll: { flex: 1 },
   content: {
     padding: layout.screenPaddingH,
@@ -450,16 +429,5 @@ const styles = StyleSheet.create({
     backgroundColor: colors.accent.danger,
     alignItems: "center",
     justifyContent: "center",
-  },
-  footer: {
-    paddingHorizontal: layout.screenPaddingH,
-    padding: 20,
-    borderTopWidth: 1,
-    borderTopColor: colors.border.soft,
-    backgroundColor: colors.bg.elevated,
-  },
-  saveBtn: {
-    borderRadius: radius["2xl"],
-    height: 56,
   },
 });
