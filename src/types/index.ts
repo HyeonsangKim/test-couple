@@ -143,7 +143,7 @@ export interface PlaceAddDraft {
   addressText?: string | null;
   category: PlaceCategory;
   status: PlaceAddStatus;
-  visitDate: string;
+  visitDate?: string; // visited 상태 또는 이미지로 방문기록 생성 시 사용
   imageUris: string[];
   sourceType: PlaceSourceType;
   externalPlaceId?: string | null;

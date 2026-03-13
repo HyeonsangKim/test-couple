@@ -20,6 +20,7 @@ import { AppHeader } from '@/components/common/AppHeader';
 import { BottomCtaBar } from '@/components/settings';
 import { createPlaceFromDraft } from '@/services';
 import { PlaceAddStatus, PlaceCategory } from '@/types';
+import { shouldShowVisitDateField } from '@/utils/placeAddRules';
 import { CATEGORIES, DEFAULT_MAP_REGION } from '@/constants';
 import {
   buildAddressText,
@@ -103,7 +104,7 @@ export default function PlaceCreateFromPhotoScreen() {
   const [isMetadataLoading, setIsMetadataLoading] = useState(
     Boolean(firstDraftImage && firstDraftImage.latitude !== null && firstDraftImage.longitude !== null),
   );
-  const shouldShowVisitDate = status === 'visited';
+  const shouldShowVisitDate = shouldShowVisitDateField(status);
 
   const resolveLocationDetails = async (
     coordinate: { latitude: number; longitude: number },

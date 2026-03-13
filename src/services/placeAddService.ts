@@ -4,14 +4,15 @@ import { useAuthStore } from '@/stores/useAuthStore';
 import { useMapStore } from '@/stores/useMapStore';
 import { usePlaceStore } from '@/stores/usePlaceStore';
 import { useVisitStore } from '@/stores/useVisitStore';
+import { shouldCreateVisitRecord } from '@/utils/placeAddRules';
 import { validatePlaceName } from '@/utils/validation';
 
 const DATE_PATTERN = /^\d{4}-\d{2}-\d{2}$/;
 
 const getTodayVisitDate = () => format(new Date(), 'yyyy-MM-dd');
 
-const normalizeVisitDate = (visitDate: string) =>
-  DATE_PATTERN.test(visitDate) ? visitDate : getTodayVisitDate();
+const normalizeVisitDate = (visitDate?: string) =>
+  visitDate && DATE_PATTERN.test(visitDate) ? visitDate : getTodayVisitDate();
 
 const dedupeImageUris = (imageUris: string[]) =>
   Array.from(
@@ -37,8 +38,8 @@ export const createPlaceFromDraft = async (draft: PlaceAddDraft): Promise<Place>
   }
 
   const imageUris = dedupeImageUris(draft.imageUris);
-  const shouldCreateVisit = imageUris.length > 0 || draft.status === 'visited';
-  const visitDate = normalizeVisitDate(draft.visitDate);
+  const shouldCreateVisit = shouldCreateVisitRecord(draft.status, imageUris.length);
+  const visitDate = shouldCreateVisit ? normalizeVisitDate(draft.visitDate) : null;
 
   const addPlace = usePlaceStore.getState().addPlace;
   const updatePlace = usePlaceStore.getState().updatePlace;
@@ -61,7 +62,7 @@ export const createPlaceFromDraft = async (draft: PlaceAddDraft): Promise<Place>
 
   let heroImageId: string | null = null;
 
-  if (shouldCreateVisit) {
+  if (shouldCreateVisit && visitDate) {
     const visit = await addVisit({
       placeId: place.placeId,
       visitDate,

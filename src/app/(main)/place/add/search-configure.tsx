@@ -13,6 +13,7 @@ import { useMapStore } from '@/stores/useMapStore';
 import { usePlaceStore } from '@/stores/usePlaceStore';
 import { CATEGORIES, DEFAULT_MAP_REGION } from '@/constants';
 import { PlaceAddStatus, PlaceCategory } from '@/types';
+import { shouldShowVisitDateField } from '@/utils/placeAddRules';
 import { colors, layout, radius, spacing, typography } from '@/theme/tokens';
 
 const parseParamNumber = (value?: string) => {
@@ -56,7 +57,7 @@ export default function PlaceAddSearchConfigureScreen() {
   const [visitDate, setVisitDate] = useState(format(new Date(), 'yyyy-MM-dd'));
   const [imageUris, setImageUris] = useState<string[]>([]);
   const [loading, setLoading] = useState(false);
-  const shouldShowVisitDate = status === 'visited';
+  const shouldShowVisitDate = shouldShowVisitDateField(status);
 
   const handleSave = async () => {
     if (loading) {
