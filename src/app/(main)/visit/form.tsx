@@ -323,6 +323,7 @@ export default function VisitFormScreen() {
                 <TouchableOpacity
                   style={styles.removeImageBtn}
                   onPress={() => removeImage(i)}
+                  hitSlop={6}
                 >
                   <Ionicons
                     name="close"
@@ -412,21 +413,27 @@ const styles = StyleSheet.create({
     color: colors.text.tertiary,
     marginTop: spacing[1],
   },
-  imageThumbContainer: { marginRight: spacing[2] },
-  imageThumb: {
+  imageThumbContainer: {
     width: 80,
     height: 80,
     borderRadius: radius.md,
+    overflow: "hidden",
+    marginRight: spacing[2],
     backgroundColor: colors.bg.soft,
+    position: "relative",
+  },
+  imageThumb: {
+    width: "100%",
+    height: "100%",
   },
   removeImageBtn: {
     position: "absolute",
-    top: -6,
-    right: -6,
+    top: spacing[1],
+    right: spacing[1],
     width: 22,
     height: 22,
     borderRadius: 11,
-    backgroundColor: colors.accent.danger,
+    backgroundColor: colors.overlay.dim,
     alignItems: "center",
     justifyContent: "center",
   },
