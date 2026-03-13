@@ -3,7 +3,9 @@ import {
   View,
   Text,
   StyleSheet,
-  TouchableOpacity,
+  ScrollView,
+  KeyboardAvoidingView,
+  Platform,
   TextInput as RNTextInput,
 } from "react-native";
 import { useRouter } from "expo-router";
@@ -158,103 +160,113 @@ export default function InviteCenterScreen() {
     <SafeAreaView style={styles.safe}>
       <AppHeader title="초대/연결 관리" onBack={() => router.back()} />
 
-      <View style={styles.content}>
-        {/* Connection Status */}
-        {isConnected && partner && (
-          <Card style={styles.connectedCard}>
-            <View style={styles.connectedRow}>
-              <Ionicons
-                name="checkmark-circle"
-                size={20}
-                color={colors.accent.mint}
-              />
-              <Text style={styles.connectedText}>
-                {partner.nickname}과 연결됨
-              </Text>
-            </View>
-            <Button
-              title="연결 해제"
-              onPress={() => router.push("/(main)/settings/disconnect")}
-              variant="ghost-danger"
-              size="sm"
-            />
-          </Card>
-        )}
-
-        {/* My Invite Code Section */}
-        <Card style={styles.codeCard}>
-          <Text style={styles.sectionTitle}>내 초대 코드</Text>
-          {invite && invite.status === "active" && !expired ? (
-            <>
-              <View style={styles.codeBox}>
-                <Text style={styles.codeText}>{invite.code}</Text>
-              </View>
-              <Text style={styles.timerText}>
-                {remainingHours > 0 ? `${remainingHours}시간 남음` : "곧 만료"}
-              </Text>
-              <View style={styles.codeActions}>
-                <Button
-                  title="복사"
-                  onPress={handleCopyCode}
-                  variant="soft-secondary"
-                  size="md"
+      <KeyboardAvoidingView
+        style={styles.keyboardAvoiding}
+        behavior={Platform.OS === "ios" ? "padding" : undefined}
+      >
+        <ScrollView
+          style={styles.scroll}
+          contentContainerStyle={styles.content}
+          keyboardShouldPersistTaps="handled"
+          keyboardDismissMode={Platform.OS === "ios" ? "interactive" : "on-drag"}
+        >
+          {/* Connection Status */}
+          {isConnected && partner && (
+            <Card style={styles.connectedCard}>
+              <View style={styles.connectedRow}>
+                <Ionicons
+                  name="checkmark-circle"
+                  size={20}
+                  color={colors.accent.mint}
                 />
-                <Button
-                  title="무효화"
-                  onPress={handleRevoke}
-                  variant="ghost-danger"
-                  size="md"
-                />
+                <Text style={styles.connectedText}>
+                  {partner.nickname}과 연결됨
+                </Text>
               </View>
-            </>
-          ) : (
-            <>
-              <Text style={styles.codeDesc}>
-                초대 코드를 생성해서 상대방에게 공유하세요.{"\n"}
-                코드는 24시간 동안 유효합니다.
-              </Text>
               <Button
-                title="초대 코드 생성"
-                onPress={handleGenerate}
-                variant="fill-primary"
-                size="lg"
-                fullWidth
-                loading={isLoading}
+                title="연결 해제"
+                onPress={() => router.push("/(main)/settings/disconnect")}
+                variant="ghost-danger"
+                size="sm"
               />
-            </>
+            </Card>
           )}
-        </Card>
 
-        {/* Join with Code Section */}
-        <Card style={styles.joinCard}>
-          <Text style={styles.sectionTitle}>초대 코드 입력</Text>
-          <Text style={styles.joinDesc}>
-            상대방에게 받은 8자리 초대 코드를 입력하세요
-          </Text>
-          <RNTextInput
-            style={styles.codeInput}
-            value={code}
-            onChangeText={(val) => setCode(val.toUpperCase())}
-            placeholder="ABCD1234"
-            placeholderTextColor={colors.text.tertiary}
-            autoCapitalize="characters"
-            maxLength={8}
-            showSoftInputOnFocus
-          />
-          <Button
-            title="참여하기"
-            onPress={handleJoin}
-            variant="fill-primary"
-            size="lg"
-            fullWidth
-            loading={isLoading}
-            disabled={!code}
-          />
-          {(codeError || error) && (
-            <Text style={styles.errorText}>{codeError || error}</Text>
-          )}
-        </Card>
-      </View>
+          {/* My Invite Code Section */}
+          <Card style={styles.codeCard}>
+            <Text style={styles.sectionTitle}>내 초대 코드</Text>
+            {invite && invite.status === "active" && !expired ? (
+              <>
+                <View style={styles.codeBox}>
+                  <Text style={styles.codeText}>{invite.code}</Text>
+                </View>
+                <Text style={styles.timerText}>
+                  {remainingHours > 0 ? `${remainingHours}시간 남음` : "곧 만료"}
+                </Text>
+                <View style={styles.codeActions}>
+                  <Button
+                    title="복사"
+                    onPress={handleCopyCode}
+                    variant="soft-secondary"
+                    size="md"
+                  />
+                  <Button
+                    title="무효화"
+                    onPress={handleRevoke}
+                    variant="ghost-danger"
+                    size="md"
+                  />
+                </View>
+              </>
+            ) : (
+              <>
+                <Text style={styles.codeDesc}>
+                  초대 코드를 생성해서 상대방에게 공유하세요.{"\n"}
+                  코드는 24시간 동안 유효합니다.
+                </Text>
+                <Button
+                  title="초대 코드 생성"
+                  onPress={handleGenerate}
+                  variant="fill-primary"
+                  size="lg"
+                  fullWidth
+                  loading={isLoading}
+                />
+              </>
+            )}
+          </Card>
+
+          {/* Join with Code Section */}
+          <Card style={styles.joinCard}>
+            <Text style={styles.sectionTitle}>초대 코드 입력</Text>
+            <Text style={styles.joinDesc}>
+              상대방에게 받은 8자리 초대 코드를 입력하세요
+            </Text>
+            <RNTextInput
+              style={styles.codeInput}
+              value={code}
+              onChangeText={(val) => setCode(val.toUpperCase())}
+              placeholder="ABCD1234"
+              placeholderTextColor={colors.text.tertiary}
+              autoCapitalize="characters"
+              maxLength={8}
+              showSoftInputOnFocus
+            />
+            <Button
+              title="참여하기"
+              onPress={handleJoin}
+              variant="fill-primary"
+              size="lg"
+              fullWidth
+              loading={isLoading}
+              disabled={!code}
+            />
+            {(codeError || error) && (
+              <Text style={styles.errorText}>{codeError || error}</Text>
+            )}
+          </Card>
+        </ScrollView>
+      </KeyboardAvoidingView>
 
       {/* Destructive rejoin confirmation */}
       <ConfirmModal
@@ -278,9 +290,16 @@ const styles = StyleSheet.create({
     flex: 1,
     backgroundColor: colors.bg.canvas,
   },
-  content: {
+  keyboardAvoiding: {
     flex: 1,
+  },
+  scroll: {
+    flex: 1,
+  },
+  content: {
+    flexGrow: 1,
     paddingHorizontal: layout.screenPaddingH,
+    paddingBottom: spacing[8],
     gap: layout.cardGap,
   },
   connectedCard: {

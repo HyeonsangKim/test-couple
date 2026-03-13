@@ -56,6 +56,7 @@ export default function PlaceAddSearchConfigureScreen() {
   const [visitDate, setVisitDate] = useState(format(new Date(), 'yyyy-MM-dd'));
   const [imageUris, setImageUris] = useState<string[]>([]);
   const [loading, setLoading] = useState(false);
+  const shouldShowVisitDate = status === 'visited';
 
   const handleSave = async () => {
     if (loading) {
@@ -166,10 +167,12 @@ export default function PlaceAddSearchConfigureScreen() {
           </View>
         </View>
 
-        <View style={styles.section}>
-          <Text style={styles.sectionTitle}>방문일</Text>
-          <DatePicker value={visitDate} onChange={setVisitDate} />
-        </View>
+        {shouldShowVisitDate ? (
+          <View style={styles.section}>
+            <Text style={styles.sectionTitle}>방문일</Text>
+            <DatePicker value={visitDate} onChange={setVisitDate} />
+          </View>
+        ) : null}
       </ScrollView>
 
       <BottomCtaBar>

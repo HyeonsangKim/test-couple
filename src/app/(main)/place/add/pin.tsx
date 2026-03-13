@@ -1,10 +1,10 @@
 import React, { useRef, useState } from 'react';
-import { View, StyleSheet, TouchableOpacity } from 'react-native';
+import { View, StyleSheet, TouchableOpacity, Text } from 'react-native';
 import { useRouter } from 'expo-router';
 import { SafeAreaView, useSafeAreaInsets } from 'react-native-safe-area-context';
 import MapView, { Marker, Region } from 'react-native-maps';
 import { Ionicons } from '@expo/vector-icons';
-import { colors, spacing, layout, shadow, component } from '@/theme/tokens';
+import { colors, spacing, layout, shadow, component, radius, typography } from '@/theme/tokens';
 import { Button } from '@/components/ui';
 import { AppHeader } from '@/components/common/AppHeader';
 import { DEFAULT_MAP_REGION } from '@/constants';
@@ -107,6 +107,23 @@ export default function PlaceAddPinScreen() {
         />
       </TouchableOpacity>
 
+      <View
+        pointerEvents="none"
+        style={[
+          styles.hintWrap,
+          { bottom: bottomInset + component.button.primaryHeight + spacing[2] },
+        ]}
+      >
+        <View style={styles.hintBubble}>
+          <Ionicons name="hand-left-outline" size={14} color={colors.text.secondary} />
+          <Text style={styles.hintText}>
+            {hasSelectedCoordinate
+              ? '핀 위치가 선택됐어요. 다음을 눌러 계속하세요.'
+              : '지도를 탭해서 위치를 선택하세요.'}
+          </Text>
+        </View>
+      </View>
+
       <View style={[styles.nextCtaWrap, { bottom: bottomInset }]}>
         <Button
           title="다음"
@@ -159,6 +176,28 @@ const styles = StyleSheet.create({
     position: 'absolute',
     left: layout.screenPaddingH,
     right: layout.screenPaddingH,
+  },
+  hintWrap: {
+    position: 'absolute',
+    left: layout.screenPaddingH,
+    right: layout.screenPaddingH,
+    alignItems: 'center',
+  },
+  hintBubble: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: spacing[1],
+    backgroundColor: colors.bg.elevated,
+    borderWidth: 1,
+    borderColor: colors.border.soft,
+    borderRadius: radius.full,
+    paddingHorizontal: spacing[3],
+    paddingVertical: spacing[2],
+    ...shadow.sm,
+  },
+  hintText: {
+    ...typography.body.s,
+    color: colors.text.secondary,
   },
   nextCtaButton: {
     ...shadow.lg,

@@ -103,6 +103,7 @@ export default function PlaceCreateFromPhotoScreen() {
   const [isMetadataLoading, setIsMetadataLoading] = useState(
     Boolean(firstDraftImage && firstDraftImage.latitude !== null && firstDraftImage.longitude !== null),
   );
+  const shouldShowVisitDate = status === 'visited';
 
   const resolveLocationDetails = async (
     coordinate: { latitude: number; longitude: number },
@@ -310,10 +311,12 @@ export default function PlaceCreateFromPhotoScreen() {
           </View>
         </View>
 
-        <View style={styles.section}>
-          <Text style={styles.sectionTitle}>방문일</Text>
-          <DatePicker value={visitDate} onChange={setVisitDate} />
-        </View>
+        {shouldShowVisitDate ? (
+          <View style={styles.section}>
+            <Text style={styles.sectionTitle}>방문일</Text>
+            <DatePicker value={visitDate} onChange={setVisitDate} />
+          </View>
+        ) : null}
 
         {!isPinFlow ? (
           <View style={styles.section}>
