@@ -124,7 +124,7 @@ export default function PlaceDetailScreen() {
           <Ionicons name="help-circle-outline" size={component.emptyState.icon} color={colors.text.tertiary} />
           <Text style={styles.emptyTitle}>장소를 찾을 수 없어요</Text>
           <Text style={styles.emptyDesc}>삭제되었거나 존재하지 않는 장소입니다.</Text>
-          <Button title="뒤로 가기" onPress={() => router.back()} variant="primary" size="md" style={styles.emptyBtn} />
+          <Button title="뒤로 가기" onPress={() => router.back()} variant="fill-primary" size="md" />
         </View>
       </SafeAreaView>
     );
@@ -173,12 +173,12 @@ export default function PlaceDetailScreen() {
           {/* Floating Wishlist Action */}
           {place.status === 'orphan' && (
             <View style={styles.floatingAction}>
-              <Button
-                title="위시리스트에 추가"
-                onPress={() => updatePlace(place.placeId, { status: 'wishlist' })}
-                variant="outline"
-                size="sm"
-              />
+                <Button
+                  title="위시리스트에 추가"
+                  onPress={() => updatePlace(place.placeId, { status: 'wishlist' })}
+                  variant="soft-secondary"
+                  size="sm"
+                />
             </View>
           )}
 
@@ -205,7 +205,7 @@ export default function PlaceDetailScreen() {
                       />
                     ) : (
                       <>
-                        <Button title="승인" onPress={handleApproveDelete} variant="danger" size="sm" />
+                        <Button title="승인" onPress={handleApproveDelete} variant="fill-danger" size="sm" />
                         <Button
                           title="거절"
                           onPress={() => cancelDelete(place.placeId)}
@@ -341,9 +341,8 @@ export default function PlaceDetailScreen() {
               <Button
                 title="장소 삭제 요청"
                 onPress={() => setShowDeleteConfirm(true)}
-                variant="ghost"
+                variant="ghost-danger"
                 size="sm"
-                textStyle={{ color: colors.accent.danger }}
               />
             </View>
           )}
@@ -452,7 +451,6 @@ const styles = StyleSheet.create({
   },
   emptyTitle: { ...typography.heading.m, color: colors.text.primary, marginTop: spacing[4], marginBottom: spacing[2] },
   emptyDesc: { ...typography.body.m, color: colors.text.secondary, textAlign: 'center', marginBottom: spacing[6] },
-  emptyBtn: { borderRadius: radius.full },
   scroll: { flex: 1 },
   scrollContent: { paddingBottom: spacing[6] },
 

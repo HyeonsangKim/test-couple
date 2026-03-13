@@ -12,12 +12,6 @@ import { colors, typography, radius, component } from '@/theme/tokens';
 /**
  * New canonical variants:
  *   fill-primary | fill-danger | fill-dark | soft-secondary | ghost | ghost-danger
- *
- * Legacy names are mapped for backwards compatibility:
- *   primary   → fill-primary
- *   secondary → soft-secondary
- *   outline   → soft-secondary
- *   danger    → ghost-danger
  */
 type Variant =
   | 'fill-primary'
@@ -25,12 +19,7 @@ type Variant =
   | 'fill-dark'
   | 'soft-secondary'
   | 'ghost'
-  | 'ghost-danger'
-  // legacy aliases
-  | 'primary'
-  | 'secondary'
-  | 'outline'
-  | 'danger';
+  | 'ghost-danger';
 
 interface ButtonProps {
   title: string;
@@ -44,25 +33,10 @@ interface ButtonProps {
   fullWidth?: boolean;
 }
 
-// Normalise legacy variant names to canonical ones
-const resolveVariant = (v: Variant): Exclude<Variant, 'primary' | 'secondary' | 'outline' | 'danger'> => {
-  switch (v) {
-    case 'primary':
-      return 'fill-primary';
-    case 'secondary':
-    case 'outline':
-      return 'soft-secondary';
-    case 'danger':
-      return 'ghost-danger';
-    default:
-      return v;
-  }
-};
-
 export const Button: React.FC<ButtonProps> = ({
   title,
   onPress,
-  variant = 'primary',
+  variant = 'fill-primary',
   size = 'md',
   disabled = false,
   loading = false,
@@ -70,7 +44,6 @@ export const Button: React.FC<ButtonProps> = ({
   textStyle,
   fullWidth = false,
 }) => {
-  const resolved = resolveVariant(variant);
   const isDisabled = disabled;
 
   const bgColor: Record<string, string> = {
@@ -109,8 +82,8 @@ export const Button: React.FC<ButtonProps> = ({
     'ghost-danger': colors.text.tertiary,
   };
 
-  const backgroundColor = isDisabled ? disabledBgColor[resolved] : bgColor[resolved];
-  const textColor = isDisabled ? disabledTxtColor[resolved] : txtColor[resolved];
+  const backgroundColor = isDisabled ? disabledBgColor[variant] : bgColor[variant];
+  const textColor = isDisabled ? disabledTxtColor[variant] : txtColor[variant];
 
   const height = size === 'lg'
     ? component.button.primaryHeight

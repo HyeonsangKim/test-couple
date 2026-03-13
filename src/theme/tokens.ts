@@ -58,6 +58,16 @@ export const colors = {
     visited: '#18B26B',
     orphan: '#8B9098',
   },
+  markerSurface: {
+    wishlist: '#FFE8F0',
+    visited: '#E8FFF0',
+    orphan: '#F0F0F5',
+  },
+  toneSurface: {
+    success: 'rgba(24,178,107,0.10)',
+    warning: 'rgba(245,158,11,0.10)',
+    danger: 'rgba(229,72,77,0.10)',
+  },
   category: {
     food: '#E67E22',
     travel: '#3498DB',

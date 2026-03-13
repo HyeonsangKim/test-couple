@@ -15,9 +15,9 @@ interface BadgeProps {
 const stateStyles: Record<BadgeState, { bg: string; text: string }> = {
   neutral: { bg: colors.bg.muted, text: colors.text.secondary },
   accent: { bg: colors.accent.soft, text: colors.accent.primary },
-  success: { bg: 'rgba(24,178,107,0.10)', text: colors.accent.mint },
-  warning: { bg: 'rgba(245,158,11,0.10)', text: colors.accent.warning },
-  danger: { bg: 'rgba(229,72,77,0.10)', text: colors.accent.danger },
+  success: { bg: colors.toneSurface.success, text: colors.accent.mint },
+  warning: { bg: colors.toneSurface.warning, text: colors.accent.warning },
+  danger: { bg: colors.toneSurface.danger, text: colors.accent.danger },
 };
 
 export const Badge: React.FC<BadgeProps> = ({

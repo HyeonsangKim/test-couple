@@ -175,9 +175,8 @@ export default function InviteCenterScreen() {
             <Button
               title="연결 해제"
               onPress={() => router.push("/(main)/settings/disconnect")}
-              variant="ghost"
+              variant="ghost-danger"
               size="sm"
-              textStyle={{ color: colors.accent.danger }}
             />
           </Card>
         )}
@@ -197,16 +196,14 @@ export default function InviteCenterScreen() {
                 <Button
                   title="복사"
                   onPress={handleCopyCode}
-                  variant="secondary"
+                  variant="soft-secondary"
                   size="md"
-                  style={styles.codeActionBtn}
                 />
                 <Button
                   title="무효화"
                   onPress={handleRevoke}
-                  variant="ghost"
+                  variant="ghost-danger"
                   size="md"
-                  textStyle={{ color: colors.accent.danger }}
                 />
               </View>
             </>
@@ -219,11 +216,10 @@ export default function InviteCenterScreen() {
               <Button
                 title="초대 코드 생성"
                 onPress={handleGenerate}
-                variant="primary"
+                variant="fill-primary"
                 size="lg"
                 fullWidth
                 loading={isLoading}
-                style={styles.generateBtn}
               />
             </>
           )}
@@ -248,12 +244,11 @@ export default function InviteCenterScreen() {
           <Button
             title="참여하기"
             onPress={handleJoin}
-            variant="primary"
+            variant="fill-primary"
             size="lg"
             fullWidth
             loading={isLoading}
             disabled={!code}
-            style={styles.joinBtn}
           />
           {(codeError || error) && (
             <Text style={styles.errorText}>{codeError || error}</Text>
@@ -335,17 +330,11 @@ const styles = StyleSheet.create({
     justifyContent: "center",
     gap: spacing[3],
   },
-  codeActionBtn: {
-    borderRadius: radius.full,
-  },
   codeDesc: {
     ...typography.body.m,
     color: colors.text.secondary,
     lineHeight: 22,
     marginBottom: spacing[4],
-  },
-  generateBtn: {
-    borderRadius: radius.full,
   },
   joinCard: {
     backgroundColor: colors.bg.elevated,
@@ -365,9 +354,6 @@ const styles = StyleSheet.create({
     letterSpacing: 2,
     fontWeight: "600",
     marginBottom: spacing[4],
-  },
-  joinBtn: {
-    borderRadius: radius["2xl"],
   },
   errorText: {
     ...typography.body.s,

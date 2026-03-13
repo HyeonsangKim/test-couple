@@ -79,7 +79,7 @@ export const FilterBottomSheet: React.FC<FilterBottomSheetProps> = ({ onClose })
         <Button
           title="적용"
           onPress={onClose}
-          variant="primary"
+          variant="fill-primary"
           size="lg"
           fullWidth
           style={styles.applyBtn}

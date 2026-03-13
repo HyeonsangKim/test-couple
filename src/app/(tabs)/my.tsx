@@ -163,7 +163,7 @@ export default function MyScreen() {
             <Button
               title="연결 관리"
               onPress={() => router.push('/(main)/invite-center')}
-              variant="primary"
+              variant="fill-primary"
               size="md"
               fullWidth
             />

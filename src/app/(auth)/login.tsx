@@ -39,7 +39,7 @@ export default function LoginScreen() {
           <Button
             title="Google로 시작하기"
             onPress={handleGoogleLogin}
-            variant="primary"
+            variant="fill-primary"
             size="lg"
             fullWidth
             loading={loading}

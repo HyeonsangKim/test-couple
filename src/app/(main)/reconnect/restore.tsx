@@ -71,7 +71,7 @@ export default function RestoreDecisionScreen() {
           <Button
             title="새로 시작하기"
             onPress={() => router.replace('/(tabs)/map')}
-            variant="primary"
+            variant="fill-primary"
             size="lg"
             style={styles.emptyBtn}
           />
@@ -150,14 +150,14 @@ export default function RestoreDecisionScreen() {
           <Button
             title="스냅샷에서 복구"
             onPress={handleRestore}
-            variant="primary"
+            variant="fill-primary"
             size="lg"
             fullWidth
           />
           <Button
             title="새로 시작하기"
             onPress={handleNewStart}
-            variant="secondary"
+            variant="soft-secondary"
             size="lg"
             fullWidth
           />

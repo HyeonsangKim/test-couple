@@ -81,7 +81,11 @@ export default function PlaceAddPinScreen() {
       </MapView>
 
       <SafeAreaView style={styles.topOverlay} edges={['top']}>
-        <AppHeader title="지도에 핀 찍기" onBack={() => router.back()} />
+        <AppHeader
+          title="지도에 핀 찍기"
+          onBack={() => router.back()}
+          withBottomGap={false}
+        />
       </SafeAreaView>
 
       <TouchableOpacity
@@ -107,7 +111,7 @@ export default function PlaceAddPinScreen() {
         <Button
           title="다음"
           onPress={handleNext}
-          variant="primary"
+          variant="fill-primary"
           size="lg"
           fullWidth
           disabled={!hasSelectedCoordinate}

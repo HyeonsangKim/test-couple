@@ -104,7 +104,7 @@ export default function AnniversarySettingsScreen() {
         <Button
           title="저장"
           onPress={handleSave}
-          variant="primary"
+          variant="fill-primary"
           size="lg"
           fullWidth
           loading={loading}

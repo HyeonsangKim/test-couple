@@ -9,6 +9,7 @@ interface AppHeaderProps {
   rightSlot?: React.ReactNode;
   style?: StyleProp<ViewStyle>;
   showBottomBorder?: boolean;
+  withBottomGap?: boolean;
 }
 
 export function AppHeader({
@@ -17,9 +18,17 @@ export function AppHeader({
   rightSlot,
   style,
   showBottomBorder = true,
+  withBottomGap = true,
 }: AppHeaderProps) {
   return (
-    <View style={[styles.header, showBottomBorder && styles.headerBorder, style]}>
+    <View
+      style={[
+        styles.header,
+        showBottomBorder && styles.headerBorder,
+        withBottomGap && styles.headerGap,
+        style,
+      ]}
+    >
       <IconButton
         icon="chevron-back"
         onPress={onBack}
@@ -47,6 +56,9 @@ const styles = StyleSheet.create({
   headerBorder: {
     borderBottomWidth: 1,
     borderBottomColor: colors.border.soft,
+  },
+  headerGap: {
+    marginBottom: layout.headerToContent,
   },
   headerTitle: {
     ...typography.title.l,

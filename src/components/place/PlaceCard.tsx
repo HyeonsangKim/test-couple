@@ -30,7 +30,7 @@ const getStatusBadgeStyle = (status: string): { bg: string; text: string } => {
     case 'wishlist':
       return { bg: colors.accent.primarySoft, text: colors.accent.primary };
     case 'visited':
-      return { bg: 'rgba(24,178,107,0.10)', text: colors.marker.visited };
+      return { bg: colors.toneSurface.success, text: colors.marker.visited };
     default:
       return { bg: colors.bg.muted, text: colors.text.tertiary };
   }

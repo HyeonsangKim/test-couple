@@ -34,7 +34,7 @@ export const ConfirmModal: React.FC<ConfirmModalProps> = ({
           <Button
             title={confirmLabel}
             onPress={onConfirm}
-            variant={danger ? 'danger' : 'primary'}
+            variant={danger ? 'fill-danger' : 'fill-primary'}
             size="md"
             style={styles.actionBtn}
           />

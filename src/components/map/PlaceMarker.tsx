@@ -18,11 +18,11 @@ const getMarkerStyle = (place: Place): { bg: string; border: string; icon: Ionic
   }
   switch (place.status) {
     case 'wishlist':
-      return { bg: '#FFE8F0', border: colors.marker.wishlist, icon: 'heart' };
+      return { bg: colors.markerSurface.wishlist, border: colors.marker.wishlist, icon: 'heart' };
     case 'visited':
-      return { bg: '#E8FFF0', border: colors.marker.visited, icon: 'checkmark-circle' };
+      return { bg: colors.markerSurface.visited, border: colors.marker.visited, icon: 'checkmark-circle' };
     case 'orphan':
-      return { bg: '#F0F0F5', border: colors.marker.orphan, icon: 'location' };
+      return { bg: colors.markerSurface.orphan, border: colors.marker.orphan, icon: 'location' };
   }
 };
 
